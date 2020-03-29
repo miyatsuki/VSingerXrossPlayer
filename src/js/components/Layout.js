@@ -16,6 +16,9 @@ export default class Layout extends React.Component {
       song_singer_map: "",
       is_singer_locked: false,
       is_song_locked: true,
+      is_searching: false,
+      searching_vsinger: null,
+      searching_song: null,
     };
   }
 
@@ -37,9 +40,23 @@ export default class Layout extends React.Component {
           });
         });
 
+        const vsinger_list = Object.keys(singer_song_map);
+        const initial_vsinger_list_id = Math.floor(
+          Math.random() * vsinger_list.length
+        );
+        const initial_vsinger = vsinger_list[initial_vsinger_list_id];
+
+        const song_list = Object.keys(singer_song_map[initial_vsinger]);
+        const initial_song_list_id = Math.floor(
+          Math.random() * song_list.length
+        );
+        const initial_song = song_list[initial_song_list_id];
+
         this.setState({
           singer_song_map: singer_song_map,
           song_singer_map: song_singer_map,
+          selected_singer: initial_vsinger,
+          selected_song: initial_song,
         });
       });
   }
@@ -80,6 +97,146 @@ export default class Layout extends React.Component {
 
   toggle_song_lock() {
     this.setState({ is_song_locked: !this.state.is_song_locked });
+  }
+
+  openSearchModal(e) {
+    this.setState({
+      is_searching: true,
+      searching_song: null,
+      searching_vsinger: null,
+    });
+  }
+
+  getCandidateVsinger() {
+    if (this.state.searching_song === null) {
+      return Object.keys(this.state.singer_song_map).sort();
+    } else {
+      return Object.keys(
+        this.state.song_singer_map[this.state.searching_song]
+      ).sort();
+    }
+  }
+
+  getCandidateSong() {
+    if (this.state.searching_vsinger === null) {
+      return Object.keys(this.state.song_singer_map).sort();
+    } else {
+      return Object.keys(
+        this.state.singer_song_map[this.state.searching_vsinger]
+      ).sort();
+    }
+  }
+
+  onVsingerSelected(e) {
+    if (this.state.singer_song_map.hasOwnProperty(e.target.value)) {
+      this.setState({ searching_vsinger: e.target.value });
+    } else {
+      this.setState({ searching_vsinger: null });
+    }
+  }
+
+  onSongSelected(e) {
+    if (this.state.song_singer_map.hasOwnProperty(e.target.value)) {
+      this.setState({ searching_song: e.target.value });
+    } else {
+      this.setState({ searching_song: null });
+    }
+  }
+
+  setSearchingResult() {
+    if (
+      (this.state.searching_song != null) &
+      (this.state.searching_vsinger != null)
+    ) {
+      this.setState({
+        selected_singer: this.state.searching_vsinger,
+        selected_song: this.state.searching_song,
+        is_searching: false,
+      });
+    } else if (this.state.searching_song == null) {
+      const searching_song_list = Object.keys(
+        this.state.singer_song_map[this.state.searching_vsinger]
+      );
+      const searching_song_list_id = Math.floor(
+        Math.random() * searching_song_list.length
+      );
+      const searching_song = searching_song_list[searching_song_list_id];
+      this.setState({
+        selected_singer: this.state.searching_vsinger,
+        selected_song: searching_song,
+        is_searching: false,
+      });
+    } else if (this.state.searching_vsinger == null) {
+      const searching_vsinger_list = Object.keys(
+        this.state.song_singer_map[this.state.searching_song]
+      );
+      const searching_vsinger_list_id = Math.floor(
+        Math.random() * searching_vsinger_list.length
+      );
+      const searching_vsinger =
+        searching_vsinger_list[searching_vsinger_list_id];
+      this.setState({
+        selected_singer: searching_vsinger,
+        selected_song: this.state.searching_song,
+        is_searching: false,
+      });
+    }
+  }
+
+  closeSearchDialogue() {
+    this.setState({ is_searching: false });
+  }
+
+  renderSearchDialogue() {
+    if (this.state.is_searching) {
+      return (
+        <div className="modal">
+          <div style={{ fontSize: "10vw" }}>VSinger</div>
+          <input
+            type="text"
+            style={{ fontSize: "5vw", border: "solid" }}
+            autoComplete="on"
+            list="vsinger"
+            onChange={this.onVsingerSelected.bind(this)}
+          ></input>
+          <datalist id="vsinger">
+            {this.getCandidateVsinger().map((vsinger) => {
+              return (
+                <option value={vsinger} key={"singer_" + vsinger}></option>
+              );
+            })}
+            }
+          </datalist>
+          <div style={{ fontSize: "10vw" }}>楽曲</div>
+          <input
+            type="text"
+            style={{ fontSize: "5vw", border: "solid" }}
+            autoComplete="on"
+            list="song"
+            onChange={this.onSongSelected.bind(this)}
+          ></input>
+          <datalist id="song">
+            {this.getCandidateSong().map((song) => {
+              return <option value={song} key={"song_" + song}></option>;
+            })}
+            }
+          </datalist>
+          <br />
+          <button
+            style={{ fontSize: "5vw", border: "solid" }}
+            onClick={this.setSearchingResult.bind(this)}
+          >
+            設定
+          </button>
+          <button
+            style={{ fontSize: "5vw", border: "solid" }}
+            onClick={this.closeSearchDialogue.bind(this)}
+          >
+            キャンセル
+          </button>
+        </div>
+      );
+    }
   }
 
   render() {
@@ -142,6 +299,7 @@ export default class Layout extends React.Component {
               video_id_list={display_video_id_list_singer}
               selected={this.state.selected_singer}
               lock_icon={lock_icon_singer}
+              openSearchModal={this.openSearchModal.bind(this)}
             />
             <div
               style={{
@@ -158,6 +316,7 @@ export default class Layout extends React.Component {
               video_id_list={display_video_id_list_song}
               selected={this.state.selected_song}
               lock_icon={lock_icon_song}
+              openSearchModal={this.openSearchModal.bind(this)}
             />
           </div>
           <div style={{ textAlign: "center" }}>
@@ -169,6 +328,7 @@ export default class Layout extends React.Component {
             />
           </div>
           <Footer />
+          {this.renderSearchDialogue()}
         </div>
       );
     }

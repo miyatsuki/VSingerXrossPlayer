@@ -44,6 +44,7 @@ export default class Column extends React.Component {
         <div
           className="overflow-text"
           style={{ fontSize: "5vw", textAlign: "center", width: "40vw" }}
+          onClick={this.props.openSearchModal.bind(this)}
         >
           {this.props.selected}
         </div>
