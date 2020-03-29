@@ -40,16 +40,28 @@ export default class Column extends React.Component {
         >
           ▼
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "40vw" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "40vw",
+          }}
+        >
           <div
             className="overflow-text"
-            style={{ fontSize: "4vw", textAlign: "center", width: "40vw", flexGrow: 100 }}
+            style={{
+              fontSize: "4vw",
+              textAlign: "center",
+              width: "40vw",
+              flexGrow: 100,
+            }}
             onClick={this.props.openSearchModal.bind(this)}
           >
             {this.props.selected}
           </div>
           <div
-            style={{ fontSize: "4vw", textAlign: "center"}}
+            style={{ fontSize: "4vw", textAlign: "center" }}
             onClick={this.props.lockFunction.bind(this)}
           >
             <img

@@ -1,16 +1,12 @@
 import React from "react";
-import Title from "./Header/Title";
 
 export default class Header extends React.Component {
-  handleChange(e) {
-    const title = e.target.value;
-    this.props.changeTitle(title);
-  }
-
   render() {
     return (
       <div>
-        <Title title={this.props.title} />
+        <h1 style={{ margin: "0px", textAlign: "center" }}>
+          {this.props.title}
+        </h1>
       </div>
     );
   }
