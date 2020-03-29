@@ -10,6 +10,8 @@ export default class Layout extends React.Component {
     super();
     this.state = {
       title: "VSinger Xross Player",
+      window_width: window.innerWidth,
+      window_height: window.innerHeight,
       selected_song: "月光",
       selected_singer: "レヴィ・エリファ",
       singer_song_map: "",
@@ -23,6 +25,7 @@ export default class Layout extends React.Component {
   }
 
   componentDidMount() {
+    window.addEventListener('resize', this.onWindowResize.bind(this));
     axios
       .get(
         "https://vsinger-infos.s3-ap-northeast-1.amazonaws.com/video_id.json"
@@ -59,6 +62,10 @@ export default class Layout extends React.Component {
           selected_song: initial_song,
         });
       });
+  }
+
+  onWindowResize() {
+    this.setState({ window_width: window.innerWidth, window_height: window.innerHeight });
   }
 
   roundMod(i, val) {
@@ -247,7 +254,7 @@ export default class Layout extends React.Component {
       song_singer_map,
     } = this.state;
     const video_ratio = 9 / 16;
-    const video_width = window.innerWidth * 0.9;
+    const video_width = this.state.window_width * 0.9;
     const video_height = video_width * video_ratio;
 
     const opts = {
