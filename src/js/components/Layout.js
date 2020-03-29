@@ -2,6 +2,7 @@ import React from "react";
 import YouTube from "react-youtube";
 import Header from "./Header";
 import Footer from "./Footer";
+import Column from "./Column";
 const axios = require("axios").default;
 
 export default class Layout extends React.Component {
@@ -96,7 +97,7 @@ export default class Layout extends React.Component {
       height: video_height,
       width: video_width,
       playerVars: {
-        autoplay: 1,
+        autoplay: 0,
       },
     };
 
@@ -135,60 +136,13 @@ export default class Layout extends React.Component {
             title={this.state.title}
           />
           <div style={{ display: "flex", justifyContent: "space-around" }}>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div
-                style={{ textAlign: "center", fontSize: "10vw" }}
-                onClick={this.rotate_singer.bind(this, -1)}
-              >
-                ▲
-              </div>
-              <img
-                src={
-                  "https://i.ytimg.com/vi/" +
-                  display_video_id_list_singer[0] +
-                  "/mqdefault.jpg"
-                }
-                style={{ width: "40vw" }}
-              ></img>
-              <img
-                src={
-                  "https://i.ytimg.com/vi/" +
-                  display_video_id_list_singer[1] +
-                  "/mqdefault.jpg"
-                }
-                style={{ width: "40vw" }}
-              ></img>
-              <img
-                src={
-                  "https://i.ytimg.com/vi/" +
-                  display_video_id_list_singer[2] +
-                  "/mqdefault.jpg"
-                }
-                style={{ width: "40vw" }}
-              ></img>
-              <div
-                style={{ textAlign: "center", fontSize: "10vw" }}
-                onClick={this.rotate_singer.bind(this, +1)}
-              >
-                ▼
-              </div>
-              <div></div>
-              <div
-                className="overflow-text"
-                style={{ fontSize: "5vw", textAlign: "center", width: "40vw" }}
-              >
-                {selected_singer}
-              </div>
-              <div
-                style={{ fontSize: "5vw", textAlign: "center", width: "40vw" }}
-                onClick={this.toggle_singer_lock.bind(this)}
-              >
-                <img
-                  src={lock_icon_singer}
-                  style={{ textAlign: "center", width: "10vw" }}
-                ></img>
-              </div>
-            </div>
+            <Column
+              rotateFunction={this.rotate_singer.bind(this)}
+              lockFunction={this.toggle_singer_lock.bind(this)}
+              video_id_list={display_video_id_list_singer}
+              selected={this.state.selected_singer}
+              lock_icon={lock_icon_singer}
+            />
             <div
               style={{
                 display: "flex",
@@ -198,60 +152,13 @@ export default class Layout extends React.Component {
             >
               X
             </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div
-                style={{ textAlign: "center", fontSize: "10vw" }}
-                onClick={this.rotate_song.bind(this, -1)}
-              >
-                ▲
-              </div>
-              <img
-                src={
-                  "https://i.ytimg.com/vi/" +
-                  display_video_id_list_song[0] +
-                  "/mqdefault.jpg"
-                }
-                style={{ width: "40vw" }}
-              ></img>
-              <img
-                src={
-                  "https://i.ytimg.com/vi/" +
-                  display_video_id_list_song[1] +
-                  "/mqdefault.jpg"
-                }
-                style={{ width: "40vw" }}
-              ></img>
-              <img
-                src={
-                  "https://i.ytimg.com/vi/" +
-                  display_video_id_list_song[2] +
-                  "/mqdefault.jpg"
-                }
-                style={{ width: "40vw" }}
-              ></img>
-              <div
-                style={{ textAlign: "center", fontSize: "10vw" }}
-                onClick={this.rotate_song.bind(this, +1)}
-              >
-                ▼
-              </div>
-              <div></div>
-              <div
-                className="overflow-text"
-                style={{ fontSize: "5vw", textAlign: "center", width: "40vw" }}
-              >
-                {selected_song}
-              </div>
-              <div
-                style={{ fontSize: "5vw", textAlign: "center", width: "40vw" }}
-                onClick={this.toggle_song_lock.bind(this)}
-              >
-                <img
-                  src={lock_icon_song}
-                  style={{ textAlign: "center", width: "10vw" }}
-                ></img>
-              </div>
-            </div>
+            <Column
+              rotateFunction={this.rotate_song.bind(this)}
+              lockFunction={this.toggle_song_lock.bind(this)}
+              video_id_list={display_video_id_list_song}
+              selected={this.state.selected_song}
+              lock_icon={lock_icon_song}
+            />
           </div>
           <div style={{ textAlign: "center" }}>
             <YouTube
