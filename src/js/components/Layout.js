@@ -261,7 +261,8 @@ export default class Layout extends React.Component {
       height: video_height,
       width: video_width,
       playerVars: {
-        autoplay: 0,
+        autoplay: 1,
+        playsinline: 1
       },
     };
 
