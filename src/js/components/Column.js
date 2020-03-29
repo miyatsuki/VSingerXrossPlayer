@@ -5,7 +5,7 @@ export default class Column extends React.Component {
     return (
       <div style={{ display: "flex", flexDirection: "column" }}>
         <div
-          style={{ textAlign: "center", fontSize: "8vw" }}
+          style={{ textAlign: "center", fontSize: "5vw" }}
           onClick={this.props.rotateFunction.bind(this, -1)}
         >
           ▲
@@ -35,26 +35,26 @@ export default class Column extends React.Component {
           style={{ width: "40vw" }}
         ></img>
         <div
-          style={{ textAlign: "center", fontSize: "8vw" }}
+          style={{ textAlign: "center", fontSize: "5vw" }}
           onClick={this.props.rotateFunction.bind(this, +1)}
         >
           ▼
         </div>
-        <div style={{ display: "flex", justifyContent: "space-around", width: "40vw" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "40vw" }}>
           <div
             className="overflow-text"
-            style={{ fontSize: "5vw", textAlign: "center", width: "40vw" }}
+            style={{ fontSize: "4vw", textAlign: "center", width: "40vw", flexGrow: 100 }}
             onClick={this.props.openSearchModal.bind(this)}
           >
             {this.props.selected}
           </div>
           <div
-            style={{ fontSize: "5vw", textAlign: "center", width: "40vw" }}
+            style={{ fontSize: "4vw", textAlign: "center"}}
             onClick={this.props.lockFunction.bind(this)}
           >
             <img
               src={this.props.lock_icon}
-              style={{ textAlign: "center", width: "10vw" }}
+              style={{ textAlign: "center", width: "8vw" }}
             ></img>
           </div>
         </div>
