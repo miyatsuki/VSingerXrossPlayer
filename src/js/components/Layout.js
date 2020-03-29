@@ -9,13 +9,13 @@ export default class Layout extends React.Component {
   constructor() {
     super();
     this.state = {
-      title: "Welcome",
+      title: "VSinger Xross Player",
       selected_song: "月光",
       selected_singer: "レヴィ・エリファ",
       singer_song_map: "",
       song_singer_map: "",
       is_singer_locked: false,
-      is_song_locked: true,
+      is_song_locked: false,
       is_searching: false,
       searching_vsinger: null,
       searching_song: null,
