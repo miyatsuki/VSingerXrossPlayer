@@ -4,6 +4,21 @@ import Header from "./Header";
 import Footer from "./Footer";
 import Column from "./Column";
 const axios = require("axios").default;
+const querystring = require("querystring");
+
+function getQuery() {
+  var url = window.location.search.slice(1);
+  var query_map = querystring.decode(url);
+  if (!query_map.hasOwnProperty("singer")) {
+    query_map["singer"] = "";
+  }
+
+  if (!query_map.hasOwnProperty("song")) {
+    query_map["song"] = "";
+  }
+
+  return query_map;
+}
 
 export default class Layout extends React.Component {
   constructor() {
@@ -12,8 +27,8 @@ export default class Layout extends React.Component {
       title: "VSinger Xross Player",
       window_width: window.innerWidth,
       window_height: window.innerHeight,
-      selected_song: "月光",
-      selected_singer: "レヴィ・エリファ",
+      selected_song: "",
+      selected_singer: "",
       singer_song_map: "",
       song_singer_map: "",
       is_singer_locked: false,
@@ -25,7 +40,7 @@ export default class Layout extends React.Component {
   }
 
   componentDidMount() {
-    window.addEventListener('resize', this.onWindowResize.bind(this));
+    window.addEventListener("resize", this.onWindowResize.bind(this));
     axios
       .get(
         "https://vsinger-infos.s3-ap-northeast-1.amazonaws.com/video_id.json"
@@ -43,17 +58,75 @@ export default class Layout extends React.Component {
           });
         });
 
-        const vsinger_list = Object.keys(singer_song_map);
-        const initial_vsinger_list_id = Math.floor(
-          Math.random() * vsinger_list.length
-        );
-        const initial_vsinger = vsinger_list[initial_vsinger_list_id];
+        var initial = getQuery();
 
-        const song_list = Object.keys(singer_song_map[initial_vsinger]);
-        const initial_song_list_id = Math.floor(
-          Math.random() * song_list.length
-        );
-        const initial_song = song_list[initial_song_list_id];
+        let initial_vsinger = "";
+        let initial_song = "";
+
+        if (
+          singer_song_map.hasOwnProperty(initial["singer"]) &&
+          singer_song_map[initial["singer"]].hasOwnProperty(initial["song"])
+        ) {
+          initial_vsinger = initial["singer"];
+          initial_song = initial["song"];
+        } else if (
+          singer_song_map.hasOwnProperty(initial["singer"]) &&
+          !singer_song_map[initial["singer"]].hasOwnProperty(initial["song"])
+        ) {
+          if (initial["song"] != "") {
+            alert(
+              "システムが認識していない組み合わせが指定されました\nランダムで楽曲を選択します\nVTuber: " +
+                initial["singer"] +
+                "\n 楽曲: " +
+                initial["song"]
+            );
+          }
+          initial_vsinger = initial["singer"];
+
+          const song_list = Object.keys(singer_song_map[initial_vsinger]);
+          const initial_song_list_id = Math.floor(
+            Math.random() * song_list.length
+          );
+          initial_song = song_list[initial_song_list_id];
+        } else if (song_singer_map.hasOwnProperty(initial["song"])) {
+          if (initial["singer"] != "") {
+            alert(
+              "システムが認識していない組み合わせが指定されました\nランダムで楽曲を選択します\nVTuber: " +
+                initial["singer"] +
+                "\n 楽曲: " +
+                initial["song"]
+            );
+          }
+
+          initial_song = initial["song"];
+
+          const singer_list = Object.keys(song_singer_map[initial_song]);
+          const initial_singer_list_id = Math.floor(
+            Math.random() * singer_list.length
+          );
+          initial_vsinger = singer_list[initial_singer_list_id];
+        } else {
+          if (initial["singer"] != "" || initial["song"] != "") {
+            alert(
+              "システムが認識していない組み合わせが指定されました\nランダムで楽曲を選択します\nVTuber: " +
+                initial["singer"] +
+                "\n 楽曲: " +
+                initial["song"]
+            );
+          }
+
+          const vsinger_list = Object.keys(singer_song_map);
+          const initial_vsinger_list_id = Math.floor(
+            Math.random() * vsinger_list.length
+          );
+          initial_vsinger = vsinger_list[initial_vsinger_list_id];
+
+          const song_list = Object.keys(singer_song_map[initial_vsinger]);
+          const initial_song_list_id = Math.floor(
+            Math.random() * song_list.length
+          );
+          initial_song = song_list[initial_song_list_id];
+        }
 
         this.setState({
           singer_song_map: singer_song_map,
@@ -65,7 +138,10 @@ export default class Layout extends React.Component {
   }
 
   onWindowResize() {
-    this.setState({ window_width: window.innerWidth, window_height: window.innerHeight });
+    this.setState({
+      window_width: window.innerWidth,
+      window_height: window.innerHeight,
+    });
   }
 
   roundMod(i, val) {
@@ -262,7 +338,7 @@ export default class Layout extends React.Component {
       width: video_width,
       playerVars: {
         autoplay: 1,
-        playsinline: 1
+        playsinline: 1,
       },
     };
 
