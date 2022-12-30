@@ -202,6 +202,7 @@ export const Main = () => {
   const thumbnailComponentList = videos.map((video, index) => (
     <img
       src={"https://img.youtube.com/vi/" + video.id + "/maxresdefault.jpg"}
+      alt={video.title}
       style={{ "width": "100%" }}
       key={video.id}
       onClick={(e) => {
@@ -224,7 +225,7 @@ export const Main = () => {
     if (selectedSinger !== null || selectedSong !== null) {
       setVideos(filterVideos(videos, selectedSinger, selectedSong))
     }
-  }, [selectedSinger, selectedSong]);
+  }, [videos, selectedSinger, selectedSong]);
 
   return (<>
     <Stack spacing={3} sx={{ width: 500 }}>
