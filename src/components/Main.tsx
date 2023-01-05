@@ -100,12 +100,15 @@ const YouTubeComponent: React.FC<YouTubeComponentProps> = ({ video, onEnd }) => 
     return <></>
   }
 
-  return <>
+  return (
     <YouTube
+      // keyを刺すことによって、videoId変えたのに更新されない問題を回避できる
+      // https://github.com/barmej/react-native-youtube-player/issues/33
+      key={video.id}
       videoId={video.id}
       opts={{
-        height: '390',
-        width: '640',
+        height: "390",
+        width: "640",
         playerVars: {
           // https://developers.google.com/youtube/player_parameters
           autoplay: isPlaying ? 1 : 0,
@@ -117,8 +120,9 @@ const YouTubeComponent: React.FC<YouTubeComponentProps> = ({ video, onEnd }) => 
       onPause={() => {
         setIsPlaying(false)
       }}
-      onEnd={onEnd} />
-  </>
+      onEnd={onEnd}
+    />
+  )
 }
 
 interface VideoInfoComponentProps {
