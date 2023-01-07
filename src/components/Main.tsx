@@ -84,7 +84,8 @@ function filterVideos(allVideos: Video[], singer: string | null, song: string | 
     videos = videos.filter(video => video.song === song)
   }
 
-  return videos
+  // 100件以上返ってきたらフィルタする
+  return videos.filter((v, i) => i < 100)
 }
 
 
