@@ -194,11 +194,10 @@ const VideoInfoComponent: React.FC<VideoInfoComponentProps> = ({ video, handleSi
 
 export const Main = () => {
   const [allVideos, setAllVideos] = useState([] as Video[])
-
   const [singers, setSingers] = useState([] as string[]);
   const [songs, setSongs] = useState([] as string[]);
-  const [videos, setVideos] = useState([] as Video[]);
 
+  const [videos, setVideos] = useState([] as Video[]);
   const [selectedSinger, setSelectedSinger] = useState(null as string | null)
   const [selectedSong, setSelectedSong] = useState(null as string | null)
 
