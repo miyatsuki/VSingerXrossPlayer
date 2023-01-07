@@ -26,7 +26,7 @@ const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL!
 const SUPABASE_KEY = process.env.REACT_APP_SUPABASE_KEY!
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-export async function allVideos() {
+export async function fetchAllVideos() {
   let allVideos: Video[] = []
   for (let i = 0; ; i++) {
     const res = await supabase.from('videos').select("video_id, video_title, song_title, identifier, singers, tags").range(i * 1000, (i + 1) * 1000)
@@ -193,6 +193,8 @@ const VideoInfoComponent: React.FC<VideoInfoComponentProps> = ({ video, handleSi
 
 
 export const Main = () => {
+  const [allVideos, setAllVideos] = useState([] as Video[])
+
   const [singers, setSingers] = useState([] as string[]);
   const [songs, setSongs] = useState([] as string[]);
   const [videos, setVideos] = useState([] as Video[]);
@@ -217,19 +219,17 @@ export const Main = () => {
   ))
 
   useEffect(() => {
-    const p = allVideos()
+    const p = fetchAllVideos()
     p.then(v => {
-      setVideos(v)
+      setAllVideos(v)
       setSongs(allSongs(v))
       setSingers(allSingers(v))
     })
   }, []);
 
   useEffect(() => {
-    if (selectedSinger !== null || selectedSong !== null) {
-      setVideos(filterVideos(videos, selectedSinger, selectedSong))
-    }
-  }, [videos, selectedSinger, selectedSong]);
+    setVideos(filterVideos(allVideos, selectedSinger, selectedSong))
+  }, [allVideos, selectedSinger, selectedSong]);
 
   return (<>
     <Stack spacing={3} sx={{ width: 500 }}>
