@@ -60,7 +60,7 @@ export function allSongs(allVideos: Video[]) {
   allVideos.forEach(video => {
     songSet.add(video.song)
   })
-  return [...songSet]
+  return [...songSet].sort()
 }
 
 export function allSingers(allVideos: Video[]) {
@@ -70,7 +70,7 @@ export function allSingers(allVideos: Video[]) {
       singerSet.add(singer)
     })
   })
-  return [...singerSet]
+  return [...singerSet].sort()
 }
 
 function filterVideos(allVideos: Video[], singer: string | null, song: string | null) {
