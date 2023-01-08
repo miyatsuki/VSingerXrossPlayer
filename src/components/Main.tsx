@@ -90,14 +90,14 @@ function filterVideos(allVideos: Video[], singer: string | null, song: string | 
 
 
 interface YouTubeComponentProps {
-  video: Video | null
+  video: Video | undefined
   onEnd: (event: YouTubeEvent<number>) => void
 }
 
 const YouTubeComponent: React.FC<YouTubeComponentProps> = ({ video, onEnd }) => {
   const [isPlaying, setIsPlaying] = useState(false)
 
-  if (video === null) {
+  if (video === undefined) {
     return <></>
   }
 
@@ -127,13 +127,13 @@ const YouTubeComponent: React.FC<YouTubeComponentProps> = ({ video, onEnd }) => 
 }
 
 interface VideoInfoComponentProps {
-  video: Video | null
+  video: Video | undefined
   handleSingerChipClick: (singer: string) => void
   handleSongChipClick: (song: string) => void
 }
 
 const VideoInfoComponent: React.FC<VideoInfoComponentProps> = ({ video, handleSingerChipClick, handleSongChipClick }) => {
-  if (video === null) {
+  if (video === undefined) {
     return <></>
   }
 
@@ -198,21 +198,22 @@ export const Main = () => {
   const [singers, setSingers] = useState([] as string[]);
   const [songs, setSongs] = useState([] as string[]);
 
-  const [videos, setVideos] = useState([] as Video[]);
   const [selectedSinger, setSelectedSinger] = useState(null as string | null)
   const [selectedSong, setSelectedSong] = useState(null as string | null)
 
-  const [currentSongId, setCurrentSongId] = useState(0)
-  const currentVideo = videos.length > currentSongId ? videos[currentSongId] : null
+  const [queue, setqueue] = useState([] as Video[])
 
-  const thumbnailComponentList = videos.map((video, index) => (
+  // Video | undefined
+  const currentVideo = queue[0]
+
+  const thumbnailComponentList = queue.map((video, index) => (
     <img
       src={"https://img.youtube.com/vi/" + video.id + "/maxresdefault.jpg"}
       alt={video.title}
       style={{ "width": "100%" }}
       key={video.id}
       onClick={(e) => {
-        setCurrentSongId(index)
+        setqueue(queue.filter((v, i) => i >= index))
       }}
       loading="lazy"
     ></img>
@@ -228,7 +229,12 @@ export const Main = () => {
   }, []);
 
   useEffect(() => {
-    setVideos(filterVideos(allVideos, selectedSinger, selectedSong))
+    const videos = filterVideos(allVideos, selectedSinger, selectedSong).filter(v => v.id !== queue[0]?.id)
+    if (queue[0] !== undefined) {
+      setqueue([queue[0], ...videos])
+    } else {
+      setqueue([...videos])
+    }
   }, [allVideos, selectedSinger, selectedSong]);
 
   return (<>
@@ -271,7 +277,11 @@ export const Main = () => {
         <YouTubeComponent
           video={currentVideo}
           onEnd={() => {
-            setCurrentSongId((currentSongId + 1) % videos.length)
+            let newQueue = queue.filter((v, i) => i >= 1)
+            if (newQueue.length == 0) {
+              newQueue = filterVideos(allVideos, selectedSinger, selectedSong)
+            }
+            setqueue(newQueue)
           }} />
         <VideoInfoComponent
           video={currentVideo}
