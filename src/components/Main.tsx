@@ -229,7 +229,12 @@ export const Main = () => {
   }, []);
 
   useEffect(() => {
-    setqueue(filterVideos(allVideos, selectedSinger, selectedSong))
+    const videos = filterVideos(allVideos, selectedSinger, selectedSong).filter(v => v.id !== queue[0]?.id)
+    if (queue[0] !== undefined) {
+      setqueue([queue[0], ...videos])
+    } else {
+      setqueue([...videos])
+    }
   }, [allVideos, selectedSinger, selectedSong]);
 
   return (<>
