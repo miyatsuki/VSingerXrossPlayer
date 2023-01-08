@@ -277,7 +277,11 @@ export const Main = () => {
         <YouTubeComponent
           video={currentVideo}
           onEnd={() => {
-            setqueue(queue.filter((v, i) => i >= 1))
+            let newQueue = queue.filter((v, i) => i >= 1)
+            if (newQueue.length == 0) {
+              newQueue = filterVideos(allVideos, selectedSinger, selectedSong)
+            }
+            setqueue(newQueue)
           }} />
         <VideoInfoComponent
           video={currentVideo}
