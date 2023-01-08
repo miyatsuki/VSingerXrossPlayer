@@ -201,19 +201,19 @@ export const Main = () => {
   const [selectedSinger, setSelectedSinger] = useState(null as string | null)
   const [selectedSong, setSelectedSong] = useState(null as string | null)
 
-  const [cue, setCue] = useState([] as Video[])
+  const [queue, setqueue] = useState([] as Video[])
 
   // Video | undefined
-  const currentVideo = cue[0]
+  const currentVideo = queue[0]
 
-  const thumbnailComponentList = cue.map((video, index) => (
+  const thumbnailComponentList = queue.map((video, index) => (
     <img
       src={"https://img.youtube.com/vi/" + video.id + "/maxresdefault.jpg"}
       alt={video.title}
       style={{ "width": "100%" }}
       key={video.id}
       onClick={(e) => {
-        setCue(cue.filter((v, i) => i >= index))
+        setqueue(queue.filter((v, i) => i >= index))
       }}
       loading="lazy"
     ></img>
@@ -229,7 +229,7 @@ export const Main = () => {
   }, []);
 
   useEffect(() => {
-    setCue(filterVideos(allVideos, selectedSinger, selectedSong))
+    setqueue(filterVideos(allVideos, selectedSinger, selectedSong))
   }, [allVideos, selectedSinger, selectedSong]);
 
   return (<>
@@ -272,7 +272,7 @@ export const Main = () => {
         <YouTubeComponent
           video={currentVideo}
           onEnd={() => {
-            setCue(cue.filter((v, i) => i >= 1))
+            setqueue(queue.filter((v, i) => i >= 1))
           }} />
         <VideoInfoComponent
           video={currentVideo}
