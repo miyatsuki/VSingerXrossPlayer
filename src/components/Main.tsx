@@ -90,14 +90,14 @@ function filterVideos(allVideos: Video[], singer: string | null, song: string | 
 
 
 interface YouTubeComponentProps {
-  video: Video | null
+  video: Video | undefined
   onEnd: (event: YouTubeEvent<number>) => void
 }
 
 const YouTubeComponent: React.FC<YouTubeComponentProps> = ({ video, onEnd }) => {
   const [isPlaying, setIsPlaying] = useState(false)
 
-  if (video === null) {
+  if (video === undefined) {
     return <></>
   }
 
@@ -127,13 +127,13 @@ const YouTubeComponent: React.FC<YouTubeComponentProps> = ({ video, onEnd }) => 
 }
 
 interface VideoInfoComponentProps {
-  video: Video | null
+  video: Video | undefined
   handleSingerChipClick: (singer: string) => void
   handleSongChipClick: (song: string) => void
 }
 
 const VideoInfoComponent: React.FC<VideoInfoComponentProps> = ({ video, handleSingerChipClick, handleSongChipClick }) => {
-  if (video === null) {
+  if (video === undefined) {
     return <></>
   }
 
@@ -198,21 +198,22 @@ export const Main = () => {
   const [singers, setSingers] = useState([] as string[]);
   const [songs, setSongs] = useState([] as string[]);
 
-  const [videos, setVideos] = useState([] as Video[]);
   const [selectedSinger, setSelectedSinger] = useState(null as string | null)
   const [selectedSong, setSelectedSong] = useState(null as string | null)
 
-  const [currentSongId, setCurrentSongId] = useState(0)
-  const currentVideo = videos.length > currentSongId ? videos[currentSongId] : null
+  const [cue, setCue] = useState([] as Video[])
 
-  const thumbnailComponentList = videos.map((video, index) => (
+  // Video | undefined
+  const currentVideo = cue[0]
+
+  const thumbnailComponentList = cue.map((video, index) => (
     <img
       src={"https://img.youtube.com/vi/" + video.id + "/maxresdefault.jpg"}
       alt={video.title}
       style={{ "width": "100%" }}
       key={video.id}
       onClick={(e) => {
-        setCurrentSongId(index)
+        setCue(cue.filter((v, i) => i >= index))
       }}
       loading="lazy"
     ></img>
@@ -228,7 +229,7 @@ export const Main = () => {
   }, []);
 
   useEffect(() => {
-    setVideos(filterVideos(allVideos, selectedSinger, selectedSong))
+    setCue(filterVideos(allVideos, selectedSinger, selectedSong))
   }, [allVideos, selectedSinger, selectedSong]);
 
   return (<>
@@ -271,7 +272,7 @@ export const Main = () => {
         <YouTubeComponent
           video={currentVideo}
           onEnd={() => {
-            setCurrentSongId((currentSongId + 1) % videos.length)
+            setCue(cue.filter((v, i) => i >= 1))
           }} />
         <VideoInfoComponent
           video={currentVideo}
