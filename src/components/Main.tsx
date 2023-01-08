@@ -235,6 +235,9 @@ export const Main = () => {
     } else {
       setqueue([...videos])
     }
+    // queueが条件に入ってないのは意図的なので、eslintの警告をsuppressする
+    //    - queueが消費されただけの時は、queueの再設定不要
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allVideos, selectedSinger, selectedSong]);
 
   return (<>
@@ -278,7 +281,7 @@ export const Main = () => {
           video={currentVideo}
           onEnd={() => {
             let newQueue = queue.filter((v, i) => i >= 1)
-            if (newQueue.length == 0) {
+            if (newQueue.length === 0) {
               newQueue = filterVideos(allVideos, selectedSinger, selectedSong)
             }
             setqueue(newQueue)
