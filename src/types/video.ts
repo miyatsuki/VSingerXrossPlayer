@@ -4,4 +4,5 @@ export default interface Video {
   song: string
   singers: string[]
   tags: string[] | null
+  metas: string[]
 }
