@@ -80,11 +80,16 @@ const allMetas = (allVideos: Video[]) => {
   return [...ans].sort()
 }
 
-function filterVideos(allVideos: Video[], positiveTags: string[]) {
+function filterVideos(allVideos: Video[], positiveTags: string[], negativeTags: string[]) {
   const videos = [...allVideos]
 
-  // 100件以上返ってきたらフィルタする
-  return videos.filter(v => positiveTags.some(t => v.metas.includes(t))).filter((v, i) => i < 100)
+  return videos
+    // 検索条件に一つでもマッチしたら返す
+    .filter(v => positiveTags.some(t => v.metas.includes(t)))
+    // 除外条件に一つでもマッチしたら却下する
+    .filter(v => !negativeTags.some(t => v.metas.includes(t)))
+    // 100件以上返ってきたらフィルタする
+    .filter((v, i) => i < 100)
 }
 
 
@@ -197,6 +202,7 @@ export const Main = () => {
   const [allTags, setTags] = useState<string[]>([]);
 
   const [positiveTags, setPositiveTags] = useState<string[]>([])
+  const [negativeTags, setNegativeTags] = useState<string[]>([])
   const [queue, setqueue] = useState<Video[]>([])
 
   // Video | undefined
@@ -224,7 +230,7 @@ export const Main = () => {
   }, []);
 
   useEffect(() => {
-    const videos = filterVideos(allVideos, positiveTags).filter(v => v.id !== queue[0]?.id)
+    const videos = filterVideos(allVideos, positiveTags, negativeTags).filter(v => v.id !== queue[0]?.id)
     if (queue[0] !== undefined) {
       setqueue([queue[0], ...videos])
     } else {
@@ -233,7 +239,7 @@ export const Main = () => {
     // queueが条件に入ってないのは意図的なので、eslintの警告をsuppressする
     //    - queueが消費されただけの時は、queueの再設定不要
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allVideos, positiveTags]);
+  }, [allVideos, positiveTags, negativeTags]);
 
   return (<>
     <Stack spacing={3} sx={{ width: 500 }}>
@@ -255,6 +261,25 @@ export const Main = () => {
         value={positiveTags}
       />
     </Stack>
+    <Stack spacing={3} sx={{ width: 500 }}>
+      <Autocomplete
+        id="tags-standard"
+        multiple
+        options={allTags}
+        getOptionLabel={(option) => option}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant="standard"
+            label="除外条件"
+          />
+        )}
+        onChange={(e, v) => {
+          setNegativeTags(v)
+        }}
+        value={negativeTags}
+      />
+    </Stack>
     <Grid container spacing={2}>
       <Grid item xs={8}>
         <YouTubeComponent
@@ -262,7 +287,7 @@ export const Main = () => {
           onEnd={() => {
             let newQueue = queue.filter((v, i) => i >= 1)
             if (newQueue.length === 0) {
-              newQueue = filterVideos(allVideos, positiveTags)
+              newQueue = filterVideos(allVideos, positiveTags, negativeTags)
             }
             setqueue(newQueue)
           }} />
