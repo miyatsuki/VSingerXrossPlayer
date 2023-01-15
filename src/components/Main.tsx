@@ -8,8 +8,7 @@ import { useEffect, useState } from 'react';
 import YouTube, { YouTubeEvent } from 'react-youtube';
 import Video from "../types/video";
 
-
-function shuffle(videos: Video[]) {
+const shuffleVideos = (videos: Video[]) => {
   const copiedVideos = [...videos]
   for (let i = copiedVideos.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -50,7 +49,7 @@ export async function fetchAllVideos() {
     }
   }
 
-  return shuffle(allVideos)
+  return shuffleVideos(allVideos)
 }
 
 
