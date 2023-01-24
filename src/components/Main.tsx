@@ -8,8 +8,7 @@ import { useEffect, useState } from 'react';
 import YouTube, { YouTubeEvent } from 'react-youtube';
 import Video from "../types/video";
 
-
-function shuffle(videos: Video[]) {
+const shuffleVideos = (videos: Video[]) => {
   const copiedVideos = [...videos]
   for (let i = copiedVideos.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
@@ -34,15 +33,31 @@ export async function fetchAllVideos() {
       break
     }
 
-    const videos = res.data.map(r => (
-      {
+    const videos = res.data.map(r => {
+      const metas: string[] = []
+      const song_title = r.identifier ? `${r.song_title} (${r.identifier})` : r.song_title
+
+      if (song_title !== null) {
+        metas.push(song_title)
+      }
+
+      if (r.singers.length > 0) {
+        metas.push(...r.singers)
+      }
+
+      if (r.tags !== null && r.tags.length > 0) {
+        metas.push(...r.tags)
+      }
+
+      return {
         id: r.video_id,
         title: r.video_title,
-        song: r.identifier ? `${r.song_title} (${r.identifier})` : r.song_title,
+        song: song_title,
         singers: r.singers,
-        tags: r.tags
+        tags: r.tags,
+        metas: metas
       }
-    ))
+    })
     allVideos = allVideos.concat(videos)
 
     if (res.data.length < 1000) {
@@ -50,42 +65,31 @@ export async function fetchAllVideos() {
     }
   }
 
-  return shuffle(allVideos)
+  return shuffleVideos(allVideos)
 }
 
+const allMetas = (allVideos: Video[]) => {
+  const ans: Set<string> = new Set()
 
-
-export function allSongs(allVideos: Video[]) {
-  const songSet: Set<string> = new Set()
   allVideos.forEach(video => {
-    songSet.add(video.song)
-  })
-  return [...songSet].sort()
-}
-
-export function allSingers(allVideos: Video[]) {
-  const singerSet: Set<string> = new Set()
-  allVideos.forEach(video => {
-    video.singers.forEach(singer => {
-      singerSet.add(singer)
+    video.metas.forEach(meta => {
+      ans.add(meta)
     })
   })
-  return [...singerSet].sort()
+
+  return [...ans].sort()
 }
 
-function filterVideos(allVideos: Video[], singer: string | null, song: string | null) {
-  let videos = [...allVideos]
+function filterVideos(allVideos: Video[], positiveTags: string[], negativeTags: string[]) {
+  const videos = [...allVideos]
 
-  if (singer !== null) {
-    videos = videos.filter(video => video.singers.includes(singer))
-  }
-
-  if (song !== null) {
-    videos = videos.filter(video => video.song === song)
-  }
-
-  // 100件以上返ってきたらフィルタする
-  return videos.filter((v, i) => i < 100)
+  return videos
+    // 検索条件に一つでもマッチしたら返す
+    .filter(v => positiveTags.some(t => v.metas.includes(t)))
+    // 除外条件に一つでもマッチしたら却下する
+    .filter(v => !negativeTags.some(t => v.metas.includes(t)))
+    // 100件以上返ってきたらフィルタする
+    .filter((v, i) => i < 100)
 }
 
 
@@ -194,14 +198,12 @@ const VideoInfoComponent: React.FC<VideoInfoComponentProps> = ({ video, handleSi
 
 
 export const Main = () => {
-  const [allVideos, setAllVideos] = useState([] as Video[])
-  const [singers, setSingers] = useState([] as string[]);
-  const [songs, setSongs] = useState([] as string[]);
+  const [allVideos, setAllVideos] = useState<Video[]>([])
+  const [allTags, setTags] = useState<string[]>([]);
 
-  const [selectedSinger, setSelectedSinger] = useState(null as string | null)
-  const [selectedSong, setSelectedSong] = useState(null as string | null)
-
-  const [queue, setqueue] = useState([] as Video[])
+  const [positiveTags, setPositiveTags] = useState<string[]>([])
+  const [negativeTags, setNegativeTags] = useState<string[]>([])
+  const [queue, setqueue] = useState<Video[]>([])
 
   // Video | undefined
   const currentVideo = queue[0]
@@ -223,13 +225,12 @@ export const Main = () => {
     const p = fetchAllVideos()
     p.then(v => {
       setAllVideos(v)
-      setSongs(allSongs(v))
-      setSingers(allSingers(v))
+      setTags(allMetas(v))
     })
   }, []);
 
   useEffect(() => {
-    const videos = filterVideos(allVideos, selectedSinger, selectedSong).filter(v => v.id !== queue[0]?.id)
+    const videos = filterVideos(allVideos, positiveTags, negativeTags).filter(v => v.id !== queue[0]?.id)
     if (queue[0] !== undefined) {
       setqueue([queue[0], ...videos])
     } else {
@@ -238,41 +239,45 @@ export const Main = () => {
     // queueが条件に入ってないのは意図的なので、eslintの警告をsuppressする
     //    - queueが消費されただけの時は、queueの再設定不要
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allVideos, selectedSinger, selectedSong]);
+  }, [allVideos, positiveTags, negativeTags]);
 
   return (<>
     <Stack spacing={3} sx={{ width: 500 }}>
       <Autocomplete
         id="tags-standard"
-        options={singers}
+        multiple
+        options={allTags}
         getOptionLabel={(option) => option}
         renderInput={(params) => (
           <TextField
             {...params}
             variant="standard"
-            label="歌い手"
+            label="検索条件"
           />
         )}
         onChange={(e, v) => {
-          setSelectedSinger(v)
+          setPositiveTags(v)
         }}
-        value={selectedSinger}
+        value={positiveTags}
       />
+    </Stack>
+    <Stack spacing={3} sx={{ width: 500 }}>
       <Autocomplete
         id="tags-standard"
-        options={songs}
+        multiple
+        options={allTags}
         getOptionLabel={(option) => option}
         renderInput={(params) => (
           <TextField
             {...params}
             variant="standard"
-            label="曲名"
+            label="除外条件"
           />
         )}
         onChange={(e, v) => {
-          setSelectedSong(v)
+          setNegativeTags(v)
         }}
-        value={selectedSong}
+        value={negativeTags}
       />
     </Stack>
     <Grid container spacing={2}>
@@ -282,19 +287,21 @@ export const Main = () => {
           onEnd={() => {
             let newQueue = queue.filter((v, i) => i >= 1)
             if (newQueue.length === 0) {
-              newQueue = filterVideos(allVideos, selectedSinger, selectedSong)
+              newQueue = filterVideos(allVideos, positiveTags, negativeTags)
             }
             setqueue(newQueue)
           }} />
         <VideoInfoComponent
           video={currentVideo}
           handleSingerChipClick={(singer: string) => {
-            setSelectedSinger(singer)
-            setSelectedSong(null)
+            if (!positiveTags.includes(singer)) {
+              setPositiveTags([...positiveTags, singer])
+            }
           }}
           handleSongChipClick={(song: string) => {
-            setSelectedSong(song)
-            setSelectedSinger(null)
+            if (!positiveTags.includes(song)) {
+              setPositiveTags([...positiveTags, song])
+            }
           }}
         />
       </Grid>
