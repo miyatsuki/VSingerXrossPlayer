@@ -1,6 +1,7 @@
 import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
+import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { createClient } from '@supabase/supabase-js';
@@ -250,6 +251,16 @@ const insertPlaylist = (playlistId: string, videoId: string) => {
   })
 }
 
+const PlaylistProgressBar: React.FC<{ left: number, total: number }> = ({ left, total }) => {
+  return (<>
+    <LinearProgress variant="determinate" value={100 - left / total * 100} />
+    <span>
+      {left} / {total}
+    </span>
+  </>
+  )
+}
+
 async function* insertVideos(playlistId: string, videos: Video[]) {
   const queue = [...videos]
   while (queue.length > 0) {
@@ -381,9 +392,10 @@ export const Main = () => {
 
   return (<>
     <div>
-      {"残り: " + insertCount?.left + "/" + insertCount?.total}
+      {client !== null ? <button onClick={() => handleClick(client!)}>プレイリスト作成</button> : null}
+      {insertCount !== null && insertCount.left > 0 ? <PlaylistProgressBar left={insertCount.left} total={insertCount.total} />
+        : null}
     </div>
-    {client !== null ? <button onClick={() => handleClick(client!)}>ログイン</button> : null}
     <Stack spacing={3} sx={{ width: 500 }}>
       <Autocomplete
         id="tags-standard"
