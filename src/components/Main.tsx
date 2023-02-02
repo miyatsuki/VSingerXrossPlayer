@@ -241,7 +241,6 @@ const insertPlaylist = (playlistId: string, videoId: string) => {
   return new Promise<void>((resolve, reject) => {
     request.execute((response) => {
       const r = response as (typeof response) | { code: number, error: { message: string } }
-      console.log(response);
       if ("code" in r) {
         reject(r)
       } else {
@@ -251,10 +250,12 @@ const insertPlaylist = (playlistId: string, videoId: string) => {
   })
 }
 
-async function insertVideos(playlistId: string, videos: Video[]) {
+async function* insertVideos(playlistId: string, videos: Video[]) {
   const queue = [...videos]
   while (queue.length > 0) {
-    console.log(queue.length)
+    yield {
+      waitingQueueCounts: queue.length
+    }
     const video = queue.shift()!
     try {
       await insertPlaylist(playlistId, video.id)
@@ -264,6 +265,9 @@ async function insertVideos(playlistId: string, videos: Video[]) {
         queue.push(video)
       }
     }
+  }
+  return {
+    waitingQueueCounts: queue.length,
   }
 }
 
@@ -277,6 +281,8 @@ export const Main = () => {
 
   const [isGsiLoaded, setGsiLoaded] = useState<boolean>(false)
   const [isGapiLoaded, setGapiLoaded] = useState<boolean>(false)
+
+  const [insertCount, setInsertCount] = useState<{ left: number, total: number } | null>(null)
 
   // Video | undefined
   const currentVideo = queue[0]
@@ -343,9 +349,18 @@ export const Main = () => {
             }
           }
         });
-        request.execute(function (response) {
+        request.execute(async function (response) {
           const copiedRespose = { ...response } as any
-          insertVideos(copiedRespose.id, queue)
+
+          let queueStatus = { waitingQueueCounts: queue.length }
+          setInsertCount({ left: queue.length, total: queue.length })
+          const currentStatus = insertVideos(copiedRespose.id, queue)
+          while (queueStatus.waitingQueueCounts > 0) {
+            const r = currentStatus
+            const p = await r.next()
+            queueStatus = { ...p.value }
+            setInsertCount({ left: queueStatus.waitingQueueCounts, total: queue.length })
+          }
         })
       }
     }
@@ -365,6 +380,9 @@ export const Main = () => {
   }, [allVideos, positiveTags, negativeTags]);
 
   return (<>
+    <div>
+      {"残り: " + insertCount?.left + "/" + insertCount?.total}
+    </div>
     {client !== null ? <button onClick={() => handleClick(client!)}>ログイン</button> : null}
     <Stack spacing={3} sx={{ width: 500 }}>
       <Autocomplete
