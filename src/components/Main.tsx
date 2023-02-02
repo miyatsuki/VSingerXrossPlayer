@@ -1,6 +1,7 @@
 import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
+import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { createClient } from '@supabase/supabase-js';
@@ -24,6 +25,34 @@ const shuffleVideos = (videos: Video[]) => {
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL!
 const SUPABASE_KEY = process.env.REACT_APP_SUPABASE_KEY!
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+
+const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY!
+
+function start() {
+  // 2. Initialize the JavaScript client library.
+  gapi.client.init({
+    'apiKey': GOOGLE_API_KEY,
+  }).then(() => {
+    gapi.client.load("https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest")
+  })
+};
+let client: null | ReturnType<typeof google.accounts.oauth2.initTokenClient> = null
+
+
+
+const handleClick = (client: ReturnType<typeof google.accounts.oauth2.initTokenClient>) => {
+  // Conditionally ask users to select the Google Account they'd like to use,
+  // and explicitly obtain their consent to fetch their Calendar.
+  // NOTE: To request an access token a user gesture is necessary.
+  if (gapi.client.getToken() === null) {
+    // Prompt the user to select a Google Account and asked for consent to share their data
+    // when establishing a new session.
+    client.requestAccessToken({ prompt: 'consent' });
+  } else {
+    // Skip display of account chooser and consent dialog for an existing session.
+    client.requestAccessToken({ prompt: '' });
+  }
+}
 
 export async function fetchAllVideos() {
   let allVideos: Video[] = []
@@ -197,6 +226,62 @@ const VideoInfoComponent: React.FC<VideoInfoComponentProps> = ({ video, handleSi
 }
 
 
+const insertPlaylist = (playlistId: string, videoId: string) => {
+  const request = gapi.client.youtube.playlistItems.insert({
+    part: 'snippet',
+    resource: {
+      snippet: {
+        playlistId: playlistId,
+        resourceId: {
+          kind: "youtube#video",
+          videoId: videoId
+        }
+      }
+    }
+  });
+  return new Promise<void>((resolve, reject) => {
+    request.execute((response) => {
+      const r = response as (typeof response) | { code: number, error: { message: string } }
+      if ("code" in r) {
+        reject(r)
+      } else {
+        resolve()
+      }
+    })
+  })
+}
+
+const PlaylistProgressBar: React.FC<{ left: number, total: number }> = ({ left, total }) => {
+  return (<>
+    <LinearProgress variant="determinate" value={100 - left / total * 100} />
+    <span>
+      {left} / {total}
+    </span>
+  </>
+  )
+}
+
+async function* insertVideos(playlistId: string, videos: Video[]) {
+  const queue = [...videos]
+  while (queue.length > 0) {
+    yield {
+      waitingQueueCounts: queue.length
+    }
+    const video = queue.shift()!
+    try {
+      await insertPlaylist(playlistId, video.id)
+    } catch (err) {
+      const e = err as { code: number, error: { message: string } }
+      if (e.code === 500) {
+        queue.push(video)
+      }
+    }
+  }
+  return {
+    waitingQueueCounts: queue.length,
+  }
+}
+
 export const Main = () => {
   const [allVideos, setAllVideos] = useState<Video[]>([])
   const [allTags, setTags] = useState<string[]>([]);
@@ -204,6 +289,11 @@ export const Main = () => {
   const [positiveTags, setPositiveTags] = useState<string[]>([])
   const [negativeTags, setNegativeTags] = useState<string[]>([])
   const [queue, setqueue] = useState<Video[]>([])
+
+  const [isGsiLoaded, setGsiLoaded] = useState<boolean>(false)
+  const [isGapiLoaded, setGapiLoaded] = useState<boolean>(false)
+
+  const [insertCount, setInsertCount] = useState<{ left: number, total: number } | null>(null)
 
   // Video | undefined
   const currentVideo = queue[0]
@@ -230,6 +320,65 @@ export const Main = () => {
   }, []);
 
   useEffect(() => {
+    const gsiElement = document.createElement("script")
+    gsiElement.src = "https://accounts.google.com/gsi/client"
+    document.body.appendChild(gsiElement)
+    gsiElement.onload = () => {
+      setGsiLoaded(true)
+    }
+
+    const gapiElement = document.createElement("script")
+    gapiElement.src = "https://apis.google.com/js/api.js"
+    document.body.appendChild(gapiElement)
+    gapiElement.onload = () => {
+      setGapiLoaded(true)
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isGsiLoaded && isGapiLoaded) {
+      gapi.load('client', start);
+      client = google.accounts.oauth2.initTokenClient({
+        client_id: '325517830582-meq7se7gej200p4laqebpb6bboaqcroe.apps.googleusercontent.com',
+        scope: 'https://www.googleapis.com/auth/youtube'
+      });
+    }
+  }, [isGsiLoaded, isGapiLoaded])
+
+  useEffect(() => {
+    if (client !== null) {
+      client.callback = (response) => {
+        const request = gapi.client.youtube.playlists.insert({
+          part: 'snippet,status',
+          resource: {
+            snippet: {
+              title: positiveTags.join(" "),
+              description: 'VSingerXrossPlayerによる自動生成'
+            },
+            status: {
+              privacyStatus: 'private'
+            }
+          }
+        });
+        request.execute(async function (response) {
+          const copiedRespose = { ...response } as any
+
+          let queueStatus = { waitingQueueCounts: queue.length }
+          setInsertCount({ left: queue.length, total: queue.length })
+          const currentStatus = insertVideos(copiedRespose.id, queue)
+          while (queueStatus.waitingQueueCounts > 0) {
+            const r = currentStatus
+            const p = await r.next()
+            queueStatus = { ...p.value }
+            setInsertCount({ left: queueStatus.waitingQueueCounts, total: queue.length })
+          }
+        })
+      }
+    }
+  }, [queue]);
+
+
+  useEffect(() => {
     const videos = filterVideos(allVideos, positiveTags, negativeTags).filter(v => v.id !== queue[0]?.id)
     if (queue[0] !== undefined) {
       setqueue([queue[0], ...videos])
@@ -242,6 +391,11 @@ export const Main = () => {
   }, [allVideos, positiveTags, negativeTags]);
 
   return (<>
+    <div>
+      {client !== null ? <button onClick={() => handleClick(client!)}>プレイリスト作成</button> : null}
+      {insertCount !== null && insertCount.left > 0 ? <PlaylistProgressBar left={insertCount.left} total={insertCount.total} />
+        : null}
+    </div>
     <Stack spacing={3} sx={{ width: 500 }}>
       <Autocomplete
         id="tags-standard"
@@ -260,7 +414,7 @@ export const Main = () => {
         }}
         value={positiveTags}
       />
-    </Stack>
+    </Stack >
     <Stack spacing={3} sx={{ width: 500 }}>
       <Autocomplete
         id="tags-standard"
