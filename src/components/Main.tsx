@@ -28,7 +28,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
 const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY!
 
-function start() {
+const start = () => {
   // 2. Initialize the JavaScript client library.
   gapi.client.init({
     'apiKey': GOOGLE_API_KEY,
@@ -54,7 +54,7 @@ const handleClick = (client: ReturnType<typeof google.accounts.oauth2.initTokenC
   }
 }
 
-export async function fetchAllVideos() {
+const fetchAllVideos = async () => {
   let allVideos: Video[] = []
   for (let i = 0; ; i++) {
     const res = await supabase.from('videos').select("video_id, video_title, song_title, identifier, singers, tags").range(i * 1000, (i + 1) * 1000)
@@ -109,7 +109,7 @@ const allMetas = (allVideos: Video[]) => {
   return [...ans].sort()
 }
 
-function filterVideos(allVideos: Video[], positiveTags: string[], negativeTags: string[]) {
+const filterVideos = (allVideos: Video[], positiveTags: string[], negativeTags: string[]) => {
   const videos = [...allVideos]
 
   return videos
@@ -360,7 +360,7 @@ export const Main = () => {
             }
           }
         });
-        request.execute(async function (response) {
+        request.execute(async (response) => {
           const copiedRespose = { ...response } as any
 
           let queueStatus = { waitingQueueCounts: queue.length }
