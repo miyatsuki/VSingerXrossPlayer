@@ -1,4 +1,3 @@
-import MenuIcon from '@mui/icons-material/Menu';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import { CardMedia } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
@@ -24,26 +23,20 @@ export default function ButtonAppBar() {
     <Box sx={{ flexGrow: 1 }}>
       <AppBar component="nav">
         <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            News
+            Vsinger Xross Playlist
           </Typography>
-          <IconButton
+          {client !== null ? <IconButton
             size="large"
             edge="end"
             color="inherit"
             aria-label="playlistAdd"
+            onClick={() => {
+              handleClick(client!)
+            }}
           >
             <PlaylistAddIcon />
-          </IconButton>
+          </IconButton> : null}
         </Toolbar>
       </AppBar>
     </Box>
@@ -332,11 +325,7 @@ export const Main = () => {
 
   useEffect(() => {
     const videos = filterVideos(allVideos, positiveTags, negativeTags).filter(v => v.id !== queue[0]?.id)
-    if (queue[0] !== undefined) {
-      setqueue([queue[0], ...videos])
-    } else {
-      setqueue([...videos])
-    }
+    setqueue([...videos])
     // queueが条件に入ってないのは意図的なので、eslintの警告をsuppressする
     //    - queueが消費されただけの時は、queueの再設定不要
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -347,7 +336,6 @@ export const Main = () => {
     <ButtonAppBar />
     <Box component="main" sx={{ p: 2, paddingTop: 10 }}>
       <div>
-        {client !== null ? <button onClick={() => handleClick(client!)}>プレイリスト作成</button> : null}
         {insertCount !== null && insertCount.left > 0 ? <PlaylistProgressBar left={insertCount.left} total={insertCount.total} />
           : null}
       </div>
