@@ -1,15 +1,54 @@
+import MenuIcon from '@mui/icons-material/Menu';
+import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import { CardMedia } from '@mui/material';
+import AppBar from '@mui/material/AppBar';
 import Autocomplete from '@mui/material/Autocomplete';
+import Box from '@mui/material/Box';
+import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
 import LinearProgress from '@mui/material/LinearProgress';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import { styled } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
 import { createClient } from '@supabase/supabase-js';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import Video from "../types/video";
+
+export default function ButtonAppBar() {
+  return (
+    <Box sx={{ flexGrow: 1 }}>
+      <AppBar component="nav">
+        <Toolbar>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            News
+          </Typography>
+          <IconButton
+            size="large"
+            edge="end"
+            color="inherit"
+            aria-label="playlistAdd"
+          >
+            <PlaylistAddIcon />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+    </Box>
+  );
+}
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -304,53 +343,55 @@ export const Main = () => {
   }, [allVideos, positiveTags, negativeTags]);
 
   return (<>
-    <div>
-      {client !== null ? <button onClick={() => handleClick(client!)}>プレイリスト作成</button> : null}
-      {insertCount !== null && insertCount.left > 0 ? <PlaylistProgressBar left={insertCount.left} total={insertCount.total} />
-        : null}
-    </div>
-    <Stack spacing={3}>
-      <Autocomplete
-        id="tags-standard"
-        multiple
-        options={allTags}
-        getOptionLabel={(option) => option}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="standard"
-            label="検索条件"
-          />
-        )}
-        onChange={(e, v) => {
-          setPositiveTags(v)
-        }}
-        value={positiveTags}
-      />
-    </Stack >
-    <Stack spacing={3}>
-      <Autocomplete
-        id="tags-standard"
-        multiple
-        options={allTags}
-        getOptionLabel={(option) => option}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="standard"
-            label="除外条件"
-          />
-        )}
-        onChange={(e, v) => {
-          setNegativeTags(v)
-        }}
-        value={negativeTags}
-      />
-    </Stack>
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        {thumbnailComponentList}
-      </Grid>
-    </Grid>
+    <CssBaseline />
+    <ButtonAppBar />
+    <Box component="main" sx={{ p: 2, paddingTop: 10 }}>
+      <div>
+        {client !== null ? <button onClick={() => handleClick(client!)}>プレイリスト作成</button> : null}
+        {insertCount !== null && insertCount.left > 0 ? <PlaylistProgressBar left={insertCount.left} total={insertCount.total} />
+          : null}
+      </div>
+      <Stack spacing={0}>
+        <Autocomplete
+          id="tags-standard"
+          multiple
+          options={allTags}
+          getOptionLabel={(option) => option}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant="standard"
+              label="検索条件"
+            />
+          )}
+          onChange={(e, v) => {
+            setPositiveTags(v)
+          }}
+          value={positiveTags}
+        />
+        <Autocomplete
+          id="tags-standard"
+          multiple
+          options={allTags}
+          getOptionLabel={(option) => option}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant="standard"
+              label="除外条件"
+            />
+          )}
+          onChange={(e, v) => {
+            setNegativeTags(v)
+          }}
+          value={negativeTags}
+        />
+        <Box sx={{ paddingTop: 4 }}>
+          <Stack spacing={1}>
+            {thumbnailComponentList}
+          </Stack>
+        </Box>
+      </Stack>
+    </Box>
   </>)
 }
