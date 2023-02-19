@@ -36,14 +36,17 @@ export default function ButtonAppBar() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             News
           </Typography>
-          <IconButton
+          {client !== null ? <IconButton
             size="large"
             edge="end"
             color="inherit"
             aria-label="playlistAdd"
+            onClick={() => {
+              handleClick(client!)
+            }}
           >
             <PlaylistAddIcon />
-          </IconButton>
+          </IconButton> : null}
         </Toolbar>
       </AppBar>
     </Box>
@@ -343,7 +346,6 @@ export const Main = () => {
     <ButtonAppBar />
     <Box component="main" sx={{ p: 2, paddingTop: 10 }}>
       <div>
-        {client !== null ? <button onClick={() => handleClick(client!)}>プレイリスト作成</button> : null}
         {insertCount !== null && insertCount.left > 0 ? <PlaylistProgressBar left={insertCount.left} total={insertCount.total} />
           : null}
       </div>
