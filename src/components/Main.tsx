@@ -1,11 +1,23 @@
+import { CardMedia } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Grid';
 import LinearProgress from '@mui/material/LinearProgress';
+import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import { createClient } from '@supabase/supabase-js';
+import * as React from 'react';
 import { useEffect, useState } from 'react';
 import Video from "../types/video";
+
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  ...theme.typography.body2,
+  padding: theme.spacing(1),
+  textAlign: 'center',
+  color: theme.palette.text.secondary,
+}));
 
 const shuffleVideos = (videos: Video[]) => {
   const copiedVideos = [...videos]
@@ -189,16 +201,27 @@ export const Main = () => {
   const [insertCount, setInsertCount] = useState<{ left: number, total: number } | null>(null)
 
   const thumbnailComponentList = queue.map((video, index) => (
-    <img
-      src={"https://img.youtube.com/vi/" + video.id + "/maxresdefault.jpg"}
-      alt={video.title}
-      style={{ "width": "100%" }}
-      key={video.id}
-      onClick={(e) => {
-        setqueue(queue.filter((v, i) => i >= index))
-      }}
-      loading="lazy"
-    ></img>
+    <Item>
+      <Grid container>
+        <Grid xs={4} item>
+          <CardMedia
+            component={"img"}
+            image={"https://img.youtube.com/vi/" + video.id + "/hqdefault.jpg"}
+            alt={video.title}
+            sx={{ "width": "100%", "objectFit": "cover", aspectRatio: "4/3" }}
+            loading="lazy"
+          />
+        </Grid>
+        <Grid xs={8} item>
+          <div style={{ textAlign: "left", paddingLeft: "10px" }}>
+            <div style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", height: "2em" }}>{video.title}</div>
+            <div>{video.song}</div>
+            <div>{video.singers.join(", ")}</div>
+            <div>{video.tags?.map(t => "#" + t).join(", ")}</div>
+          </div>
+        </Grid>
+      </Grid>
+    </Item>
   ))
 
   useEffect(() => {
@@ -286,7 +309,7 @@ export const Main = () => {
       {insertCount !== null && insertCount.left > 0 ? <PlaylistProgressBar left={insertCount.left} total={insertCount.total} />
         : null}
     </div>
-    <Stack spacing={3} sx={{ width: 500 }}>
+    <Stack spacing={3}>
       <Autocomplete
         id="tags-standard"
         multiple
@@ -305,7 +328,7 @@ export const Main = () => {
         value={positiveTags}
       />
     </Stack >
-    <Stack spacing={3} sx={{ width: 500 }}>
+    <Stack spacing={3}>
       <Autocomplete
         id="tags-standard"
         multiple
