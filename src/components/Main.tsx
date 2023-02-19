@@ -1,12 +1,10 @@
 import Autocomplete from '@mui/material/Autocomplete';
-import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import { createClient } from '@supabase/supabase-js';
 import { useEffect, useState } from 'react';
-import YouTube, { YouTubeEvent } from 'react-youtube';
 import Video from "../types/video";
 
 const shuffleVideos = (videos: Video[]) => {
@@ -121,111 +119,6 @@ const filterVideos = (allVideos: Video[], positiveTags: string[], negativeTags: 
     .filter((v, i) => i < 100)
 }
 
-
-interface YouTubeComponentProps {
-  video: Video | undefined
-  onEnd: (event: YouTubeEvent<number>) => void
-}
-
-const YouTubeComponent: React.FC<YouTubeComponentProps> = ({ video, onEnd }) => {
-  const [isPlaying, setIsPlaying] = useState(false)
-
-  if (video === undefined) {
-    return <></>
-  }
-
-  return (
-    <YouTube
-      // keyを刺すことによって、videoId変えたのに更新されない問題を回避できる
-      // https://github.com/barmej/react-native-youtube-player/issues/33
-      key={video.id}
-      videoId={video.id}
-      opts={{
-        height: "390",
-        width: "640",
-        playerVars: {
-          // https://developers.google.com/youtube/player_parameters
-          autoplay: isPlaying ? 1 : 0,
-        }
-      }}
-      onPlay={() => {
-        setIsPlaying(true)
-      }}
-      onPause={() => {
-        setIsPlaying(false)
-      }}
-      onEnd={onEnd}
-    />
-  )
-}
-
-interface VideoInfoComponentProps {
-  video: Video | undefined
-  handleSingerChipClick: (singer: string) => void
-  handleSongChipClick: (song: string) => void
-}
-
-const VideoInfoComponent: React.FC<VideoInfoComponentProps> = ({ video, handleSingerChipClick, handleSongChipClick }) => {
-  if (video === undefined) {
-    return <></>
-  }
-
-  const singerNameChips = video.singers.map(
-    singer => (
-      <Chip
-        key={singer}
-        label={singer}
-        variant="outlined"
-        onClick={(e) => { handleSingerChipClick(singer) }}
-      />
-    )
-  )
-
-  const songChip = <Chip
-    key={video.song}
-    label={video.song}
-    variant="outlined"
-    onClick={(e) => { handleSongChipClick(video.song) }}
-  />
-
-  return <>
-    <Grid container spacing={2} justifyContent="flex-start">
-      <Grid item xs={1} />
-      <Grid item xs={1}>
-        url:
-      </Grid>
-      <Grid item xs={10} style={{ "display": "inherit", "justifyContent": "left" }}>
-        <a href={"https://www.youtube.com/watch?v=" + video.id}>{"https://www.youtube.com/watch?v=" + video.id}</a>
-      </Grid>
-
-      <Grid item xs={1} />
-      <Grid item xs={1}>
-        歌:
-      </Grid>
-      <Grid item xs={10} style={{ "display": "inherit", "justifyContent": "left" }}>
-        {singerNameChips}
-      </Grid>
-
-      <Grid item xs={1} />
-      <Grid item xs={1}>
-        曲:
-      </Grid>
-      <Grid item xs={10} style={{ "display": "inherit", "justifyContent": "left" }}>
-        {songChip}
-      </Grid>
-
-      <Grid item xs={1} />
-      <Grid item xs={1}>
-        タグ:
-      </Grid>
-      <Grid item xs={10} style={{ "display": "inherit", "justifyContent": "left" }}>
-        {video.tags?.toString()}
-      </Grid>
-    </Grid>
-  </>
-}
-
-
 const insertPlaylist = (playlistId: string, videoId: string) => {
   const request = gapi.client.youtube.playlistItems.insert({
     part: 'snippet',
@@ -294,9 +187,6 @@ export const Main = () => {
   const [isGapiLoaded, setGapiLoaded] = useState<boolean>(false)
 
   const [insertCount, setInsertCount] = useState<{ left: number, total: number } | null>(null)
-
-  // Video | undefined
-  const currentVideo = queue[0]
 
   const thumbnailComponentList = queue.map((video, index) => (
     <img
@@ -435,31 +325,7 @@ export const Main = () => {
       />
     </Stack>
     <Grid container spacing={2}>
-      <Grid item xs={8}>
-        <YouTubeComponent
-          video={currentVideo}
-          onEnd={() => {
-            let newQueue = queue.filter((v, i) => i >= 1)
-            if (newQueue.length === 0) {
-              newQueue = filterVideos(allVideos, positiveTags, negativeTags)
-            }
-            setqueue(newQueue)
-          }} />
-        <VideoInfoComponent
-          video={currentVideo}
-          handleSingerChipClick={(singer: string) => {
-            if (!positiveTags.includes(singer)) {
-              setPositiveTags([...positiveTags, singer])
-            }
-          }}
-          handleSongChipClick={(song: string) => {
-            if (!positiveTags.includes(song)) {
-              setPositiveTags([...positiveTags, song])
-            }
-          }}
-        />
-      </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={12}>
         {thumbnailComponentList}
       </Grid>
     </Grid>
