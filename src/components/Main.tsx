@@ -332,11 +332,7 @@ export const Main = () => {
 
   useEffect(() => {
     const videos = filterVideos(allVideos, positiveTags, negativeTags).filter(v => v.id !== queue[0]?.id)
-    if (queue[0] !== undefined) {
-      setqueue([queue[0], ...videos])
-    } else {
-      setqueue([...videos])
-    }
+    setqueue([...videos])
     // queueが条件に入ってないのは意図的なので、eslintの警告をsuppressする
     //    - queueが消費されただけの時は、queueの再設定不要
     // eslint-disable-next-line react-hooks/exhaustive-deps
