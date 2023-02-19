@@ -1,13 +1,62 @@
+import MenuIcon from '@mui/icons-material/Menu';
+import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
+import { CardMedia } from '@mui/material';
+import AppBar from '@mui/material/AppBar';
 import Autocomplete from '@mui/material/Autocomplete';
-import Chip from '@mui/material/Chip';
+import Box from '@mui/material/Box';
+import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
 import LinearProgress from '@mui/material/LinearProgress';
+import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
+import { styled } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
 import { createClient } from '@supabase/supabase-js';
+import * as React from 'react';
 import { useEffect, useState } from 'react';
-import YouTube, { YouTubeEvent } from 'react-youtube';
 import Video from "../types/video";
+
+export default function ButtonAppBar() {
+  return (
+    <Box sx={{ flexGrow: 1 }}>
+      <AppBar component="nav">
+        <Toolbar>
+          <IconButton
+            size="large"
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            sx={{ mr: 2 }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            News
+          </Typography>
+          <IconButton
+            size="large"
+            edge="end"
+            color="inherit"
+            aria-label="playlistAdd"
+          >
+            <PlaylistAddIcon />
+          </IconButton>
+        </Toolbar>
+      </AppBar>
+    </Box>
+  );
+}
+
+const Item = styled(Paper)(({ theme }) => ({
+  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  ...theme.typography.body2,
+  padding: theme.spacing(1),
+  textAlign: 'center',
+  color: theme.palette.text.secondary,
+}));
 
 const shuffleVideos = (videos: Video[]) => {
   const copiedVideos = [...videos]
@@ -121,111 +170,6 @@ const filterVideos = (allVideos: Video[], positiveTags: string[], negativeTags: 
     .filter((v, i) => i < 100)
 }
 
-
-interface YouTubeComponentProps {
-  video: Video | undefined
-  onEnd: (event: YouTubeEvent<number>) => void
-}
-
-const YouTubeComponent: React.FC<YouTubeComponentProps> = ({ video, onEnd }) => {
-  const [isPlaying, setIsPlaying] = useState(false)
-
-  if (video === undefined) {
-    return <></>
-  }
-
-  return (
-    <YouTube
-      // keyを刺すことによって、videoId変えたのに更新されない問題を回避できる
-      // https://github.com/barmej/react-native-youtube-player/issues/33
-      key={video.id}
-      videoId={video.id}
-      opts={{
-        height: "390",
-        width: "640",
-        playerVars: {
-          // https://developers.google.com/youtube/player_parameters
-          autoplay: isPlaying ? 1 : 0,
-        }
-      }}
-      onPlay={() => {
-        setIsPlaying(true)
-      }}
-      onPause={() => {
-        setIsPlaying(false)
-      }}
-      onEnd={onEnd}
-    />
-  )
-}
-
-interface VideoInfoComponentProps {
-  video: Video | undefined
-  handleSingerChipClick: (singer: string) => void
-  handleSongChipClick: (song: string) => void
-}
-
-const VideoInfoComponent: React.FC<VideoInfoComponentProps> = ({ video, handleSingerChipClick, handleSongChipClick }) => {
-  if (video === undefined) {
-    return <></>
-  }
-
-  const singerNameChips = video.singers.map(
-    singer => (
-      <Chip
-        key={singer}
-        label={singer}
-        variant="outlined"
-        onClick={(e) => { handleSingerChipClick(singer) }}
-      />
-    )
-  )
-
-  const songChip = <Chip
-    key={video.song}
-    label={video.song}
-    variant="outlined"
-    onClick={(e) => { handleSongChipClick(video.song) }}
-  />
-
-  return <>
-    <Grid container spacing={2} justifyContent="flex-start">
-      <Grid item xs={1} />
-      <Grid item xs={1}>
-        url:
-      </Grid>
-      <Grid item xs={10} style={{ "display": "inherit", "justifyContent": "left" }}>
-        <a href={"https://www.youtube.com/watch?v=" + video.id}>{"https://www.youtube.com/watch?v=" + video.id}</a>
-      </Grid>
-
-      <Grid item xs={1} />
-      <Grid item xs={1}>
-        歌:
-      </Grid>
-      <Grid item xs={10} style={{ "display": "inherit", "justifyContent": "left" }}>
-        {singerNameChips}
-      </Grid>
-
-      <Grid item xs={1} />
-      <Grid item xs={1}>
-        曲:
-      </Grid>
-      <Grid item xs={10} style={{ "display": "inherit", "justifyContent": "left" }}>
-        {songChip}
-      </Grid>
-
-      <Grid item xs={1} />
-      <Grid item xs={1}>
-        タグ:
-      </Grid>
-      <Grid item xs={10} style={{ "display": "inherit", "justifyContent": "left" }}>
-        {video.tags?.toString()}
-      </Grid>
-    </Grid>
-  </>
-}
-
-
 const insertPlaylist = (playlistId: string, videoId: string) => {
   const request = gapi.client.youtube.playlistItems.insert({
     part: 'snippet',
@@ -295,20 +239,28 @@ export const Main = () => {
 
   const [insertCount, setInsertCount] = useState<{ left: number, total: number } | null>(null)
 
-  // Video | undefined
-  const currentVideo = queue[0]
-
   const thumbnailComponentList = queue.map((video, index) => (
-    <img
-      src={"https://img.youtube.com/vi/" + video.id + "/maxresdefault.jpg"}
-      alt={video.title}
-      style={{ "width": "100%" }}
-      key={video.id}
-      onClick={(e) => {
-        setqueue(queue.filter((v, i) => i >= index))
-      }}
-      loading="lazy"
-    ></img>
+    <Item>
+      <Grid container>
+        <Grid xs={4} item>
+          <CardMedia
+            component={"img"}
+            image={"https://img.youtube.com/vi/" + video.id + "/hqdefault.jpg"}
+            alt={video.title}
+            sx={{ "width": "100%", "objectFit": "cover", aspectRatio: "4/3" }}
+            loading="lazy"
+          />
+        </Grid>
+        <Grid xs={8} item>
+          <div style={{ textAlign: "left", paddingLeft: "10px" }}>
+            <div style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", height: "2em" }}>{video.title}</div>
+            <div>{video.song}</div>
+            <div>{video.singers.join(", ")}</div>
+            <div>{video.tags?.map(t => "#" + t).join(", ")}</div>
+          </div>
+        </Grid>
+      </Grid>
+    </Item>
   ))
 
   useEffect(() => {
@@ -391,77 +343,55 @@ export const Main = () => {
   }, [allVideos, positiveTags, negativeTags]);
 
   return (<>
-    <div>
-      {client !== null ? <button onClick={() => handleClick(client!)}>プレイリスト作成</button> : null}
-      {insertCount !== null && insertCount.left > 0 ? <PlaylistProgressBar left={insertCount.left} total={insertCount.total} />
-        : null}
-    </div>
-    <Stack spacing={3} sx={{ width: 500 }}>
-      <Autocomplete
-        id="tags-standard"
-        multiple
-        options={allTags}
-        getOptionLabel={(option) => option}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="standard"
-            label="検索条件"
-          />
-        )}
-        onChange={(e, v) => {
-          setPositiveTags(v)
-        }}
-        value={positiveTags}
-      />
-    </Stack >
-    <Stack spacing={3} sx={{ width: 500 }}>
-      <Autocomplete
-        id="tags-standard"
-        multiple
-        options={allTags}
-        getOptionLabel={(option) => option}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant="standard"
-            label="除外条件"
-          />
-        )}
-        onChange={(e, v) => {
-          setNegativeTags(v)
-        }}
-        value={negativeTags}
-      />
-    </Stack>
-    <Grid container spacing={2}>
-      <Grid item xs={8}>
-        <YouTubeComponent
-          video={currentVideo}
-          onEnd={() => {
-            let newQueue = queue.filter((v, i) => i >= 1)
-            if (newQueue.length === 0) {
-              newQueue = filterVideos(allVideos, positiveTags, negativeTags)
-            }
-            setqueue(newQueue)
-          }} />
-        <VideoInfoComponent
-          video={currentVideo}
-          handleSingerChipClick={(singer: string) => {
-            if (!positiveTags.includes(singer)) {
-              setPositiveTags([...positiveTags, singer])
-            }
+    <CssBaseline />
+    <ButtonAppBar />
+    <Box component="main" sx={{ p: 2, paddingTop: 10 }}>
+      <div>
+        {client !== null ? <button onClick={() => handleClick(client!)}>プレイリスト作成</button> : null}
+        {insertCount !== null && insertCount.left > 0 ? <PlaylistProgressBar left={insertCount.left} total={insertCount.total} />
+          : null}
+      </div>
+      <Stack spacing={0}>
+        <Autocomplete
+          id="tags-standard"
+          multiple
+          options={allTags}
+          getOptionLabel={(option) => option}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant="standard"
+              label="検索条件"
+            />
+          )}
+          onChange={(e, v) => {
+            setPositiveTags(v)
           }}
-          handleSongChipClick={(song: string) => {
-            if (!positiveTags.includes(song)) {
-              setPositiveTags([...positiveTags, song])
-            }
-          }}
+          value={positiveTags}
         />
-      </Grid>
-      <Grid item xs={4}>
-        {thumbnailComponentList}
-      </Grid>
-    </Grid>
+        <Autocomplete
+          id="tags-standard"
+          multiple
+          options={allTags}
+          getOptionLabel={(option) => option}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant="standard"
+              label="除外条件"
+            />
+          )}
+          onChange={(e, v) => {
+            setNegativeTags(v)
+          }}
+          value={negativeTags}
+        />
+        <Box sx={{ paddingTop: 4 }}>
+          <Stack spacing={1}>
+            {thumbnailComponentList}
+          </Stack>
+        </Box>
+      </Stack>
+    </Box>
   </>)
 }
