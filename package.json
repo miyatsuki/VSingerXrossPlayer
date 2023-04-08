@@ -48,7 +48,7 @@
     ]
   },
   "devDependencies": {
-    "@types/gapi.client.youtube": "^3.0.3",
+    "@types/gapi.client.youtube": "^3.0.4",
     "supabase": "^1.47.0"
   }
 }
