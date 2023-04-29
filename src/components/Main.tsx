@@ -64,11 +64,11 @@ const shuffleVideos = (videos: Video[]) => {
 }
 
 // Create a single supabase client for interacting with your database
-const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL!
-const SUPABASE_KEY = process.env.REACT_APP_SUPABASE_KEY!
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL!
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY!
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 
-const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY!
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY!
 
 const start = () => {
   // 2. Initialize the JavaScript client library.
