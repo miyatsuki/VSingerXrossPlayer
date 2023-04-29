@@ -9,10 +9,10 @@ import IconButton from '@mui/material/IconButton';
 import LinearProgress from '@mui/material/LinearProgress';
 import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
-import { styled } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material/styles';
 import { createClient } from '@supabase/supabase-js';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
@@ -233,7 +233,7 @@ export const Main = () => {
   const [insertCount, setInsertCount] = useState<{ left: number, total: number } | null>(null)
 
   const thumbnailComponentList = queue.map((video, index) => (
-    <Item>
+    <Item key={video.id}>
       <Grid container>
         <Grid xs={4} item>
           <CardMedia
