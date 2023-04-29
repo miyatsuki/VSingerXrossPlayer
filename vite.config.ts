@@ -5,8 +5,8 @@ export default defineConfig({
   server: {
     open: true, // 自動でブラウザを開く
   },
-  build: {
-    outDir: 'build', // ビルドの出力先ディレクトリ
-  },
+  //build: {
+  //  outDir: 'build', // ビルドの出力先ディレクトリ
+  //},
   plugins: [react()],
 });
