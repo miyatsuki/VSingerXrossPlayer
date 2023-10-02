@@ -48,7 +48,7 @@
   "devDependencies": {
     "@types/gapi.client.youtube": "^3.0.4",
     "@vitejs/plugin-react": "^4.1.0",
-    "supabase": "^1.93.0",
+    "supabase": "^1.99.5",
     "vite": "^4.4.9"
   }
 }
