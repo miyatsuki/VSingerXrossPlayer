@@ -1,13 +1,25 @@
 import styled from '@emotion/styled';
 import React, { useEffect } from 'react';
-import { useXMBNavigation } from '../hooks/useXMBNavigation';
 import { Category } from '../types';
 import { XMBCategory } from './XMBCategory';
 import { XMBItem } from './XMBItem';
 
+// Define the shape of the navigation object returned by the hook
+interface Navigation {
+  cursor: { x: number; y: number };
+  currentCategory: Category;
+  currentItem: any;
+  moveLeft: () => void;
+  moveRight: () => void;
+  moveUp: () => void;
+  moveDown: () => void;
+}
+
 interface XMBContainerProps {
   categories: Category[];
+  navigation: Navigation; // Accept navigation from parent
   onItemSelect?: (item: any) => void;
+  displayMode?: 'show_singer' | 'show_song';
 }
 
 const Container = styled.div`
@@ -52,8 +64,8 @@ const BackgroundGlow = styled.div`
   pointer-events: none;
 `;
 
-export const XMBContainer: React.FC<XMBContainerProps> = ({ categories, onItemSelect }) => {
-  const { cursor, currentCategory, currentItem, moveLeft, moveRight, moveUp, moveDown } = useXMBNavigation(categories);
+export const XMBContainer: React.FC<XMBContainerProps> = ({ categories, navigation, onItemSelect, displayMode = 'show_singer' }) => {
+  const { cursor, currentCategory, currentItem, moveLeft, moveRight, moveUp, moveDown } = navigation;
   
   // Calculate offsets to keep active item centered
   // Assuming category width ~160px (100px min-width + padding)
@@ -65,8 +77,12 @@ export const XMBContainer: React.FC<XMBContainerProps> = ({ categories, onItemSe
   const offsetY = -cursor.y * itemHeight;
 
   useEffect(() => {
+    // Only call onItemSelect if currentItem is valid
     if (currentItem && onItemSelect) {
       onItemSelect(currentItem);
+    } else if (!currentItem && onItemSelect) {
+      // Handle case where category has no items or empty selection
+       onItemSelect(null);
     }
   }, [currentItem, onItemSelect]);
 
@@ -90,6 +106,7 @@ export const XMBContainer: React.FC<XMBContainerProps> = ({ categories, onItemSe
             key={item.id} 
             item={item} 
             isActive={index === cursor.y}
+            displayMode={displayMode}
             onClick={() => {
                 // Optional: Click support (though XMB is keyboard first)
             }}

@@ -74,7 +74,8 @@ const songs: Song[] = [
 ];
 
 export const useData = () => {
-	const [categories, setCategories] = useState<Category[]>([]);
+	const [songCategories, setSongCategories] = useState<Category[]>([]);
+	const [singerCategories, setSingerCategories] = useState<Category[]>([]);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
@@ -82,49 +83,54 @@ export const useData = () => {
 			setLoading(true);
 			await new Promise(resolve => setTimeout(resolve, 500));
 
-			// Transform Data: Group by Song Title
-			// Get unique song titles
+			// --- Mode A: Group by Song Title ---
 			const uniqueTitles = Array.from(new Set(songs.map(s => s.title)));
-
-			const newCategories: Category[] = uniqueTitles.map(title => {
-				// Find all covers of this song
+			const songsData: Category[] = uniqueTitles.map(title => {
 				const covers = songs.filter(s => s.title === title);
-
-				// Enrich covers with Singer data for display
 				const items = covers.map(cover => {
 					const singer = singers.find(s => s.id === cover.singer_id);
 					return {
 						...cover,
-						// We can attach the singer object or name to the cover for easy access in the UI
 						singer_name: singer?.name,
 						singer_avatar: singer?.avatar_url
 					};
 				});
-
 				return {
-					id: `cat_${title}`,
+					id: `cat_song_${title}`,
 					title: title,
 					items: items,
 					type: 'songs',
-					icon: '🎵' // Default icon for songs
+					icon: '🎵'
 				};
 			});
 
-			// Add a Settings category at the end
-			newCategories.push({
-				id: 'cat_settings',
-				title: 'Settings',
-				items: [],
-				type: 'settings',
-				icon: '⚙️'
+
+			// --- Mode B: Group by Singer ---
+			const singersData: Category[] = singers.map(singer => {
+				const singerSongs = songs.filter(s => s.singer_id === singer.id);
+				// Enrich with Singer info (though redundant, keeps item structure consistent)
+				const items = singerSongs.map(s => ({
+					...s,
+					singer_name: singer.name,
+					singer_avatar: singer.avatar_url
+				}));
+
+				return {
+					id: `cat_singer_${singer.id}`,
+					title: singer.name,
+					avatar_url: singer.avatar_url,
+					items: items,
+					type: 'songs'
+				};
 			});
 
-			setCategories(newCategories);
+			setSongCategories(songsData);
+			setSingerCategories(singersData);
 			setLoading(false);
 		};
 
 		loadData();
 	}, []);
 
-	return { categories, loading };
+	return { songCategories, singerCategories, singers, loading };
 };

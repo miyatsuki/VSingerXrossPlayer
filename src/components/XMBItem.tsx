@@ -6,6 +6,7 @@ interface XMBItemProps {
   item: Singer | Song & { singer_name?: string; singer_avatar?: string };
   isActive: boolean;
   onClick?: () => void;
+  displayMode?: 'show_singer' | 'show_song';
 }
 
 const ItemContainer = styled.div<{ isActive: boolean }>`
@@ -39,13 +40,26 @@ const IconWrapper = styled.div`
   }
 `;
 
-export const XMBItem: React.FC<XMBItemProps> = ({ item, isActive, onClick }) => {
+export const XMBItem: React.FC<XMBItemProps> = ({ item, isActive, onClick, displayMode = 'show_singer' }) => {
   const isSinger = 'name' in item && !('title' in item); // Strict check
   
-  // If it's a Song (Cover), we want to show the Singer's Name
-  const title = isSinger 
-    ? (item as Singer).name 
-    : (item as any).singer_name || (item as Song).title;
+  // Logic:
+  // If it's a Singer object (not a cover), always show Name.
+  // If it's a Song/Cover object:
+  //   - displayMode 'show_singer': Show Singer Name (for Song-centric view)
+  //   - displayMode 'show_song': Show Song Title (for Singer-centric view)
+  
+  let title = '';
+  if (isSinger) {
+    title = (item as Singer).name;
+  } else {
+    // It's a cover
+    if (displayMode === 'show_singer') {
+      title = (item as any).singer_name || (item as Song).title;
+    } else {
+      title = (item as Song).title;
+    }
+  }
 
   const image = isSinger 
     ? (item as Singer).avatar_url 
