@@ -3,64 +3,69 @@ from typing import List, Optional
 from fastapi import Depends, FastAPI, HTTPException, Query
 
 try:
-  # When imported as a package: backend.main
-  from .config import Settings, get_settings
-  from .db import VideoRepository, create_video_repository
-  from .models import SingerSummary, Video
+    # When imported as a package: backend.main
+    from .config import Settings, get_settings
+    from .db import VideoRepository, create_video_repository
+    from .masterdata import MASTER_DATA
+    from .models import MasterData, SingerSummary, Video
 except ImportError:
-  # When executed as a top-level module: main
-  from config import Settings, get_settings  # type: ignore
-  from db import VideoRepository, create_video_repository  # type: ignore
-  from models import SingerSummary, Video  # type: ignore
+    # When executed as a top-level module: main
+    from config import Settings, get_settings  # type: ignore
+    from db import VideoRepository, create_video_repository  # type: ignore
+    from masterdata import MASTER_DATA  # type: ignore
+    from models import MasterData, SingerSummary, Video  # type: ignore
 
 
 def create_app(settings: Settings) -> FastAPI:
-  app = FastAPI(title="VSingerXrossPlayer Backend")
-  repo = create_video_repository(settings)
+    app = FastAPI(title="VSingerXrossPlayer Backend")
+    repo = create_video_repository(settings)
 
-  def get_repo() -> VideoRepository:
-    return repo
+    def get_repo() -> VideoRepository:
+        return repo
 
-  @app.get("/health")
-  def health() -> dict:
-    return {"status": "ok"}
+    @app.get("/health")
+    def health() -> dict:
+        return {"status": "ok"}
 
-  @app.get("/videos", response_model=List[Video])
-  def list_videos(
-    q: Optional[str] = Query(None),
-    singer: Optional[str] = Query(None),
-    tag: Optional[str] = Query(None),
-    limit: int = Query(50, ge=1, le=200),
-    repository: VideoRepository = Depends(get_repo),
-  ) -> List[Video]:
-    return repository.list_videos(q=q, singer=singer, tag=tag, limit=limit)
+    @app.get("/master", response_model=MasterData)
+    def master() -> MasterData:
+        return MASTER_DATA
 
-  @app.get("/videos/{video_id}", response_model=Video)
-  def get_video(
-    video_id: str,
-    repository: VideoRepository = Depends(get_repo),
-  ) -> Video:
-    video = repository.get_video(video_id)
-    if not video:
-      raise HTTPException(status_code=404, detail="Video not found")
-    return video
+    @app.get("/videos", response_model=List[Video])
+    def list_videos(
+        q: Optional[str] = Query(None),
+        singer: Optional[str] = Query(None),
+        tag: Optional[str] = Query(None),
+        limit: int = Query(50, ge=1, le=200),
+        repository: VideoRepository = Depends(get_repo),
+    ) -> List[Video]:
+        return repository.list_videos(q=q, singer=singer, tag=tag, limit=limit)
 
-  @app.get("/singers", response_model=List[SingerSummary])
-  def list_singers(
-    repository: VideoRepository = Depends(get_repo),
-  ) -> List[SingerSummary]:
-    return repository.list_singers()
+    @app.get("/videos/{video_id}", response_model=Video)
+    def get_video(
+        video_id: str,
+        repository: VideoRepository = Depends(get_repo),
+    ) -> Video:
+        video = repository.get_video(video_id)
+        if not video:
+            raise HTTPException(status_code=404, detail="Video not found")
+        return video
 
-  return app
+    @app.get("/singers", response_model=List[SingerSummary])
+    def list_singers(
+        repository: VideoRepository = Depends(get_repo),
+    ) -> List[SingerSummary]:
+        return repository.list_singers()
+
+    return app
 
 
 settings = get_settings()
 app = create_app(settings)
 
 try:
-  from mangum import Mangum
+    from mangum import Mangum
 
-  handler = Mangum(app)
+    handler = Mangum(app)
 except Exception:
-  handler = None
-
+    handler = None
