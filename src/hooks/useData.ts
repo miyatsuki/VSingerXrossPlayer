@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { fetchVideos } from '../api/client';
 import { Category, Singer, Song, AIStats } from '../types';
 
-// --- Mock Data Definitions ---
+// --- Master Data Definitions (for AI stats etc.) ---
 
-// 1. Singers
-const singers: Singer[] = [
+// 1. Singers (with AI characteristics)
+const baseSingers: Singer[] = [
 	{
 		id: '1',
 		name: 'Hoshimachi Suisei',
@@ -32,8 +33,8 @@ const songAverages: Record<string, AIStats> = {
 	'Phony': { energy: 70, mood: 60, vocal: 80, instrumental: 70 },
 };
 
-// 3. Songs (Specific Performances)
-const songs: Song[] = [
+// 3. Reference Songs (AI stats per cover, for enrichment)
+const referenceSongs: Song[] = [
 	// Suisei's Songs
 	{
 		id: '101',
@@ -73,22 +74,84 @@ const songs: Song[] = [
 	}
 ];
 
+const buildDataFromBackend = async (): Promise<{
+	songs: Song[];
+	singers: Singer[];
+}> => {
+	const apiVideos = await fetchVideos();
+
+	if (!apiVideos.length) {
+		return { songs: referenceSongs, singers: baseSingers };
+	}
+
+	const singerByName = new Map<string, Singer>();
+	baseSingers.forEach(s => singerByName.set(s.name, s));
+
+	const songs: Song[] = [];
+
+	for (const v of apiVideos) {
+		const songTitle = v.song_title || v.video_title;
+		const youtubeId = v.video_id;
+		const primarySingerName = (v.singers && v.singers.length > 0) ? v.singers[0] : 'Unknown';
+
+		let singer = singerByName.get(primarySingerName);
+		if (!singer) {
+			singer = {
+				id: primarySingerName,
+				name: primarySingerName,
+				avatar_url: '',
+			};
+			singerByName.set(primarySingerName, singer);
+		}
+
+		const ref = referenceSongs.find(refSong => {
+			const refSinger = baseSingers.find(s => s.id === refSong.singer_id);
+			return refSong.title === songTitle && refSinger?.name === primarySingerName;
+		});
+
+		const song: Song = {
+			id: youtubeId,
+			title: songTitle,
+			video_url: youtubeId,
+			singer_id: singer.id,
+			ai_stats: ref?.ai_stats,
+			average_stats: ref?.average_stats || songAverages[songTitle],
+			published_at: v.published_at,
+		};
+
+		songs.push(song);
+	}
+
+	return { songs, singers: Array.from(singerByName.values()) };
+};
+
 export const useData = () => {
 	const [songCategories, setSongCategories] = useState<Category[]>([]);
 	const [singerCategories, setSingerCategories] = useState<Category[]>([]);
+	const [singers, setSingers] = useState<Singer[]>(baseSingers);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		const loadData = async () => {
 			setLoading(true);
-			await new Promise(resolve => setTimeout(resolve, 500));
+
+			let songs: Song[] = referenceSongs;
+			let singersList: Singer[] = baseSingers;
+
+			try {
+				const result = await buildDataFromBackend();
+				songs = result.songs;
+				singersList = result.singers;
+			} catch (e) {
+				console.error('Failed to load data from backend, falling back to reference data', e);
+			}
 
 			// --- Mode A: Group by Song Title ---
 			const uniqueTitles = Array.from(new Set(songs.map(s => s.title)));
 			const songsData: Category[] = uniqueTitles.map(title => {
 				const covers = songs.filter(s => s.title === title);
 				const items = covers.map(cover => {
-					const singer = singers.find(s => s.id === cover.singer_id);
+					const singer = singersList.find(s => s.id === cover.singer_id);
 					return {
 						...cover,
 						singer_name: singer?.name,
@@ -104,11 +167,9 @@ export const useData = () => {
 				};
 			});
 
-
 			// --- Mode B: Group by Singer ---
-			const singersData: Category[] = singers.map(singer => {
+			const singersData: Category[] = singersList.map(singer => {
 				const singerSongs = songs.filter(s => s.singer_id === singer.id);
-				// Enrich with Singer info (though redundant, keeps item structure consistent)
 				const items = singerSongs.map(s => ({
 					...s,
 					singer_name: singer.name,
@@ -126,6 +187,7 @@ export const useData = () => {
 
 			setSongCategories(songsData);
 			setSingerCategories(singersData);
+			setSingers(singersList);
 			setLoading(false);
 		};
 
