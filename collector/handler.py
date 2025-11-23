@@ -14,7 +14,7 @@ import json
 from typing import Any, Dict
 
 from config import get_collector_settings
-from db import VideoRepository
+from db import SingerVideoIndexRepository, VideoRepository
 from enricher import VideoEnricher
 from gemini_client import GeminiClient
 from run_once import collect_channel
@@ -37,8 +37,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     settings = get_collector_settings()
     youtube_client = YouTubeClient(settings.youtube_api_key)
     video_repo = VideoRepository.from_settings(settings)
+    index_repo = SingerVideoIndexRepository.from_settings(settings)
     gemini_client = GeminiClient(settings.gemini_api_key)
-    enricher = VideoEnricher(gemini_client, video_repo)
+    enricher = VideoEnricher(gemini_client, video_repo, index_repo)
 
     # Determine which channels to collect
     channel_ids = []

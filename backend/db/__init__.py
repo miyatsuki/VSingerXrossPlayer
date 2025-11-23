@@ -1,15 +1,7 @@
 from typing import List, Optional, Protocol
 
-from .dynamo import DynamoVideoRepository
-
-try:
-    # When imported as backend.db
-    from ..config import Settings
-    from ..models import SingerSummary, Video
-except ImportError:
-    # When imported as top-level db
-    from config import Settings
-    from models import SingerSummary, Video
+from config import Settings
+from models import SingerSummary, Video
 
 
 class VideoRepository(Protocol):
@@ -27,4 +19,7 @@ class VideoRepository(Protocol):
 
 
 def create_video_repository(settings: Settings) -> VideoRepository:
+    # Import here to avoid circular dependency
+    from db.dynamo import DynamoVideoRepository
+
     return DynamoVideoRepository.from_settings(settings)

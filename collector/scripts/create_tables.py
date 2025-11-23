@@ -49,6 +49,61 @@ def create_videos_table(client, table_name: str) -> None:
         raise
 
 
+def create_singer_videos_table(client, table_name: str) -> None:
+    """
+    Create the singer-videos index table for optimized search.
+
+    Table structure:
+    - PK: singer_key (normalized singer name)
+    - SK: sort_key (format: "{published_at}#{video_id}")
+    - GSI_SONG_KEY: PK=song_key, SK=sort_key
+    - GSI_VIDEO_ID: PK=video_id, SK=singer_key
+
+    Args:
+      client: DynamoDB client
+      table_name: Name of the table to create
+    """
+    try:
+        client.create_table(
+            TableName=table_name,
+            KeySchema=[
+                {"AttributeName": "singer_key", "KeyType": "HASH"},
+                {"AttributeName": "sort_key", "KeyType": "RANGE"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "singer_key", "AttributeType": "S"},
+                {"AttributeName": "sort_key", "AttributeType": "S"},
+                {"AttributeName": "song_key", "AttributeType": "S"},
+                {"AttributeName": "video_id", "AttributeType": "S"},
+            ],
+            GlobalSecondaryIndexes=[
+                {
+                    "IndexName": "GSI_SONG_KEY",
+                    "KeySchema": [
+                        {"AttributeName": "song_key", "KeyType": "HASH"},
+                        {"AttributeName": "sort_key", "KeyType": "RANGE"},
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                },
+                {
+                    "IndexName": "GSI_VIDEO_ID",
+                    "KeySchema": [
+                        {"AttributeName": "video_id", "KeyType": "HASH"},
+                        {"AttributeName": "singer_key", "KeyType": "RANGE"},
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                },
+            ],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        print(f"✓ Created table: {table_name}")
+    except client.exceptions.ResourceInUseException:
+        print(f"✓ Table already exists: {table_name}")
+    except Exception as e:
+        print(f"✗ Error creating table {table_name}: {e}")
+        raise
+
+
 def main() -> None:
     """Create all required DynamoDB tables."""
     settings = get_collector_settings()
@@ -64,10 +119,15 @@ def main() -> None:
 
     print("\nCreating tables...")
     create_videos_table(client, settings.dynamodb_table_videos)
+    create_singer_videos_table(client, settings.dynamodb_table_singer_videos)
 
     print("\n✓ All tables created successfully!")
-    print(f"\nTable name: {settings.dynamodb_table_videos}")
-    print(f"Schema: channel_id (partition key), video_id (sort key)")
+    print(f"\nTables:")
+    print(f"  1. {settings.dynamodb_table_videos}")
+    print(f"     Schema: channel_id (PK), video_id (SK)")
+    print(f"  2. {settings.dynamodb_table_singer_videos}")
+    print(f"     Schema: singer_key (PK), sort_key (SK)")
+    print(f"     GSI: GSI_SONG_KEY, GSI_VIDEO_ID")
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ import time
 from typing import List
 
 from config import get_collector_settings
-from db import VideoRepository
+from db import SingerVideoIndexRepository, VideoRepository
 from enricher import VideoEnricher
 from gemini_client import GeminiClient
 
@@ -20,6 +20,7 @@ def enrich_channel(
     channel_id: str,
     gemini_client: GeminiClient,
     video_repo: VideoRepository,
+    index_repo: SingerVideoIndexRepository,
     max_videos: int = 0,
     sleep_seconds: float = 1.0,
 ) -> None:
@@ -37,7 +38,8 @@ def enrich_channel(
     print(f"Enriching videos from channel: {channel_id}")
     print(f"{'='*60}\n")
 
-    enricher = VideoEnricher(gemini_client, video_repo)
+    index_repo = SingerVideoIndexRepository.from_settings(settings)
+    enricher = VideoEnricher(gemini_client, video_repo, index_repo)
 
     # Get all videos from channel (unenriched videos have no song_title)
     videos = video_repo.list_videos_by_channel(channel_id)
@@ -101,10 +103,13 @@ def main(channel_ids: List[str], max_videos: int = 0) -> None:
 
     gemini_client = GeminiClient(settings.gemini_api_key)
     video_repo = VideoRepository.from_settings(settings)
+    index_repo = SingerVideoIndexRepository.from_settings(settings)
 
     for channel_id in channel_ids:
         try:
-            enrich_channel(channel_id, gemini_client, video_repo, max_videos)
+            enrich_channel(
+                channel_id, gemini_client, video_repo, index_repo, max_videos
+            )
         except Exception as e:
             print(f"\nError processing channel {channel_id}: {e}", file=sys.stderr)
             continue

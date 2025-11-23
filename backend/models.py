@@ -44,6 +44,8 @@ class Video(BaseModel):
     link: Optional[str] = None
     game_title: Optional[str] = None
     genre: Optional[str] = None
+    original_song_title: Optional[str] = None
+    original_artist_name: Optional[str] = None
     ai_stats: Optional[AIStats] = None
     average_stats: Optional[AIStats] = None
 

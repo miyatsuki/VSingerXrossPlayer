@@ -267,3 +267,132 @@ class VideoRepository:
             UpdateExpression=update_expr,
             ExpressionAttributeValues=attr_values,
         )
+
+
+def normalize(text: str) -> str:
+    """
+    Normalize text for use as a DynamoDB key.
+
+    Args:
+      text: Text to normalize
+
+    Returns:
+      Normalized text (lowercase, trimmed)
+    """
+    return text.lower().strip()
+
+
+class SingerVideoIndexRepository:
+    """Repository for managing the singer-videos index table."""
+
+    def __init__(self, client, table_name: str):
+        self._client = client
+        self._table_name = table_name
+
+    @classmethod
+    def from_settings(cls, settings) -> "SingerVideoIndexRepository":
+        """Create repository from collector settings."""
+        client_kwargs = {"region_name": settings.aws_region}
+        if settings.dynamodb_endpoint_url:
+            client_kwargs["endpoint_url"] = settings.dynamodb_endpoint_url
+
+        client = boto3.client("dynamodb", **client_kwargs)
+        return cls(client, settings.dynamodb_table_singer_videos)
+
+    def delete_singer_video_index(self, video_id: str) -> None:
+        """
+        Delete all singer-video index records for a given video.
+
+        Args:
+          video_id: YouTube video ID
+        """
+        # Query GSI_VIDEO_ID to find all records for this video
+        response = self._client.query(
+            TableName=self._table_name,
+            IndexName="GSI_VIDEO_ID",
+            KeyConditionExpression="video_id = :video_id",
+            ExpressionAttributeValues={":video_id": {"S": video_id}},
+        )
+
+        items = response.get("Items", [])
+
+        # Delete each record
+        for item in items:
+            self._client.delete_item(
+                TableName=self._table_name,
+                Key={
+                    "singer_key": item["singer_key"],
+                    "sort_key": item["sort_key"],
+                },
+            )
+
+    def upsert_singer_video_index(
+        self,
+        video_id: str,
+        channel_id: str,
+        video_title: str,
+        song_title: str,
+        singers: List[str],
+        published_at: str,
+        is_cover: bool,
+        link: Optional[str] = None,
+        thumbnail_url: Optional[str] = None,
+        original_song_title: Optional[str] = None,
+        original_artist_name: Optional[str] = None,
+    ) -> None:
+        """
+        Create or update singer-video index records.
+
+        Creates one record per singer for the given video.
+
+        Args:
+          video_id: YouTube video ID
+          channel_id: YouTube channel ID
+          video_title: YouTube video title
+          song_title: Song title (enriched)
+          singers: List of singer names
+          published_at: Publication timestamp (ISO 8601)
+          is_cover: Whether this is a cover song
+          link: Link to original song (optional)
+          thumbnail_url: Video thumbnail URL (optional)
+          original_song_title: Original song title (optional)
+          original_artist_name: Original artist name (optional)
+        """
+        # Build song_key from original song info
+        if original_song_title and original_artist_name:
+            song_key = (
+                f"{normalize(original_song_title)}\t{normalize(original_artist_name)}"
+            )
+        else:
+            # Fallback: use song_title as both title and artist
+            song_key = f"{normalize(song_title)}\t{normalize(song_title)}"
+
+        sort_key = f"{published_at}#{video_id}"
+
+        # Create one record per singer
+        for singer_name in singers:
+            singer_key = normalize(singer_name)
+
+            item: Dict[str, Any] = {
+                "singer_key": {"S": singer_key},
+                "sort_key": {"S": sort_key},
+                "singer_name": {"S": singer_name},
+                "song_key": {"S": song_key},
+                "video_id": {"S": video_id},
+                "song_title": {"S": song_title},
+                "video_title": {"S": video_title},
+                "channel_id": {"S": channel_id},
+                "published_at": {"S": published_at},
+                "is_cover": {"BOOL": is_cover},
+            }
+
+            if link:
+                item["link"] = {"S": link}
+            if thumbnail_url:
+                item["thumbnail_url"] = {"S": thumbnail_url}
+            if original_song_title:
+                item["original_song_title"] = {"S": original_song_title}
+            if original_artist_name:
+                item["original_artist_name"] = {"S": original_artist_name}
+
+            self._client.put_item(TableName=self._table_name, Item=item)

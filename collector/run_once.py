@@ -11,7 +11,7 @@ import time
 from typing import List
 
 from config import get_collector_settings
-from db import VideoRepository
+from db import SingerVideoIndexRepository, VideoRepository
 from enricher import VideoEnricher
 from gemini_client import GeminiClient
 from more_itertools import chunked
@@ -117,8 +117,9 @@ def main(channel_ids: List[str], max_videos: int = 0) -> None:
 
     youtube_client = YouTubeClient(settings.youtube_api_key)
     video_repo = VideoRepository.from_settings(settings)
+    index_repo = SingerVideoIndexRepository.from_settings(settings)
     gemini_client = GeminiClient(settings.gemini_api_key)
-    enricher = VideoEnricher(gemini_client, video_repo)
+    enricher = VideoEnricher(gemini_client, video_repo, index_repo)
 
     for channel_id in channel_ids:
         try:

@@ -8,6 +8,7 @@ Enriches video metadata with:
 
 from typing import Optional
 
+from db import SingerVideoIndexRepository
 from gemini_client import GeminiClient
 
 # Duration thresholds (in seconds)
@@ -18,9 +19,15 @@ DURATION_MAX = 60 * 20  # Exclude live streams (> 20 minutes)
 class VideoEnricher:
     """Enriches video metadata using Gemini API."""
 
-    def __init__(self, gemini_client: GeminiClient, video_repo):
+    def __init__(
+        self,
+        gemini_client: GeminiClient,
+        video_repo,
+        index_repo: Optional[SingerVideoIndexRepository] = None,
+    ):
         self.gemini = gemini_client
         self.repo = video_repo
+        self.index_repo = index_repo
 
     def enrich_video(
         self, channel_id: str, video_id: str, channel_name: Optional[str] = None
@@ -100,5 +107,36 @@ class VideoEnricher:
             is_cover=song_info["is_cover"],
             link=song_info.get("original_url"),
         )
+
+        # 6. Sync to singer-videos index table
+        if self.index_repo:
+            try:
+                # Delete existing index entries for this video
+                self.index_repo.delete_singer_video_index(video_id)
+
+                # Extract original artist name (first artist from list)
+                original_artists = song_info.get("original_artists", [])
+                original_artist_name = original_artists[0] if original_artists else None
+
+                # Create new index entries
+                self.index_repo.upsert_singer_video_index(
+                    video_id=video_id,
+                    channel_id=channel_id,
+                    video_title=video.video_title,
+                    song_title=song_info["song_title"],
+                    singers=song_info["singers"],
+                    published_at=video.published_at,
+                    is_cover=song_info["is_cover"],
+                    link=song_info.get("original_url"),
+                    thumbnail_url=getattr(video, "thumbnail_url", None),
+                    original_song_title=song_info[
+                        "song_title"
+                    ],  # Use song_title as original
+                    original_artist_name=original_artist_name,
+                )
+                print(f"  → Synced to index table")
+            except Exception as e:
+                print(f"  ✗ Index sync failed: {e}")
+                # Don't fail the whole enrichment if index sync fails
 
         return True

@@ -1,20 +1,11 @@
 from typing import List, Optional
 
+from config import Settings, get_settings
+from db import VideoRepository, create_video_repository
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-
-try:
-    # When imported as a package: backend.main
-    from .config import Settings, get_settings
-    from .db import VideoRepository, create_video_repository
-    from .masterdata import MASTER_DATA
-    from .models import MasterData, SingerSummary, Video
-except ImportError:
-    # When executed as a top-level module: main
-    from config import Settings, get_settings
-    from db import VideoRepository, create_video_repository
-    from masterdata import MASTER_DATA
-    from models import MasterData, SingerSummary, Video
+from masterdata import MASTER_DATA
+from models import MasterData, SingerSummary, Video
 
 
 def create_app(settings: Settings) -> FastAPI:
