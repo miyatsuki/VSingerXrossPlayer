@@ -12,7 +12,7 @@ class CollectorSettings(BaseSettings):
         alias="TARGET_CHANNEL_IDS",
     )
     aws_region: str = Field("ap-northeast-1", alias="AWS_REGION")
-    dynamodb_table_videos: str = Field("videos", alias="VIDEOS_TABLE_NAME")
+    dynamodb_table_videos: str = Field("vsxp-videos", alias="VIDEOS_TABLE_NAME")
     dynamodb_endpoint_url: Optional[str] = Field(
         None,
         alias="DYNAMODB_ENDPOINT_URL",

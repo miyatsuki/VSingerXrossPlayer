@@ -68,13 +68,13 @@ FastAPI application with pluggable repository pattern:
 
 Set `REPOSITORY_BACKEND=dynamodb` or `REPOSITORY_BACKEND=memory` to switch implementations.
 
-### Data Collection (In Progress)
+### Data Collection
 
-See `backend/COLLECTOR_PLAN.md` for the YouTube data collection pipeline architecture. The collector will:
+See `backend/COLLECTOR_PLAN.md` for the YouTube data collection pipeline architecture. The collector:
 
-- Fetch video metadata from YouTube Data API
-- Store in DynamoDB `videos` table
-- Support local CLI execution and AWS Lambda deployment
+- Fetches video metadata from YouTube Data API
+- Stores in DynamoDB `vsxp-videos` table (VSingerXrossPlayer dedicated)
+- Supports local CLI execution and AWS Lambda deployment
 
 ## Type System
 
@@ -100,7 +100,7 @@ Uses pydantic-settings for environment-based config:
 - `REPOSITORY_BACKEND`: "memory" or "dynamodb" (default: "memory")
 - `DYNAMODB_ENDPOINT_URL`: For local DynamoDB testing
 - `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: AWS credentials
-- `VIDEOS_TABLE_NAME`, `SINGERS_TABLE_NAME`: DynamoDB table names
+- `VIDEOS_TABLE_NAME`: DynamoDB table name (default: "vsxp-videos")
 
 ## Testing
 

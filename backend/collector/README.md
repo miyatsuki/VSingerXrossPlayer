@@ -31,7 +31,7 @@ DYNAMODB_ENDPOINT_URL=http://localhost:8000
 
 # For AWS DynamoDB
 AWS_REGION=ap-northeast-1
-VIDEOS_TABLE_NAME=videos
+VIDEOS_TABLE_NAME=vsxp-videos
 ```
 
 ### 3. Create DynamoDB Table
@@ -106,11 +106,11 @@ Example Lambda event:
 - **config.py**: Configuration management with pydantic-settings
 - **run_once.py**: CLI entry point for local execution
 - **handler.py**: AWS Lambda handler
-- ****main**.py**: Python module entry point
+- \***\*main**.py\*\*: Python module entry point
 
 ## Data Model
 
-DynamoDB table schema:
+DynamoDB table schema (`vsxp-videos`):
 
 - **Partition Key**: `channel_id` (String)
 - **Sort Key**: `video_id` (String)
