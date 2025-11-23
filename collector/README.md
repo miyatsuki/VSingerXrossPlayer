@@ -22,6 +22,7 @@ Create a `.env` file in the `collector/` directory:
 ```env
 # Required
 YOUTUBE_API_KEY=your_youtube_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 
 # Optional: Target channels (comma-separated)
 TARGET_CHANNEL_IDS=UC1234...,UC5678...
@@ -81,6 +82,34 @@ Use channels from `.env`:
 uv run python -m collector.run_once
 ```
 
+### Video Enrichment
+
+After collecting videos, enrich them with AI-generated metadata (song titles, singers, etc.):
+
+```bash
+cd collector
+
+# Enrich videos from a specific channel
+uv run python -m collector.enrich_batch --channel-id UC1234567890
+
+# Enrich with a limit
+uv run python -m collector.enrich_batch --channel-id UC1234567890 --max-videos 50
+
+# Enrich all channels from .env
+uv run python -m collector.enrich_batch
+```
+
+**What enrichment does:**
+
+- Classifies video type (SONG/GAME/UNKNOWN) using Gemini API
+- Extracts song information for cover videos:
+  - Song title (official name via Google Search)
+  - Singer names
+  - Original artists
+  - Original song URL (if available)
+- Filters by duration (60s - 20min) to exclude Shorts and live streams
+- Updates DynamoDB with enriched metadata
+
 ### AWS Lambda Deployment
 
 The `handler.py` provides a Lambda handler function:
@@ -106,7 +135,7 @@ Example Lambda event:
 - **config.py**: Configuration management with pydantic-settings
 - **run_once.py**: CLI entry point for local execution
 - **handler.py**: AWS Lambda handler
-- ****main**.py**: Python module entry point
+- \***\*main**.py\*\*: Python module entry point
 
 ## Data Model
 
@@ -122,9 +151,34 @@ DynamoDB table schema (`vsxp-videos`):
 
 Additional attributes can be added by enrichment pipelines (AI inference, etc.)
 
+## Workflow
+
+### 1. Collect Videos
+
+```bash
+uv run python -m collector.run_once --channel-id UC...
+```
+
+Fetches video metadata from YouTube and stores in DynamoDB.
+
+### 2. Enrich Videos
+
+```bash
+uv run python -m collector.enrich_batch --channel-id UC...
+```
+
+Analyzes videos with Gemini API to extract song information.
+
+### 3. Access via Backend
+
+The enriched data is automatically available through the FastAPI backend (`/videos` endpoint).
+
 ## Notes
 
-- The collector skips live streams (duration == 0)
-- YouTube API allows 50 videos per request; the collector handles pagination automatically
-- Existing videos are detected and skipped to avoid duplicates
-- Errors during collection are logged but don't stop the entire process
+- **Collection**: Skips live streams (duration == 0), handles pagination automatically
+- **Enrichment**:
+  - Uses Gemini API with Google Search grounding for accurate song information
+  - Filters by duration (60s - 20min) to focus on cover songs
+  - Rate limited to 1 request/second
+  - Skips already enriched videos (those with song_title or game_title)
+- Errors during processing are logged but don't stop the entire process

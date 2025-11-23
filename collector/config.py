@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class CollectorSettings(BaseSettings):
     youtube_api_key: str = Field(..., alias="YOUTUBE_API_KEY")
+    gemini_api_key: str = Field(..., alias="GEMINI_API_KEY")
     target_channel_ids: List[str] = Field(
         default_factory=list,
         alias="TARGET_CHANNEL_IDS",

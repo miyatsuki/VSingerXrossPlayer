@@ -11,6 +11,7 @@ dependencies = [
   "isodate>=0.6.1",
   "more-itertools>=10.1.0",
   "mangum>=0.17.0",
+  "google-genai>=1.0.0",
 ]
 
 [project.optional-dependencies]
