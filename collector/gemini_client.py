@@ -16,7 +16,7 @@ from google.genai import types
 class GeminiClient:
     """Client for Gemini API with Google Search grounding."""
 
-    def __init__(self, api_key: str, model: str = "gemini-3.0-pro-preview"):
+    def __init__(self, api_key: str, model: str = "gemini-3-pro-preview"):
         self.client = genai.Client(api_key=api_key)
         self.model = model
 

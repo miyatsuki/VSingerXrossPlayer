@@ -17,6 +17,7 @@ class YouTubeVideo:
         description: str,
         duration: int,
         published_at: str,
+        thumbnail_url: str = "",
     ):
         self.video_id = video_id
         self.channel_id = channel_id
@@ -24,6 +25,7 @@ class YouTubeVideo:
         self.description = description
         self.duration = duration
         self.published_at = published_at
+        self.thumbnail_url = thumbnail_url
 
 
 class YouTubeClient:
@@ -54,6 +56,42 @@ class YouTubeClient:
             raise ValueError(f"Channel not found: {channel_id}")
 
         return result["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+
+    def fetch_channel_info(self, channel_id: str) -> Dict[str, str]:
+        """
+        Get channel information (name and icon URL).
+
+        Args:
+          channel_id: YouTube channel ID
+
+        Returns:
+          Dict with "channel_name" and "channel_icon_url"
+        """
+        result = self._get(
+            "channels",
+            {
+                "id": channel_id,
+                "part": "snippet",
+            },
+        )
+
+        if not result.get("items"):
+            raise ValueError(f"Channel not found: {channel_id}")
+
+        snippet = result["items"][0]["snippet"]
+        thumbnails = snippet.get("thumbnails", {})
+
+        # Prefer high quality icon, fallback to medium/default
+        icon_url = (
+            thumbnails.get("high", {}).get("url", "")
+            or thumbnails.get("medium", {}).get("url", "")
+            or thumbnails.get("default", {}).get("url", "")
+        )
+
+        return {
+            "channel_name": snippet.get("title", ""),
+            "channel_icon_url": icon_url,
+        }
 
     def fetch_video_ids_from_playlist(
         self, playlist_id: str, page_token: str = ""
@@ -132,6 +170,14 @@ class YouTubeClient:
             duration_str = item["contentDetails"]["duration"]
             duration_seconds = int(isodate.parse_duration(duration_str).total_seconds())
 
+            # Extract thumbnail URL (prefer high quality, fallback to medium/default)
+            thumbnails = item["snippet"].get("thumbnails", {})
+            thumbnail_url = (
+                thumbnails.get("high", {}).get("url", "")
+                or thumbnails.get("medium", {}).get("url", "")
+                or thumbnails.get("default", {}).get("url", "")
+            )
+
             videos.append(
                 YouTubeVideo(
                     video_id=item["id"],
@@ -140,6 +186,7 @@ class YouTubeClient:
                     description=item["snippet"]["description"],
                     duration=duration_seconds,
                     published_at=item["snippet"]["publishedAt"],
+                    thumbnail_url=thumbnail_url,
                 )
             )
 

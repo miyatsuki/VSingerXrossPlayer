@@ -1,8 +1,7 @@
 from typing import Any, Dict, List, Optional, Set
 
 import boto3
-
-from .youtube_client import YouTubeVideo
+from youtube_client import YouTubeVideo
 
 
 class VideoRecord:
@@ -98,6 +97,10 @@ class VideoRepository:
             "published_at": {"S": video.published_at},
         }
 
+        # Add thumbnail URL if available
+        if video.thumbnail_url:
+            item["thumbnail_url"] = {"S": video.thumbnail_url}
+
         self._client.put_item(TableName=self._table_name, Item=item)
 
     def batch_upsert_videos(self, videos: List[YouTubeVideo]) -> None:
@@ -109,6 +112,26 @@ class VideoRepository:
         """
         for video in videos:
             self.upsert_video(video)
+
+    def upsert_channel_info(
+        self, channel_id: str, channel_name: str, channel_icon_url: str
+    ) -> None:
+        """
+        Store channel metadata (name and icon URL).
+
+        Args:
+          channel_id: YouTube channel ID
+          channel_name: Channel name
+          channel_icon_url: Channel icon/avatar URL
+        """
+        item: Dict[str, Any] = {
+            "channel_id": {"S": channel_id},
+            "video_id": {"S": "CHANNEL_INFO"},
+            "channel_name": {"S": channel_name},
+            "channel_icon_url": {"S": channel_icon_url},
+        }
+
+        self._client.put_item(TableName=self._table_name, Item=item)
 
     def get_video(self, channel_id: str, video_id: str) -> Optional[VideoRecord]:
         """

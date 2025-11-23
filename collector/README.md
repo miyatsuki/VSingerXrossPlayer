@@ -57,7 +57,7 @@ AWS_REGION=ap-northeast-1 uv run python scripts/create_tables.py
 
 ### Local Execution
 
-Collect videos from a specific channel:
+Collect videos from a specific channel (enrichment runs automatically):
 
 ```bash
 cd collector
@@ -82,13 +82,26 @@ Use channels from `.env`:
 uv run python -m collector.run_once
 ```
 
-### Video Enrichment
+**What the collector does:**
 
-After collecting videos, enrich them with AI-generated metadata (song titles, singers, etc.):
+1. Fetches channel information (name and icon URL)
+2. Fetches video metadata from YouTube API (title, description, duration, thumbnail URL)
+3. Stores videos in DynamoDB
+4. Automatically enriches each video using Gemini API:
+   - Classifies video type (SONG/GAME/UNKNOWN)
+   - Extracts song information for cover videos:
+     - Song title (official name via Google Search grounding)
+     - Singer names
+     - Original artists
+     - Original song URL (if available)
+   - Filters by duration (60s - 20min) to exclude Shorts and live streams
+5. Rate limits enrichment to 1 request/second
+
+### Batch Enrichment (Optional)
+
+If you need to re-enrich existing videos, use the batch enrichment tool:
 
 ```bash
-cd collector
-
 # Enrich videos from a specific channel
 uv run python -m collector.enrich_batch --channel-id UC1234567890
 
@@ -98,17 +111,6 @@ uv run python -m collector.enrich_batch --channel-id UC1234567890 --max-videos 5
 # Enrich all channels from .env
 uv run python -m collector.enrich_batch
 ```
-
-**What enrichment does:**
-
-- Classifies video type (SONG/GAME/UNKNOWN) using Gemini API
-- Extracts song information for cover videos:
-  - Song title (official name via Google Search)
-  - Singer names
-  - Original artists
-  - Original song URL (if available)
-- Filters by duration (60s - 20min) to exclude Shorts and live streams
-- Updates DynamoDB with enriched metadata
 
 ### AWS Lambda Deployment
 
@@ -143,42 +145,53 @@ DynamoDB table schema (`vsxp-videos`):
 
 - **Partition Key**: `channel_id` (String)
 - **Sort Key**: `video_id` (String)
-- **Attributes**:
+- **Video Attributes**:
   - `video_title` (String)
   - `description` (String)
   - `duration` (Number) - in seconds
   - `published_at` (String) - ISO 8601 format
+  - `thumbnail_url` (String) - video thumbnail image URL
+- **Enrichment Attributes** (added automatically):
+  - `video_type` (String) - SONG/GAME/UNKNOWN
+  - `song_title` (String) - for SONG type videos
+  - `singers` (List) - list of singer names
+  - `is_cover` (Boolean) - whether this is a cover song
+  - `link` (String) - original song URL (if available)
 
-Additional attributes can be added by enrichment pipelines (AI inference, etc.)
+**Channel Information** (stored with `video_id` = "CHANNEL_INFO"):
+
+- `channel_name` (String) - channel display name
+- `channel_icon_url` (String) - channel avatar/icon URL
 
 ## Workflow
 
-### 1. Collect Videos
+### 1. Collect and Enrich Videos
 
 ```bash
 uv run python -m collector.run_once --channel-id UC...
 ```
 
-Fetches video metadata from YouTube and stores in DynamoDB.
+This single command:
 
-### 2. Enrich Videos
+1. Fetches channel information (name and icon)
+2. Fetches video metadata from YouTube
+3. Stores videos in DynamoDB with thumbnail URLs
+4. Automatically enriches each video with Gemini API
 
-```bash
-uv run python -m collector.enrich_batch --channel-id UC...
-```
-
-Analyzes videos with Gemini API to extract song information.
-
-### 3. Access via Backend
+### 2. Access via Backend
 
 The enriched data is automatically available through the FastAPI backend (`/videos` endpoint).
 
 ## Notes
 
-- **Collection**: Skips live streams (duration == 0), handles pagination automatically
-- **Enrichment**:
+- **Collection & Enrichment**:
+  - Automatically fetches channel information (name and icon URL)
+  - Fetches video thumbnails during collection
+  - Skips live streams (duration == 0)
+  - Handles pagination automatically
+  - Enrichment runs automatically for each new video
   - Uses Gemini API with Google Search grounding for accurate song information
   - Filters by duration (60s - 20min) to focus on cover songs
   - Rate limited to 1 request/second
-  - Skips already enriched videos (those with song_title or game_title)
 - Errors during processing are logged but don't stop the entire process
+- The `enrich_batch` tool is available for re-enriching existing videos if needed

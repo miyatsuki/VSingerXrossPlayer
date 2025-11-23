@@ -10,10 +10,10 @@ import sys
 import time
 from typing import List
 
-from .config import get_collector_settings
-from .db import VideoRepository
-from .enricher import VideoEnricher
-from .gemini_client import GeminiClient
+from config import get_collector_settings
+from db import VideoRepository
+from enricher import VideoEnricher
+from gemini_client import GeminiClient
 
 
 def enrich_channel(

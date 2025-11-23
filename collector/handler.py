@@ -13,10 +13,12 @@ Event format:
 import json
 from typing import Any, Dict
 
-from .config import get_collector_settings
-from .db import VideoRepository
-from .run_once import collect_channel
-from .youtube_client import YouTubeClient
+from config import get_collector_settings
+from db import VideoRepository
+from enricher import VideoEnricher
+from gemini_client import GeminiClient
+from run_once import collect_channel
+from youtube_client import YouTubeClient
 
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -35,6 +37,8 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     settings = get_collector_settings()
     youtube_client = YouTubeClient(settings.youtube_api_key)
     video_repo = VideoRepository.from_settings(settings)
+    gemini_client = GeminiClient(settings.gemini_api_key)
+    enricher = VideoEnricher(gemini_client, video_repo)
 
     # Determine which channels to collect
     channel_ids = []
@@ -56,7 +60,9 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     results = []
     for channel_id in channel_ids:
         try:
-            collect_channel(channel_id, youtube_client, video_repo, max_videos)
+            collect_channel(
+                channel_id, youtube_client, video_repo, enricher, max_videos
+            )
             results.append({"channel_id": channel_id, "status": "success"})
         except Exception as e:
             print(f"Error collecting channel {channel_id}: {e}")

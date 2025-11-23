@@ -8,7 +8,7 @@ Enriches video metadata with:
 
 from typing import Optional
 
-from .gemini_client import GeminiClient
+from gemini_client import GeminiClient
 
 # Duration thresholds (in seconds)
 DURATION_MIN = 60  # Exclude Shorts (< 1 minute)

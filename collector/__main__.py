@@ -8,7 +8,7 @@ Usage:
 import argparse
 import sys
 
-from .run_once import main
+from run_once import main
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Collect YouTube videos to DynamoDB")
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     if not args.channel_ids:
         # Use target channels from config if none specified
-        from .config import get_collector_settings
+        from config import get_collector_settings
 
         settings = get_collector_settings()
         if not settings.target_channel_ids:
