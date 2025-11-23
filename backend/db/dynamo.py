@@ -96,6 +96,7 @@ class DynamoVideoRepository:
             chorus_end_time=(
                 int(item["chorus_end_time"]["N"]) if "chorus_end_time" in item else None
             ),
+            thumbnail_url=item.get("thumbnail_url", {}).get("S"),
         )
 
     def _item_to_video(self, item: dict) -> Video:
@@ -228,20 +229,47 @@ class DynamoVideoRepository:
         items = response.get("Items", [])
         counts = {}
         latest_ids = {}
+        singer_channels = {}  # Map singer_name -> channel_id
 
         for item in items:
             singer_name = item.get("singer_name", {}).get("S", "")
             video_id = item.get("video_id", {}).get("S", "")
+            channel_id = item.get("channel_id", {}).get("S", "")
 
             if singer_name:
                 counts[singer_name] = counts.get(singer_name, 0) + 1
                 # Update latest_id if not set or if this video is newer
                 if singer_name not in latest_ids:
                     latest_ids[singer_name] = video_id
+                # Track channel_id for this singer
+                if singer_name not in singer_channels and channel_id:
+                    singer_channels[singer_name] = channel_id
+
+        # Get channel icons from CHANNEL_INFO records in videos table
+        channel_icons = {}
+        unique_channels = set(singer_channels.values())
+        for channel_id in unique_channels:
+            try:
+                info_response = self._client.get_item(
+                    TableName=self._videos_table,
+                    Key={
+                        "channel_id": {"S": channel_id},
+                        "video_id": {"S": "CHANNEL_INFO"},
+                    },
+                )
+                info_item = info_response.get("Item")
+                if info_item and "channel_icon_url" in info_item:
+                    channel_icons[channel_id] = info_item["channel_icon_url"]["S"]
+            except Exception:
+                # Skip if CHANNEL_INFO not found
+                pass
 
         summaries = [
             SingerSummary(
-                name=name, video_count=count, latest_video_id=latest_ids.get(name)
+                name=name,
+                video_count=count,
+                latest_video_id=latest_ids.get(name),
+                avatar_url=channel_icons.get(singer_channels.get(name, ""), None),
             )
             for name, count in counts.items()
         ]

@@ -17,7 +17,7 @@ const buildDataFromBackend = async (): Promise<{
 		singerMap.set(s.name, {
 			id: s.name,
 			name: s.name,
-			avatar_url: '', // No avatar in API, could be added later
+			avatar_url: s.avatar_url || '',
 		});
 	});
 
@@ -54,6 +54,7 @@ const buildDataFromBackend = async (): Promise<{
 			comment_cloud: v.comment_cloud,
 			chorus_start_time: v.chorus_start_time,
 			chorus_end_time: v.chorus_end_time,
+			thumbnail_url: v.thumbnail_url,
 		};
 	});
 

@@ -57,6 +57,7 @@ class Video(BaseModel):
     comment_cloud: Optional[List[CommentWord]] = None
     chorus_start_time: Optional[int] = None  # サビ開始時間（秒）
     chorus_end_time: Optional[int] = None  # サビ終了時間（秒）
+    thumbnail_url: Optional[str] = None
 
 
 class VideoQuery(BaseModel):
@@ -70,6 +71,7 @@ class SingerSummary(BaseModel):
     name: str
     video_count: int
     latest_video_id: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 
 class MasterData(BaseModel):

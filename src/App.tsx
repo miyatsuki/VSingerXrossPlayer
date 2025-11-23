@@ -4,6 +4,7 @@ import { AIVisualizer } from "./components/AIVisualizer";
 import { BackgroundVideo } from "./components/BackgroundVideo";
 import { WordCloud } from "./components/WordCloud";
 import { XMBContainer } from "./components/XMBContainer";
+import { YouTubePlayer } from "./components/YouTubePlayer";
 import { useData } from "./hooks/useData";
 import { useXMBNavigation } from "./hooks/useXMBNavigation";
 import { Category, Singer, Song } from "./types";
@@ -64,6 +65,7 @@ function App() {
   const { cursor, currentItem } = navigation;
 
   const [selectedItem, setSelectedItem] = useState<Singer | Song | null>(null);
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
 
   // Sync selectedItem with navigation
   useEffect(() => {
@@ -150,6 +152,18 @@ function App() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handlePivot]);
+
+  // Listen for Enter key to open YouTube player
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && selectedItem && "video_url" in selectedItem) {
+        e.preventDefault();
+        setIsPlayerOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedItem]);
 
   const getStats = (item: Singer | Song | null) => {
     if (!item) return undefined;
@@ -238,6 +252,18 @@ function App() {
             title="コメントワード"
           />
         </VisualizerOverlay>
+      )}
+
+      {isPlayerOpen && selectedItem && "video_url" in selectedItem && (
+        <YouTubePlayer
+          videoId={selectedItem.video_url}
+          startTime={
+            "chorus_start_time" in selectedItem
+              ? selectedItem.chorus_start_time
+              : undefined
+          }
+          onClose={() => setIsPlayerOpen(false)}
+        />
       )}
     </div>
   );

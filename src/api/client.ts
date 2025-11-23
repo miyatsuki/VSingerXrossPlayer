@@ -15,6 +15,7 @@ export interface ApiVideo {
   comment_cloud?: ApiCommentWord[];
   chorus_start_time?: number;  // サビ開始時間（秒）
   chorus_end_time?: number;    // サビ終了時間（秒）
+  thumbnail_url?: string;
 }
 
 export interface ApiAIStats {
@@ -54,6 +55,7 @@ export interface ApiSingerSummary {
   name: string;
   video_count: number;
   latest_video_id?: string;
+  avatar_url?: string;
 }
 
 export async function fetchVideos(): Promise<ApiVideo[]> {
