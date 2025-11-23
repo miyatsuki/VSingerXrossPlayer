@@ -161,26 +161,18 @@ class DynamoVideoRepository:
             videos = list(video_map.values())
             return videos[:limit]
 
-        # Fallback to scanning videos table for other queries
-        scan_kwargs = {"TableName": self._videos_table}
+        # Scan singer-videos table for all videos
+        scan_kwargs = {"TableName": self._singer_videos_table}
 
         # Build filter expression parts
         filter_parts = []
         expr_attr_values = {}
 
-        # Filter out CHANNEL_INFO items (not actual videos)
-        filter_parts.append("video_id <> :channel_info")
-        expr_attr_values[":channel_info"] = {"S": "CHANNEL_INFO"}
-
         if q:
-            filter_parts.append(
-                "(contains(video_title, :q) OR contains(description, :q))"
-            )
+            filter_parts.append("contains(video_title, :q)")
             expr_attr_values[":q"] = {"S": q}
 
-        if tag:
-            filter_parts.append("contains(tags, :tag)")
-            expr_attr_values[":tag"] = {"S": tag}
+        # Note: tags are not stored in singer-videos table, so tag filter is not applicable
 
         # Combine filter parts with AND
         if filter_parts:
@@ -189,7 +181,21 @@ class DynamoVideoRepository:
 
         response = self._client.scan(**scan_kwargs)
         items = response.get("Items", [])
-        videos = [self._item_to_video(item) for item in items]
+
+        # Group by video_id and merge singers
+        video_map = {}
+        for item in items:
+            video_id = item["video_id"]["S"]
+            if video_id not in video_map:
+                video = self._singer_video_item_to_video(item)
+                video_map[video_id] = video
+            else:
+                # Add singer to existing video
+                singer_name = item.get("singer_name", {}).get("S", "")
+                if singer_name and singer_name not in video_map[video_id].singers:
+                    video_map[video_id].singers.append(singer_name)
+
+        videos = list(video_map.values())
         return videos[:limit]
 
     def get_video(self, video_id: str) -> Optional[Video]:
