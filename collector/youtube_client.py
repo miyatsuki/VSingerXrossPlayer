@@ -3,6 +3,8 @@ from typing import Any, Dict, List, Set
 import isodate
 import requests
 
+BASE_URL = "https://www.googleapis.com/youtube/v3"
+
 
 class YouTubeVideo:
     """Represents a YouTube video with metadata."""
@@ -27,15 +29,13 @@ class YouTubeVideo:
 class YouTubeClient:
     """Client for YouTube Data API v3."""
 
-    BASE_URL = "https://www.googleapis.com/youtube/v3"
-
     def __init__(self, api_key: str):
         self.api_key = api_key
 
     def _get(self, endpoint: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Make a GET request to YouTube API."""
         params["key"] = self.api_key
-        url = f"{self.BASE_URL}/{endpoint}"
+        url = f"{BASE_URL}/{endpoint}"
         response = requests.get(url, params=params)
         response.raise_for_status()
         return response.json()

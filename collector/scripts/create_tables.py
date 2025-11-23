@@ -16,7 +16,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import boto3
-from config import get_settings
+
+from collector.config import get_collector_settings
 
 
 def create_videos_table(client, table_name: str) -> None:
@@ -50,7 +51,7 @@ def create_videos_table(client, table_name: str) -> None:
 
 def main() -> None:
     """Create all required DynamoDB tables."""
-    settings = get_settings()
+    settings = get_collector_settings()
 
     client_kwargs = {"region_name": settings.aws_region}
     if settings.dynamodb_endpoint_url:

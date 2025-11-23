@@ -6,9 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 VSingerXrossPlayer is a web application for browsing "utatte mita" (cover song) videos using a PSP XMB-inspired interface. The project consists of:
 
-- **Frontend**: Vite + React + TypeScript SPA with XMB navigation
-- **Backend**: FastAPI + DynamoDB (Lambda-ready with Mangum)
-- **Archive**: Legacy Python services in `archive/` (read-only unless working on backend tooling)
+- **Frontend** (`src/`): Vite + React + TypeScript SPA with XMB navigation
+- **Backend** (`backend/`): FastAPI + DynamoDB (Lambda-ready with Mangum)
+- **Collector** (`collector/`): YouTube data collection pipeline (independent package)
+- **Archive** (`archive/`): Legacy Python services (read-only unless working on backend tooling)
 
 ## Development Commands
 
@@ -31,7 +32,16 @@ uv run uvicorn main:app --reload  # Start FastAPI dev server
 uv run python -m pytest # Run tests (if configured)
 ```
 
-The backend uses `uv` for dependency management. Python 3.11+ is required.
+### Collector (collector/ Directory)
+
+```bash
+cd collector
+uv sync                 # Install Python dependencies with uv
+uv run python -m collector.run_once --channel-id UC...  # Collect videos
+uv run python scripts/create_tables.py  # Create DynamoDB table
+```
+
+Both backend and collector use `uv` for dependency management. Python 3.11+ is required.
 
 ## Architecture
 
@@ -68,13 +78,22 @@ FastAPI application with pluggable repository pattern:
 
 Set `REPOSITORY_BACKEND=dynamodb` or `REPOSITORY_BACKEND=memory` to switch implementations.
 
-### Data Collection
+### Data Collection (`collector/`)
 
-See `backend/COLLECTOR_PLAN.md` for the YouTube data collection pipeline architecture. The collector:
+The collector is an independent package that fetches YouTube video metadata:
 
-- Fetches video metadata from YouTube Data API
-- Stores in DynamoDB `vsxp-videos` table (VSingerXrossPlayer dedicated)
-- Supports local CLI execution and AWS Lambda deployment
+- **Location**: `collector/` (top-level, separate from backend)
+- **Dependencies**: Independent `pyproject.toml` and `uv.lock`
+- **DynamoDB Table**: `vsxp-videos` (VSingerXrossPlayer dedicated)
+- **Deployment**: Local CLI execution or AWS Lambda
+- **Documentation**: See `collector/README.md` for detailed usage
+
+Key modules:
+
+- `youtube_client.py`: YouTube Data API v3 client
+- `db.py`: DynamoDB video repository
+- `run_once.py`: CLI entry point
+- `handler.py`: Lambda handler for scheduled execution
 
 ## Type System
 

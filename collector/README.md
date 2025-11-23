@@ -11,13 +11,13 @@ The collector fetches video metadata from YouTube Data API v3 and stores it in D
 ### 1. Install Dependencies
 
 ```bash
-cd backend
+cd collector
 uv sync
 ```
 
 ### 2. Configure Environment
 
-Create a `.env` file in the `backend/` directory:
+Create a `.env` file in the `collector/` directory:
 
 ```env
 # Required
@@ -59,7 +59,7 @@ AWS_REGION=ap-northeast-1 uv run python scripts/create_tables.py
 Collect videos from a specific channel:
 
 ```bash
-cd backend
+cd collector
 uv run python -m collector.run_once --channel-id UC1234567890
 ```
 
@@ -83,9 +83,9 @@ uv run python -m collector.run_once
 
 ### AWS Lambda Deployment
 
-The `collector/handler.py` provides a Lambda handler function:
+The `handler.py` provides a Lambda handler function:
 
-1. Package the backend directory
+1. Package the collector directory
 2. Deploy to AWS Lambda
 3. Configure environment variables (YOUTUBE_API_KEY, etc.)
 4. Set up EventBridge (CloudWatch Events) for scheduled execution
@@ -106,7 +106,7 @@ Example Lambda event:
 - **config.py**: Configuration management with pydantic-settings
 - **run_once.py**: CLI entry point for local execution
 - **handler.py**: AWS Lambda handler
-- \***\*main**.py\*\*: Python module entry point
+- ****main**.py**: Python module entry point
 
 ## Data Model
 
