@@ -62,7 +62,7 @@ The frontend uses a dual-axis navigation system that allows pivoting between son
    - `XMBContainer`: Renders the horizontal category strip
    - `XMBCategory`: Renders vertical item lists with wave animation
    - `AIVisualizer`: Displays radar chart of AI-analyzed characteristics
-   - `BackgroundVideo`: YouTube player for selected cover
+   - `YouTubePlayer`: Full-screen modal player for selected cover (opens on Enter key)
 
 ### Backend Architecture
 

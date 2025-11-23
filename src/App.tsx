@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { useCallback, useEffect, useState } from "react";
 import { AIVisualizer } from "./components/AIVisualizer";
-import { BackgroundVideo } from "./components/BackgroundVideo";
 import { WordCloud } from "./components/WordCloud";
 import { XMBContainer } from "./components/XMBContainer";
 import { YouTubePlayer } from "./components/YouTubePlayer";
@@ -205,19 +204,6 @@ function App() {
 
   return (
     <div className="App">
-      <BackgroundVideo
-        videoId={
-          selectedItem && "video_url" in selectedItem
-            ? selectedItem.video_url
-            : undefined
-        }
-        startTime={
-          selectedItem && "chorus_start_time" in selectedItem
-            ? selectedItem.chorus_start_time
-            : undefined
-        }
-      />
-
       <ModeIndicator>
         Mode:{" "}
         {mode === "songs"
