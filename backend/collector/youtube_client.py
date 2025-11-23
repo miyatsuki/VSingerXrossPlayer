@@ -1,0 +1,146 @@
+from typing import Any, Dict, List, Set
+
+import isodate
+import requests
+
+
+class YouTubeVideo:
+    """Represents a YouTube video with metadata."""
+
+    def __init__(
+        self,
+        video_id: str,
+        channel_id: str,
+        title: str,
+        description: str,
+        duration: int,
+        published_at: str,
+    ):
+        self.video_id = video_id
+        self.channel_id = channel_id
+        self.title = title
+        self.description = description
+        self.duration = duration
+        self.published_at = published_at
+
+
+class YouTubeClient:
+    """Client for YouTube Data API v3."""
+
+    BASE_URL = "https://www.googleapis.com/youtube/v3"
+
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+
+    def _get(self, endpoint: str, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Make a GET request to YouTube API."""
+        params["key"] = self.api_key
+        url = f"{self.BASE_URL}/{endpoint}"
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        return response.json()
+
+    def fetch_uploads_playlist_id(self, channel_id: str) -> str:
+        """Get the uploads playlist ID for a channel."""
+        result = self._get(
+            "channels",
+            {
+                "id": channel_id,
+                "part": "contentDetails",
+            },
+        )
+
+        if not result.get("items"):
+            raise ValueError(f"Channel not found: {channel_id}")
+
+        return result["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
+
+    def fetch_video_ids_from_playlist(
+        self, playlist_id: str, page_token: str = ""
+    ) -> Dict[str, Any]:
+        """Fetch video IDs from a playlist (one page)."""
+        params = {
+            "playlistId": playlist_id,
+            "part": "contentDetails",
+            "maxResults": "50",
+        }
+        if page_token:
+            params["pageToken"] = page_token
+
+        return self._get("playlistItems", params)
+
+    def fetch_video_ids_from_channel(
+        self, channel_id: str, max_videos: int = 0
+    ) -> Set[str]:
+        """
+        Fetch all video IDs from a channel's uploads playlist.
+
+        Args:
+          channel_id: YouTube channel ID
+          max_videos: Maximum number of videos to fetch (0 = no limit)
+
+        Returns:
+          Set of video IDs
+        """
+        playlist_id = self.fetch_uploads_playlist_id(channel_id)
+
+        video_ids: Set[str] = set()
+        page_token = ""
+
+        while True:
+            result = self.fetch_video_ids_from_playlist(playlist_id, page_token)
+
+            if "items" not in result:
+                break
+
+            for item in result["items"]:
+                video_ids.add(item["contentDetails"]["videoId"])
+
+                if max_videos > 0 and len(video_ids) >= max_videos:
+                    return video_ids
+
+            if "nextPageToken" in result:
+                page_token = result["nextPageToken"]
+            else:
+                break
+
+        return video_ids
+
+    def fetch_videos(self, video_ids: List[str]) -> List[YouTubeVideo]:
+        """
+        Fetch detailed video information for given video IDs.
+
+        Args:
+          video_ids: List of video IDs (max 50 per request)
+
+        Returns:
+          List of YouTubeVideo objects
+        """
+        if not video_ids:
+            return []
+
+        result = self._get(
+            "videos",
+            {
+                "id": ",".join(video_ids[:50]),
+                "part": "snippet,contentDetails",
+            },
+        )
+
+        videos = []
+        for item in result.get("items", []):
+            duration_str = item["contentDetails"]["duration"]
+            duration_seconds = int(isodate.parse_duration(duration_str).total_seconds())
+
+            videos.append(
+                YouTubeVideo(
+                    video_id=item["id"],
+                    channel_id=item["snippet"]["channelId"],
+                    title=item["snippet"]["title"],
+                    description=item["snippet"]["description"],
+                    duration=duration_seconds,
+                    published_at=item["snippet"]["publishedAt"],
+                )
+            )
+
+        return videos

@@ -1,6 +1,11 @@
 from typing import Dict, List
 
-from .models import AIStats, MasterData, Singer, Song
+try:
+    # When imported as a package: backend.masterdata
+    from .models import AIStats, MasterData, Singer, Song
+except ImportError:
+    # When executed as a top-level module: masterdata
+    from models import AIStats, MasterData, Singer, Song  # type: ignore
 
 SINGERS: List[Singer] = [
     Singer(
