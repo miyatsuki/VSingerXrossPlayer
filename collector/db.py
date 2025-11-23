@@ -234,6 +234,10 @@ class VideoRepository:
         singers: List[str],
         is_cover: bool,
         link: Optional[str] = None,
+        ai_stats: Optional[Dict[str, int]] = None,
+        comment_cloud: Optional[List[Dict[str, Any]]] = None,
+        chorus_start_time: Optional[int] = None,
+        chorus_end_time: Optional[int] = None,
     ) -> None:
         """
         Update song-related attributes.
@@ -245,6 +249,10 @@ class VideoRepository:
           singers: List of singer names
           is_cover: Whether this is a cover song
           link: Optional link to original song
+          ai_stats: Optional AI characteristics (cool, cute, energetic, surprising, emotional)
+          comment_cloud: Optional comment keywords with importance
+          chorus_start_time: Optional chorus start time in seconds
+          chorus_end_time: Optional chorus end time in seconds
         """
         update_expr = (
             "SET video_type = :video_type, song_title = :song_title, "
@@ -260,6 +268,38 @@ class VideoRepository:
         if link:
             update_expr += ", link = :link"
             attr_values[":link"] = {"S": link}
+
+        if ai_stats:
+            update_expr += ", ai_stats = :ai_stats"
+            attr_values[":ai_stats"] = {
+                "M": {
+                    "cool": {"N": str(ai_stats["cool"])},
+                    "cute": {"N": str(ai_stats["cute"])},
+                    "energetic": {"N": str(ai_stats["energetic"])},
+                    "surprising": {"N": str(ai_stats["surprising"])},
+                    "emotional": {"N": str(ai_stats["emotional"])},
+                }
+            }
+
+        if comment_cloud:
+            update_expr += ", comment_cloud = :comment_cloud"
+            attr_values[":comment_cloud"] = {
+                "L": [
+                    {
+                        "M": {
+                            "word": {"S": kw["word"]},
+                            "importance": {"N": str(kw["importance"])},
+                        }
+                    }
+                    for kw in comment_cloud
+                ]
+            }
+
+        if chorus_start_time is not None and chorus_end_time is not None:
+            update_expr += ", chorus_start_time = :chorus_start_time"
+            update_expr += ", chorus_end_time = :chorus_end_time"
+            attr_values[":chorus_start_time"] = {"N": str(chorus_start_time)}
+            attr_values[":chorus_end_time"] = {"N": str(chorus_end_time)}
 
         self._client.update_item(
             TableName=self._table_name,
@@ -339,6 +379,10 @@ class SingerVideoIndexRepository:
         thumbnail_url: Optional[str] = None,
         original_song_title: Optional[str] = None,
         original_artist_name: Optional[str] = None,
+        ai_stats: Optional[Dict[str, int]] = None,
+        comment_cloud: Optional[List[Dict[str, Any]]] = None,
+        chorus_start_time: Optional[int] = None,
+        chorus_end_time: Optional[int] = None,
     ) -> None:
         """
         Create or update singer-video index records.
@@ -357,6 +401,10 @@ class SingerVideoIndexRepository:
           thumbnail_url: Video thumbnail URL (optional)
           original_song_title: Original song title (optional)
           original_artist_name: Original artist name (optional)
+          ai_stats: Optional AI characteristics (cool, cute, energetic, surprising, emotional)
+          comment_cloud: Optional comment keywords with importance
+          chorus_start_time: Optional chorus start time in seconds
+          chorus_end_time: Optional chorus end time in seconds
         """
         # Build song_key from original song info
         if original_song_title and original_artist_name:
@@ -394,5 +442,31 @@ class SingerVideoIndexRepository:
                 item["original_song_title"] = {"S": original_song_title}
             if original_artist_name:
                 item["original_artist_name"] = {"S": original_artist_name}
+            if ai_stats:
+                item["ai_stats"] = {
+                    "M": {
+                        "cool": {"N": str(ai_stats["cool"])},
+                        "cute": {"N": str(ai_stats["cute"])},
+                        "energetic": {"N": str(ai_stats["energetic"])},
+                        "surprising": {"N": str(ai_stats["surprising"])},
+                        "emotional": {"N": str(ai_stats["emotional"])},
+                    }
+                }
+            if comment_cloud:
+                item["comment_cloud"] = {
+                    "L": [
+                        {
+                            "M": {
+                                "word": {"S": kw["word"]},
+                                "importance": {"N": str(kw["importance"])},
+                            }
+                        }
+                        for kw in comment_cloud
+                    ]
+                }
+            if chorus_start_time is not None:
+                item["chorus_start_time"] = {"N": str(chorus_start_time)}
+            if chorus_end_time is not None:
+                item["chorus_end_time"] = {"N": str(chorus_end_time)}
 
             self._client.put_item(TableName=self._table_name, Item=item)

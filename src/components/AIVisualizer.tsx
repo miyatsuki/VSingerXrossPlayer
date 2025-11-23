@@ -1,7 +1,15 @@
-import styled from '@emotion/styled';
-import React from 'react';
-import { Legend, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer } from 'recharts';
-import { AIStats } from '../types';
+import styled from "@emotion/styled";
+import React from "react";
+import {
+  Legend,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+} from "recharts";
+import { AIStats } from "../types";
 
 interface AIVisualizerProps {
   stats?: AIStats;
@@ -30,33 +38,43 @@ const Title = styled.h3`
   letter-spacing: 1px;
 `;
 
-export const AIVisualizer: React.FC<AIVisualizerProps> = ({ stats, averageStats, title }) => {
+export const AIVisualizer: React.FC<AIVisualizerProps> = ({
+  stats,
+  averageStats,
+  title,
+}) => {
   if (!stats) return null;
 
   const data = [
-    { 
-      subject: 'Energy', 
-      A: stats.energy, 
-      B: averageStats?.energy || 0, 
-      fullMark: 100 
+    {
+      subject: "かっこいい",
+      A: stats.cool,
+      B: averageStats?.cool || 0,
+      fullMark: 100,
     },
-    { 
-      subject: 'Mood', 
-      A: stats.mood, 
-      B: averageStats?.mood || 0, 
-      fullMark: 100 
+    {
+      subject: "かわいい",
+      A: stats.cute,
+      B: averageStats?.cute || 0,
+      fullMark: 100,
     },
-    { 
-      subject: 'Vocal', 
-      A: stats.vocal, 
-      B: averageStats?.vocal || 0, 
-      fullMark: 100 
+    {
+      subject: "元気",
+      A: stats.energetic,
+      B: averageStats?.energetic || 0,
+      fullMark: 100,
     },
-    { 
-      subject: 'Inst', 
-      A: stats.instrumental, 
-      B: averageStats?.instrumental || 0, 
-      fullMark: 100 
+    {
+      subject: "意外性",
+      A: stats.surprising,
+      B: averageStats?.surprising || 0,
+      fullMark: 100,
+    },
+    {
+      subject: "エモい",
+      A: stats.emotional,
+      B: averageStats?.emotional || 0,
+      fullMark: 100,
     },
   ];
 
@@ -66,9 +84,17 @@ export const AIVisualizer: React.FC<AIVisualizerProps> = ({ stats, averageStats,
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
           <PolarGrid stroke="rgba(255,255,255,0.2)" />
-          <PolarAngleAxis dataKey="subject" tick={{ fill: 'white', fontSize: 12 }} />
-          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-          
+          <PolarAngleAxis
+            dataKey="subject"
+            tick={{ fill: "white", fontSize: 12 }}
+          />
+          <PolarRadiusAxis
+            angle={30}
+            domain={[0, 100]}
+            tick={false}
+            axisLine={false}
+          />
+
           {/* Specific Stats */}
           <Radar
             name="This Cover"
@@ -91,8 +117,8 @@ export const AIVisualizer: React.FC<AIVisualizerProps> = ({ stats, averageStats,
               strokeDasharray="5 5"
             />
           )}
-          
-          <Legend wrapperStyle={{ color: 'white', fontSize: '12px' }} />
+
+          <Legend wrapperStyle={{ color: "white", fontSize: "12px" }} />
         </RadarChart>
       </ResponsiveContainer>
     </Container>

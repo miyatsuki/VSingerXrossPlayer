@@ -4,10 +4,16 @@ from pydantic import BaseModel
 
 
 class AIStats(BaseModel):
-    energy: int
-    mood: int
-    vocal: int
-    instrumental: int
+    cool: int  # かっこいい (0-100)
+    cute: int  # かわいい (0-100)
+    energetic: int  # 元気 (0-100)
+    surprising: int  # 意外性 (0-100)
+    emotional: int  # エモい (0-100)
+
+
+class CommentWord(BaseModel):
+    word: str
+    importance: int  # 重要度 (0-100)
 
 
 class Singer(BaseModel):
@@ -48,6 +54,9 @@ class Video(BaseModel):
     original_artist_name: Optional[str] = None
     ai_stats: Optional[AIStats] = None
     average_stats: Optional[AIStats] = None
+    comment_cloud: Optional[List[CommentWord]] = None
+    chorus_start_time: Optional[int] = None  # サビ開始時間（秒）
+    chorus_end_time: Optional[int] = None  # サビ終了時間（秒）
 
 
 class VideoQuery(BaseModel):

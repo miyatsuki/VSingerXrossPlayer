@@ -191,3 +191,45 @@ class YouTubeClient:
             )
 
         return videos
+
+    def fetch_video_comments(
+        self, video_id: str, max_results: int = 100
+    ) -> List[Dict[str, str]]:
+        """
+        Fetch comments for a video.
+
+        Args:
+          video_id: YouTube video ID
+          max_results: Maximum number of comments to fetch (default: 100)
+
+        Returns:
+          List of dicts with "text" and "likeCount" keys
+        """
+        try:
+            result = self._get(
+                "commentThreads",
+                {
+                    "videoId": video_id,
+                    "part": "snippet",
+                    "maxResults": min(max_results, 100),
+                    "order": "relevance",  # Most relevant comments first
+                    "textFormat": "plainText",
+                },
+            )
+
+            comments = []
+            for item in result.get("items", []):
+                snippet = item["snippet"]["topLevelComment"]["snippet"]
+                comments.append(
+                    {
+                        "text": snippet["textDisplay"],
+                        "likeCount": snippet.get("likeCount", 0),
+                    }
+                )
+
+            return comments
+
+        except Exception as e:
+            # Comments may be disabled for the video
+            print(f"  ℹ Could not fetch comments for {video_id}: {e}")
+            return []

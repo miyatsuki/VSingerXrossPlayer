@@ -50,6 +50,10 @@ const buildDataFromBackend = async (): Promise<{
 			video_url: youtubeId,
 			singer_id: singer.id,
 			published_at: v.published_at,
+			ai_stats: v.ai_stats,
+			comment_cloud: v.comment_cloud,
+			chorus_start_time: v.chorus_start_time,
+			chorus_end_time: v.chorus_end_time,
 		};
 	});
 

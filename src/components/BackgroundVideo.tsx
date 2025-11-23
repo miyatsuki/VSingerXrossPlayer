@@ -1,9 +1,10 @@
-import styled from '@emotion/styled';
-import React from 'react';
-import YouTube from 'react-youtube';
+import styled from "@emotion/styled";
+import React from "react";
+import YouTube from "react-youtube";
 
 interface BackgroundVideoProps {
   videoId?: string;
+  startTime?: number; // サビ開始時間（秒）
 }
 
 const VideoContainer = styled.div`
@@ -25,25 +26,29 @@ const StyledYouTube = styled(YouTube)`
   width: 100vw;
   height: 100vh;
   transform: translate(-50%, -50%) scale(1.5); // Scale up to cover borders
-  
+
   iframe {
     width: 100%;
     height: 100%;
   }
 `;
 
-export const BackgroundVideo: React.FC<BackgroundVideoProps> = ({ videoId }) => {
+export const BackgroundVideo: React.FC<BackgroundVideoProps> = ({
+  videoId,
+  startTime,
+}) => {
   if (!videoId) return null;
 
   const opts = {
-    height: '100%',
-    width: '100%',
+    height: "100%",
+    width: "100%",
     playerVars: {
       autoplay: 1,
       controls: 0,
       mute: 1, // Mute for background
       loop: 1,
       playlist: videoId, // Required for loop
+      start: startTime || 0, // サビ開始時間を設定（デフォルトは0秒から）
     },
   };
 

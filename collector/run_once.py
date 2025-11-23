@@ -119,7 +119,7 @@ def main(channel_ids: List[str], max_videos: int = 0) -> None:
     video_repo = VideoRepository.from_settings(settings)
     index_repo = SingerVideoIndexRepository.from_settings(settings)
     gemini_client = GeminiClient(settings.gemini_api_key)
-    enricher = VideoEnricher(gemini_client, video_repo, index_repo)
+    enricher = VideoEnricher(gemini_client, video_repo, index_repo, youtube_client)
 
     for channel_id in channel_ids:
         try:

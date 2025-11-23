@@ -11,13 +11,23 @@ export interface ApiVideo {
   song_title?: string;
   singers?: string[];
   tags?: string[];
+  ai_stats?: ApiAIStats;
+  comment_cloud?: ApiCommentWord[];
+  chorus_start_time?: number;  // サビ開始時間（秒）
+  chorus_end_time?: number;    // サビ終了時間（秒）
 }
 
 export interface ApiAIStats {
-  energy: number;
-  mood: number;
-  vocal: number;
-  instrumental: number;
+  cool: number;        // かっこいい (0-100)
+  cute: number;        // かわいい (0-100)
+  energetic: number;   // 元気 (0-100)
+  surprising: number;  // 意外性 (0-100)
+  emotional: number;   // エモい (0-100)
+}
+
+export interface ApiCommentWord {
+  word: string;
+  importance: number;  // 重要度 (0-100)
 }
 
 export interface ApiSinger {

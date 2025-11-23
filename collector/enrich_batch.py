@@ -14,6 +14,7 @@ from config import get_collector_settings
 from db import SingerVideoIndexRepository, VideoRepository
 from enricher import VideoEnricher
 from gemini_client import GeminiClient
+from youtube_client import YouTubeClient
 
 
 def enrich_channel(
@@ -21,6 +22,7 @@ def enrich_channel(
     gemini_client: GeminiClient,
     video_repo: VideoRepository,
     index_repo: SingerVideoIndexRepository,
+    youtube_client,
     max_videos: int = 0,
     sleep_seconds: float = 1.0,
 ) -> None:
@@ -31,6 +33,8 @@ def enrich_channel(
       channel_id: YouTube channel ID
       gemini_client: Gemini API client
       video_repo: DynamoDB repository
+      index_repo: SingerVideoIndexRepository
+      youtube_client: YouTube API client
       max_videos: Maximum number of videos to process (0 = no limit)
       sleep_seconds: Sleep time between API calls (rate limit)
     """
@@ -38,8 +42,7 @@ def enrich_channel(
     print(f"Enriching videos from channel: {channel_id}")
     print(f"{'='*60}\n")
 
-    index_repo = SingerVideoIndexRepository.from_settings(settings)
-    enricher = VideoEnricher(gemini_client, video_repo, index_repo)
+    enricher = VideoEnricher(gemini_client, video_repo, index_repo, youtube_client)
 
     # Get all videos from channel (unenriched videos have no song_title)
     videos = video_repo.list_videos_by_channel(channel_id)
@@ -102,13 +105,14 @@ def main(channel_ids: List[str], max_videos: int = 0) -> None:
     settings = get_collector_settings()
 
     gemini_client = GeminiClient(settings.gemini_api_key)
+    youtube_client = YouTubeClient(settings.youtube_api_key)
     video_repo = VideoRepository.from_settings(settings)
     index_repo = SingerVideoIndexRepository.from_settings(settings)
 
     for channel_id in channel_ids:
         try:
             enrich_channel(
-                channel_id, gemini_client, video_repo, index_repo, max_videos
+                channel_id, gemini_client, video_repo, index_repo, youtube_client, max_videos
             )
         except Exception as e:
             print(f"\nError processing channel {channel_id}: {e}", file=sys.stderr)

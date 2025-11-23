@@ -2,6 +2,7 @@ import styled from "@emotion/styled";
 import { useCallback, useEffect, useState } from "react";
 import { AIVisualizer } from "./components/AIVisualizer";
 import { BackgroundVideo } from "./components/BackgroundVideo";
+import { WordCloud } from "./components/WordCloud";
 import { XMBContainer } from "./components/XMBContainer";
 import { useData } from "./hooks/useData";
 import { useXMBNavigation } from "./hooks/useXMBNavigation";
@@ -157,18 +158,19 @@ function App() {
     return undefined;
   };
 
-  // Determine Average Stats to show
   const getAverageStats = (item: Singer | Song | null) => {
-    if (!item || !("singer_id" in item)) return undefined; // Not a song cover
-
+    if (!item || !("singer_id" in item)) return undefined;
     if (mode === "songs") {
-      // Compare with Song Average
       return (item as Song).average_stats;
     } else {
-      // Compare with Singer Average (Characteristics)
       const singer = singers.find((s) => s.id === (item as Song).singer_id);
       return singer?.ai_characteristics;
     }
+  };
+
+  const getCommentCloud = (item: Singer | Song | null) => {
+    if (!item || !("comment_cloud" in item)) return undefined;
+    return (item as Song).comment_cloud;
   };
 
   if (loading) {
@@ -193,6 +195,11 @@ function App() {
         videoId={
           selectedItem && "video_url" in selectedItem
             ? selectedItem.video_url
+            : undefined
+        }
+        startTime={
+          selectedItem && "chorus_start_time" in selectedItem
+            ? selectedItem.chorus_start_time
             : undefined
         }
       />
@@ -225,6 +232,10 @@ function App() {
             title={
               "name" in selectedItem ? selectedItem.name : selectedItem.title
             }
+          />
+          <WordCloud
+            words={getCommentCloud(selectedItem)}
+            title="コメントワード"
           />
         </VisualizerOverlay>
       )}

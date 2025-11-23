@@ -1,8 +1,14 @@
 export interface AIStats {
-  energy: number;
-  mood: number;
-  vocal: number;
-  instrumental: number;
+  cool: number;        // かっこいい (0-100)
+  cute: number;        // かわいい (0-100)
+  energetic: number;   // 元気 (0-100)
+  surprising: number;  // 意外性 (0-100)
+  emotional: number;   // エモい (0-100)
+}
+
+export interface CommentWord {
+  word: string;
+  importance: number;  // 重要度 (0-100)
 }
 
 export interface Singer {
@@ -22,7 +28,10 @@ export interface Song {
   ai_tags?: string[];
   ai_stats?: AIStats;
   average_stats?: AIStats; // Average stats for this song across all covers
+  comment_cloud?: CommentWord[]; // Top 10-20 characteristic words from comments
   published_at?: string;
+  chorus_start_time?: number;  // サビ開始時間（秒）
+  chorus_end_time?: number;    // サビ終了時間（秒）
 }
 
 export interface Category {

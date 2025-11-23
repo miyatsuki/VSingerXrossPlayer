@@ -4,12 +4,15 @@ Video enricher using Gemini API.
 Enriches video metadata with:
 1. Video type classification (SONG/GAME/UNKNOWN)
 2. Song information extraction (title, singers, artists)
+3. AI characteristics analysis (cool, cute, energetic, surprising, emotional)
+4. Comment keyword extraction
 """
 
 from typing import Optional
 
 from db import SingerVideoIndexRepository
 from gemini_client import GeminiClient
+from youtube_client import YouTubeClient
 
 # Duration thresholds (in seconds)
 DURATION_MIN = 60  # Exclude Shorts (< 1 minute)
@@ -24,10 +27,12 @@ class VideoEnricher:
         gemini_client: GeminiClient,
         video_repo,
         index_repo: Optional[SingerVideoIndexRepository] = None,
+        youtube_client: Optional[YouTubeClient] = None,
     ):
         self.gemini = gemini_client
         self.repo = video_repo
         self.index_repo = index_repo
+        self.youtube = youtube_client
 
     def enrich_video(
         self, channel_id: str, video_id: str, channel_name: Optional[str] = None
@@ -98,6 +103,64 @@ class VideoEnricher:
         print(f"  → Singers: {', '.join(song_info['singers'])}")
         print(f"  → Cover: {song_info['is_cover']}")
 
+        # 4.5. Analyze AI characteristics and extract comment keywords
+        ai_stats = None
+        comment_cloud = None
+        chorus_info = None
+
+        if self.youtube:
+            try:
+                # Fetch comments
+                print(f"  → Fetching comments...")
+                comments = self.youtube.fetch_video_comments(video_id, max_results=100)
+                print(f"  → Found {len(comments)} comments")
+
+                if comments:
+                    # Analyze video characteristics (5-axis)
+                    print(f"  → Analyzing AI characteristics...")
+                    ai_stats = self.gemini.analyze_video_characteristics(
+                        video_id, comments
+                    )
+                    print(
+                        f"  → AI Stats: Cool={ai_stats['cool']}, Cute={ai_stats['cute']}, "
+                        f"Energetic={ai_stats['energetic']}, Surprising={ai_stats['surprising']}, "
+                        f"Emotional={ai_stats['emotional']}"
+                    )
+
+                    # Extract comment keywords
+                    print(f"  → Extracting comment keywords...")
+                    keywords = self.gemini.extract_comment_keywords(comments)
+                    comment_cloud = [
+                        {"word": kw["word"], "importance": kw["importance"]}
+                        for kw in keywords
+                    ]
+                    print(
+                        f"  → Extracted {len(comment_cloud)} keywords: "
+                        f"{', '.join([kw['word'] for kw in comment_cloud[:5]])}"
+                    )
+
+                # Extract chorus timestamps
+                print(f"  → Extracting chorus timestamps...")
+                chorus_result = self.gemini.extract_chorus_time(video_id)
+
+                if chorus_result["confidence"] > 0.5:  # Only use if confidence > 50%
+                    chorus_info = {
+                        "start": chorus_result["chorus_start_time"],
+                        "end": chorus_result["chorus_end_time"],
+                    }
+                    print(
+                        f"  → Chorus: {chorus_info['start']}s - {chorus_info['end']}s "
+                        f"(confidence: {chorus_result['confidence']:.2f})"
+                    )
+                else:
+                    print(
+                        f"  → Chorus detection failed (low confidence: {chorus_result['confidence']:.2f})"
+                    )
+
+            except Exception as e:
+                print(f"  ⚠ AI analysis failed: {e}")
+                # Continue without AI stats
+
         # 5. Update DynamoDB with enriched information
         self.repo.update_song_info(
             channel_id=channel_id,
@@ -106,6 +169,10 @@ class VideoEnricher:
             singers=song_info["singers"],
             is_cover=song_info["is_cover"],
             link=song_info.get("original_url"),
+            ai_stats=ai_stats,
+            comment_cloud=comment_cloud,
+            chorus_start_time=chorus_info["start"] if chorus_info else None,
+            chorus_end_time=chorus_info["end"] if chorus_info else None,
         )
 
         # 6. Sync to singer-videos index table
@@ -133,6 +200,10 @@ class VideoEnricher:
                         "song_title"
                     ],  # Use song_title as original
                     original_artist_name=original_artist_name,
+                    ai_stats=ai_stats,
+                    comment_cloud=comment_cloud,
+                    chorus_start_time=chorus_info["start"] if chorus_info else None,
+                    chorus_end_time=chorus_info["end"] if chorus_info else None,
                 )
                 print(f"  → Synced to index table")
             except Exception as e:

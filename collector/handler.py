@@ -39,7 +39,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     video_repo = VideoRepository.from_settings(settings)
     index_repo = SingerVideoIndexRepository.from_settings(settings)
     gemini_client = GeminiClient(settings.gemini_api_key)
-    enricher = VideoEnricher(gemini_client, video_repo, index_repo)
+    enricher = VideoEnricher(gemini_client, video_repo, index_repo, youtube_client)
 
     # Determine which channels to collect
     channel_ids = []

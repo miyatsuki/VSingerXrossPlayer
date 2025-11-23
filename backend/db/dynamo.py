@@ -2,7 +2,7 @@ from typing import List, Optional
 
 import boto3
 from config import Settings
-from models import SingerSummary, Video
+from models import AIStats, CommentWord, SingerSummary, Video
 
 
 def normalize(text: str) -> str:
@@ -33,6 +33,41 @@ class DynamoVideoRepository:
             return []
         return [v.get("S", "") for v in value["L"] if isinstance(v, dict)]
 
+    def _parse_ai_stats(self, value) -> Optional[AIStats]:
+        """Parse AI stats from DynamoDB Map structure."""
+        if not value or "M" not in value:
+            return None
+        stats_map = value["M"]
+        try:
+            return AIStats(
+                cool=int(stats_map.get("cool", {}).get("N", 50)),
+                cute=int(stats_map.get("cute", {}).get("N", 50)),
+                energetic=int(stats_map.get("energetic", {}).get("N", 50)),
+                surprising=int(stats_map.get("surprising", {}).get("N", 50)),
+                emotional=int(stats_map.get("emotional", {}).get("N", 50)),
+            )
+        except (ValueError, KeyError):
+            return None
+
+    def _parse_comment_cloud(self, value) -> Optional[List[CommentWord]]:
+        """Parse comment cloud from DynamoDB List structure."""
+        if not value or "L" not in value:
+            return None
+        try:
+            words = []
+            for item in value["L"]:
+                if "M" in item:
+                    word_map = item["M"]
+                    words.append(
+                        CommentWord(
+                            word=word_map.get("word", {}).get("S", ""),
+                            importance=int(word_map.get("importance", {}).get("N", 0)),
+                        )
+                    )
+            return words if words else None
+        except (ValueError, KeyError):
+            return None
+
     def _singer_video_item_to_video(self, item: dict) -> Video:
         """Convert singer-video index item to Video object."""
         return Video(
@@ -51,6 +86,16 @@ class DynamoVideoRepository:
             link=item.get("link", {}).get("S"),
             game_title=None,
             genre=None,
+            ai_stats=self._parse_ai_stats(item.get("ai_stats")),
+            comment_cloud=self._parse_comment_cloud(item.get("comment_cloud")),
+            chorus_start_time=(
+                int(item["chorus_start_time"]["N"])
+                if "chorus_start_time" in item
+                else None
+            ),
+            chorus_end_time=(
+                int(item["chorus_end_time"]["N"]) if "chorus_end_time" in item else None
+            ),
         )
 
     def _item_to_video(self, item: dict) -> Video:
@@ -68,6 +113,16 @@ class DynamoVideoRepository:
             link=item.get("link", {}).get("S"),
             game_title=item.get("game_title", {}).get("S"),
             genre=item.get("genre", {}).get("S"),
+            ai_stats=self._parse_ai_stats(item.get("ai_stats")),
+            comment_cloud=self._parse_comment_cloud(item.get("comment_cloud")),
+            chorus_start_time=(
+                int(item["chorus_start_time"]["N"])
+                if "chorus_start_time" in item
+                else None
+            ),
+            chorus_end_time=(
+                int(item["chorus_end_time"]["N"]) if "chorus_end_time" in item else None
+            ),
         )
 
     def list_videos(
