@@ -4,8 +4,7 @@ from config import Settings, get_settings
 from db import VideoRepository, create_video_repository
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from masterdata import MASTER_DATA
-from models import MasterData, SingerSummary, Video
+from models import SingerSummary, Video
 
 
 def create_app(settings: Settings) -> FastAPI:
@@ -31,10 +30,6 @@ def create_app(settings: Settings) -> FastAPI:
     @app.get("/health")
     def health() -> dict:
         return {"status": "ok"}
-
-    @app.get("/master", response_model=MasterData)
-    def master() -> MasterData:
-        return MASTER_DATA
 
     @app.get("/videos", response_model=List[Video])
     def list_videos(

@@ -40,10 +40,10 @@ export interface ApiSong {
   published_at?: string;
 }
 
-export interface ApiMasterData {
-  singers: ApiSinger[];
-  reference_songs: ApiSong[];
-  song_averages: Record<string, ApiAIStats>;
+export interface ApiSingerSummary {
+  name: string;
+  video_count: number;
+  latest_video_id?: string;
 }
 
 export async function fetchVideos(): Promise<ApiVideo[]> {
@@ -55,11 +55,11 @@ export async function fetchVideos(): Promise<ApiVideo[]> {
   return data;
 }
 
-export async function fetchMasterData(): Promise<ApiMasterData> {
-  const res = await fetch(`${API_BASE_URL}/master`);
+export async function fetchSingers(): Promise<ApiSingerSummary[]> {
+  const res = await fetch(`${API_BASE_URL}/singers`);
   if (!res.ok) {
-    throw new Error(`Failed to fetch master data: ${res.status}`);
+    throw new Error(`Failed to fetch singers: ${res.status}`);
   }
-  const data = (await res.json()) as ApiMasterData;
+  const data = (await res.json()) as ApiSingerSummary[];
   return data;
 }

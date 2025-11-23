@@ -1,54 +1,41 @@
 import { useState, useEffect } from 'react';
-import { fetchMasterData, fetchVideos } from '../api/client';
-import { Category, Singer, Song, AIStats } from '../types';
+import { fetchVideos, fetchSingers } from '../api/client';
+import { Category, Singer, Song } from '../types';
 
 const buildDataFromBackend = async (): Promise<{
 	songs: Song[];
 	singers: Singer[];
-	songAverages: Record<string, AIStats>;
 }> => {
-	const [apiVideos, master] = await Promise.all([
+	const [apiVideos, apiSingers] = await Promise.all([
 		fetchVideos(),
-		fetchMasterData(),
+		fetchSingers(),
 	]);
 
-	let singers: Singer[] = master.singers.map(s => ({
-		id: s.id,
-		name: s.name,
-		avatar_url: s.avatar_url,
-		description: s.description,
-		ai_characteristics: s.ai_characteristics,
-	}));
+	// Build singer map from /singers endpoint
+	const singerMap = new Map<string, Singer>();
+	apiSingers.forEach(s => {
+		singerMap.set(s.name, {
+			id: s.name,
+			name: s.name,
+			avatar_url: '', // No avatar in API, could be added later
+		});
+	});
 
-	const songAverages: Record<string, AIStats> = master.song_averages;
-
-	// fallback: if no videos, just return reference songs from master
-	if (!apiVideos.length) {
-		const songs: Song[] = master.reference_songs.map(rs => ({
-			...rs,
-		}));
-		return { songs, singers, songAverages };
-	}
-
-	const singersById = new Map<string, Singer>();
-	singers.forEach(s => singersById.set(s.id, s));
-
-	// 同名の歌い手がマスタにない場合は追加
+	// Ensure all singers from videos exist in our map
 	const ensureSinger = (name: string): Singer => {
-		// まずは名前で検索
-		const existingByName = singers.find(s => s.name === name);
-		if (existingByName) return existingByName;
-
-		const s: Singer = {
+		if (singerMap.has(name)) {
+			return singerMap.get(name)!;
+		}
+		const newSinger: Singer = {
 			id: name,
 			name,
 			avatar_url: '',
 		};
-		singers.push(s);
-		singersById.set(s.id, s);
-		return s;
+		singerMap.set(name, newSinger);
+		return newSinger;
 	};
 
+	// Convert API videos to songs
 	const songs: Song[] = apiVideos.map(v => {
 		const songTitle = v.song_title || v.video_title;
 		const youtubeId = v.video_id;
@@ -57,26 +44,18 @@ const buildDataFromBackend = async (): Promise<{
 
 		const singer = ensureSinger(primarySingerName);
 
-		// マスタ上の reference_songs から AI スタッツを引く
-		const ref = master.reference_songs.find(
-			refSong => refSong.title === songTitle && refSong.singer_id === singer.id,
-		);
-
-		const average =
-			ref?.average_stats || songAverages[songTitle] || undefined;
-
 		return {
 			id: youtubeId,
 			title: songTitle,
 			video_url: youtubeId,
 			singer_id: singer.id,
-			ai_stats: ref?.ai_stats,
-			average_stats: average,
 			published_at: v.published_at,
 		};
 	});
 
-	return { songs, singers, songAverages };
+	const singers = Array.from(singerMap.values());
+
+	return { songs, singers };
 };
 
 export const useData = () => {
@@ -97,10 +76,7 @@ export const useData = () => {
 				songs = result.songs;
 				singersList = result.singers;
 			} catch (e) {
-				console.error(
-					'Failed to load data from backend, master data is unavailable',
-					e,
-				);
+				console.error('Failed to load data from backend', e);
 				setLoading(false);
 				return;
 			}
