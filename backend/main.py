@@ -11,10 +11,10 @@ try:
     from .models import MasterData, SingerSummary, Video
 except ImportError:
     # When executed as a top-level module: main
-    from config import Settings, get_settings  # type: ignore
-    from db import VideoRepository, create_video_repository  # type: ignore
-    from masterdata import MASTER_DATA  # type: ignore
-    from models import MasterData, SingerSummary, Video  # type: ignore
+    from config import Settings, get_settings
+    from db import VideoRepository, create_video_repository
+    from masterdata import MASTER_DATA
+    from models import MasterData, SingerSummary, Video
 
 
 def create_app(settings: Settings) -> FastAPI:
