@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 try:
     # When imported as a package: backend.main
@@ -18,6 +19,19 @@ except ImportError:
 
 def create_app(settings: Settings) -> FastAPI:
     app = FastAPI(title="VSingerXrossPlayer Backend")
+
+    # Configure CORS
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:5173",  # Vite dev server
+            "http://localhost:3000",  # Alternative dev port
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     repo = create_video_repository(settings)
 
     def get_repo() -> VideoRepository:
