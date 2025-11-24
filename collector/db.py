@@ -17,6 +17,10 @@ class VideoRecord:
         published_at: str = "",
         song_title: str = "",
         game_title: str = "",
+        view_count: int = 0,
+        like_count: int = 0,
+        comment_count: int = 0,
+        channel_title: str = "",
     ):
         self.video_id = video_id
         self.video_title = video_title
@@ -26,6 +30,10 @@ class VideoRecord:
         self.published_at = published_at
         self.song_title = song_title
         self.game_title = game_title
+        self.view_count = view_count
+        self.like_count = like_count
+        self.comment_count = comment_count
+        self.channel_title = channel_title
 
 
 class VideoRepository:
@@ -95,6 +103,10 @@ class VideoRepository:
             "description": {"S": video.description},
             "duration": {"N": str(video.duration)},
             "published_at": {"S": video.published_at},
+            "view_count": {"N": str(video.view_count)},
+            "like_count": {"N": str(video.like_count)},
+            "comment_count": {"N": str(video.comment_count)},
+            "channel_title": {"S": video.channel_title},
         }
 
         # Add thumbnail URL if available
@@ -114,21 +126,27 @@ class VideoRepository:
             self.upsert_video(video)
 
     def upsert_channel_info(
-        self, channel_id: str, channel_name: str, channel_icon_url: str
+        self,
+        channel_id: str,
+        channel_name: str,
+        channel_icon_url: str,
+        subscriber_count: int = 0,
     ) -> None:
         """
-        Store channel metadata (name and icon URL).
+        Store channel metadata (name, icon URL, and subscriber count).
 
         Args:
           channel_id: YouTube channel ID
           channel_name: Channel name
           channel_icon_url: Channel icon/avatar URL
+          subscriber_count: Number of subscribers
         """
         item: Dict[str, Any] = {
             "channel_id": {"S": channel_id},
             "video_id": {"S": "CHANNEL_INFO"},
             "channel_name": {"S": channel_name},
             "channel_icon_url": {"S": channel_icon_url},
+            "subscriber_count": {"N": str(subscriber_count)},
         }
 
         self._client.put_item(TableName=self._table_name, Item=item)
@@ -383,6 +401,11 @@ class SingerVideoIndexRepository:
         comment_cloud: Optional[List[Dict[str, Any]]] = None,
         chorus_start_time: Optional[int] = None,
         chorus_end_time: Optional[int] = None,
+        view_count: int = 0,
+        like_count: int = 0,
+        comment_count: int = 0,
+        channel_title: str = "",
+        subscriber_count: int = 0,
     ) -> None:
         """
         Create or update singer-video index records.
@@ -405,6 +428,11 @@ class SingerVideoIndexRepository:
           comment_cloud: Optional comment keywords with importance
           chorus_start_time: Optional chorus start time in seconds
           chorus_end_time: Optional chorus end time in seconds
+          view_count: View count (default: 0)
+          like_count: Like count (default: 0)
+          comment_count: Comment count (default: 0)
+          channel_title: Channel title (default: "")
+          subscriber_count: Subscriber count (default: 0)
         """
         # Build song_key from original song info
         if original_song_title and original_artist_name:
@@ -468,5 +496,12 @@ class SingerVideoIndexRepository:
                 item["chorus_start_time"] = {"N": str(chorus_start_time)}
             if chorus_end_time is not None:
                 item["chorus_end_time"] = {"N": str(chorus_end_time)}
+
+            # Add statistics fields
+            item["view_count"] = {"N": str(view_count)}
+            item["like_count"] = {"N": str(like_count)}
+            item["comment_count"] = {"N": str(comment_count)}
+            item["channel_title"] = {"S": channel_title}
+            item["subscriber_count"] = {"N": str(subscriber_count)}
 
             self._client.put_item(TableName=self._table_name, Item=item)

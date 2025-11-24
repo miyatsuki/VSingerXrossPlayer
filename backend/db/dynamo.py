@@ -86,6 +86,24 @@ class DynamoVideoRepository:
             link=item.get("link", {}).get("S"),
             game_title=None,
             genre=None,
+            original_song_title=item.get("original_song_title", {}).get("S"),
+            original_artist_name=item.get("original_artist_name", {}).get("S"),
+            view_count=(
+                int(item.get("view_count", {}).get("N", 0))
+                if "view_count" in item
+                else None
+            ),
+            like_count=(
+                int(item.get("like_count", {}).get("N", 0))
+                if "like_count" in item
+                else None
+            ),
+            comment_count=(
+                int(item.get("comment_count", {}).get("N", 0))
+                if "comment_count" in item
+                else None
+            ),
+            channel_title=item.get("channel_title", {}).get("S"),
             ai_stats=self._parse_ai_stats(item.get("ai_stats")),
             comment_cloud=self._parse_comment_cloud(item.get("comment_cloud")),
             chorus_start_time=(

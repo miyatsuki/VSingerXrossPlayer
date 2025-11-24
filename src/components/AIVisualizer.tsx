@@ -7,7 +7,6 @@ import {
   PolarRadiusAxis,
   Radar,
   RadarChart,
-  ResponsiveContainer,
 } from "recharts";
 import { AIStats } from "../types";
 
@@ -15,16 +14,18 @@ interface AIVisualizerProps {
   stats?: AIStats;
   averageStats?: AIStats;
   title?: string;
+  size?: number;
+  compact?: boolean;
 }
 
-const Container = styled.div`
-  width: 350px;
-  height: 350px;
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 16px;
-  padding: 20px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+const Container = styled.div<{ size: number; compact?: boolean }>`
+  width: ${(props) => props.size}px;
+  height: ${(props) => props.size}px;
+  background: ${(props) => (props.compact ? "transparent" : "rgba(0, 0, 0, 0.7)")};
+  border-radius: ${(props) => (props.compact ? "0" : "16px")};
+  padding: ${(props) => (props.compact ? "0" : "20px")};
+  backdrop-filter: ${(props) => (props.compact ? "none" : "blur(10px)")};
+  border: ${(props) => (props.compact ? "none" : "1px solid rgba(255, 255, 255, 0.1)")};
   display: flex;
   flex-direction: column;
 `;
@@ -42,6 +43,8 @@ export const AIVisualizer: React.FC<AIVisualizerProps> = ({
   stats,
   averageStats,
   title,
+  size = 350,
+  compact = false,
 }) => {
   if (!stats) return null;
 
@@ -78,11 +81,16 @@ export const AIVisualizer: React.FC<AIVisualizerProps> = ({
     },
   ];
 
+  const paddingSize = compact ? 0 : 40; // Account for padding
+  const chartSize = size - paddingSize;
+  const titleHeight = (title && !compact) ? 26 : 0;
+  const chartHeight = chartSize - titleHeight; // Subtract title height if present
+
   return (
-    <Container>
-      {title && <Title>{title}</Title>}
-      <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
+    <Container size={size} compact={compact}>
+      {title && !compact && <Title>{title}</Title>}
+      <div style={{ width: chartSize, height: chartHeight, flex: 1 }}>
+        <RadarChart width={chartSize} height={chartHeight} cx="50%" cy="50%" outerRadius="70%" data={data}>
           <PolarGrid stroke="rgba(255,255,255,0.2)" />
           <PolarAngleAxis
             dataKey="subject"
@@ -120,7 +128,7 @@ export const AIVisualizer: React.FC<AIVisualizerProps> = ({
 
           <Legend wrapperStyle={{ color: "white", fontSize: "12px" }} />
         </RadarChart>
-      </ResponsiveContainer>
+      </div>
     </Container>
   );
 };

@@ -18,6 +18,10 @@ class YouTubeVideo:
         duration: int,
         published_at: str,
         thumbnail_url: str = "",
+        view_count: int = 0,
+        like_count: int = 0,
+        comment_count: int = 0,
+        channel_title: str = "",
     ):
         self.video_id = video_id
         self.channel_id = channel_id
@@ -26,6 +30,10 @@ class YouTubeVideo:
         self.duration = duration
         self.published_at = published_at
         self.thumbnail_url = thumbnail_url
+        self.view_count = view_count
+        self.like_count = like_count
+        self.comment_count = comment_count
+        self.channel_title = channel_title
 
 
 class YouTubeClient:
@@ -57,21 +65,21 @@ class YouTubeClient:
 
         return result["items"][0]["contentDetails"]["relatedPlaylists"]["uploads"]
 
-    def fetch_channel_info(self, channel_id: str) -> Dict[str, str]:
+    def fetch_channel_info(self, channel_id: str) -> Dict[str, Any]:
         """
-        Get channel information (name and icon URL).
+        Get channel information (name, icon URL, and subscriber count).
 
         Args:
           channel_id: YouTube channel ID
 
         Returns:
-          Dict with "channel_name" and "channel_icon_url"
+          Dict with "channel_name", "channel_icon_url", and "subscriber_count"
         """
         result = self._get(
             "channels",
             {
                 "id": channel_id,
-                "part": "snippet",
+                "part": "snippet,statistics",
             },
         )
 
@@ -79,6 +87,9 @@ class YouTubeClient:
             raise ValueError(f"Channel not found: {channel_id}")
 
         snippet = result["items"][0]["snippet"]
+        statistics = result["items"][0].get("statistics", {})
+        subscriber_count = int(statistics.get("subscriberCount", 0))
+
         thumbnails = snippet.get("thumbnails", {})
 
         # Prefer high quality icon, fallback to medium/default
@@ -91,6 +102,7 @@ class YouTubeClient:
         return {
             "channel_name": snippet.get("title", ""),
             "channel_icon_url": icon_url,
+            "subscriber_count": subscriber_count,
         }
 
     def fetch_video_ids_from_playlist(
@@ -161,7 +173,7 @@ class YouTubeClient:
             "videos",
             {
                 "id": ",".join(video_ids[:50]),
-                "part": "snippet,contentDetails",
+                "part": "snippet,contentDetails,statistics",
             },
         )
 
@@ -178,6 +190,15 @@ class YouTubeClient:
                 or thumbnails.get("default", {}).get("url", "")
             )
 
+            # Extract statistics
+            stats = item.get("statistics", {})
+            view_count = int(stats.get("viewCount", 0))
+            like_count = int(stats.get("likeCount", 0))
+            comment_count = int(stats.get("commentCount", 0))
+
+            # Extract channel title
+            channel_title = item["snippet"].get("channelTitle", "")
+
             videos.append(
                 YouTubeVideo(
                     video_id=item["id"],
@@ -187,6 +208,10 @@ class YouTubeClient:
                     duration=duration_seconds,
                     published_at=item["snippet"]["publishedAt"],
                     thumbnail_url=thumbnail_url,
+                    view_count=view_count,
+                    like_count=like_count,
+                    comment_count=comment_count,
+                    channel_title=channel_title,
                 )
             )
 

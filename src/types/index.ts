@@ -29,9 +29,16 @@ export interface Song {
   ai_stats?: AIStats;
   average_stats?: AIStats; // Average stats for this song across all covers
   comment_cloud?: CommentWord[]; // Top 10-20 characteristic words from comments
+  killer_phrase?: string; // Most characteristic phrase for display (future: from backend)
   published_at?: string;
   chorus_start_time?: number;  // サビ開始時間（秒）
   chorus_end_time?: number;    // サビ終了時間（秒）
+  original_song_title?: string; // 原曲タイトル
+  original_artist_name?: string; // 原曲アーティスト
+  view_count?: number; // 再生数
+  like_count?: number; // いいね数
+  comment_count?: number; // コメント数
+  channel_title?: string; // チャンネル名
 }
 
 export interface Category {

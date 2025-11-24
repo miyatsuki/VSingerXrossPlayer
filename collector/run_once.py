@@ -41,12 +41,15 @@ def collect_channel(
     try:
         channel_info = youtube_client.fetch_channel_info(channel_id)
         video_repo.upsert_channel_info(
-            channel_id, channel_info["channel_name"], channel_info["channel_icon_url"]
+            channel_id,
+            channel_info["channel_name"],
+            channel_info["channel_icon_url"],
+            channel_info["subscriber_count"],
         )
         print(f"  ✓ Channel: {channel_info['channel_name']}")
     except Exception as e:
         print(f"  ✗ Failed to fetch channel info: {e}", file=sys.stderr)
-        channel_info = {"channel_name": ""}
+        channel_info = {"channel_name": "", "subscriber_count": 0}
 
     print(f"\nFetching video IDs from channel: {channel_id}")
 

@@ -204,6 +204,11 @@ class VideoEnricher:
                     comment_cloud=comment_cloud,
                     chorus_start_time=chorus_info["start"] if chorus_info else None,
                     chorus_end_time=chorus_info["end"] if chorus_info else None,
+                    view_count=getattr(video, "view_count", 0),
+                    like_count=getattr(video, "like_count", 0),
+                    comment_count=getattr(video, "comment_count", 0),
+                    channel_title=getattr(video, "channel_title", ""),
+                    subscriber_count=0,  # TODO: Fetch from channel info
                 )
                 print(f"  → Synced to index table")
             except Exception as e:

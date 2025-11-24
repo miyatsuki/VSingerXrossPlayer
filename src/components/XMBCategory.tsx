@@ -1,5 +1,5 @@
 import styled from '@emotion/styled';
-import { Typography } from '@mui/material';
+import { MusicNote } from '@mui/icons-material';
 import { Category } from '../types';
 
 interface XMBCategoryProps {
@@ -19,24 +19,30 @@ const CategoryContainer = styled.div<{ isActive: boolean }>`
 `;
 
 const IconPlaceholder = styled.div`
-  font-size: 24px;
+  font-size: 20px;
   margin-bottom: 10px;
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
   display: flex;
   justify-content: center;
   align-items: center;
+`;
+
+const CategoryTitle = styled.div<{ isActive: boolean }>`
+  font-size: 15px;
+  color: white;
+  font-weight: ${props => props.isActive ? 'bold' : 'normal'};
 `;
 
 export const XMBCategory: React.FC<XMBCategoryProps> = ({ category, isActive }) => {
   return (
     <CategoryContainer isActive={isActive}>
       <IconPlaceholder>
-        {category.icon || '📁'}
+        {category.icon || <MusicNote sx={{ fontSize: 48 }} />}
       </IconPlaceholder>
-      <Typography variant="subtitle2" color="white" fontWeight={isActive ? 'bold' : 'normal'}>
+      <CategoryTitle isActive={isActive}>
         {category.title}
-      </Typography>
+      </CategoryTitle>
     </CategoryContainer>
   );
 };

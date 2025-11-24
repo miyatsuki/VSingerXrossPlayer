@@ -1,19 +1,11 @@
 import styled from "@emotion/styled";
-import { useCallback, useEffect, useState } from "react";
-import { AIVisualizer } from "./components/AIVisualizer";
-import { WordCloud } from "./components/WordCloud";
+import { useEffect, useMemo, useState } from "react";
+import { VideoDetailCard } from "./components/VideoDetailCard";
 import { XMBContainer } from "./components/XMBContainer";
 import { YouTubePlayer } from "./components/YouTubePlayer";
 import { useData } from "./hooks/useData";
 import { useXMBNavigation } from "./hooks/useXMBNavigation";
-import { Category, Singer, Song } from "./types";
-
-const VisualizerOverlay = styled.div`
-  position: absolute;
-  bottom: 50px;
-  right: 50px;
-  z-index: 10;
-`;
+import { Singer, Song } from "./types";
 
 const ModeIndicator = styled.div`
   position: absolute;
@@ -47,110 +39,35 @@ function rotateToIndex<T>(items: T[], fromIndex: number, toIndex: number): T[] {
 function App() {
   const { songCategories, singerCategories, singers, loading } = useData();
   const [mode, setMode] = useState<AxisMode>("songs");
-  const [displayCategories, setDisplayCategories] = useState<Category[]>([]);
 
-  // 初期表示用のカテゴリをセット（データロード後に一度だけ）
-  useEffect(() => {
-    if (!displayCategories.length) {
-      if (mode === "songs" && songCategories.length) {
-        setDisplayCategories(songCategories);
-      } else if (mode === "singers" && singerCategories.length) {
-        setDisplayCategories(singerCategories);
-      }
-    }
-  }, [mode, songCategories, singerCategories, displayCategories.length]);
+  const baseCategories = useMemo(() => {
+    console.log("[App] baseCategories recalculated:", {
+      mode,
+      count: mode === "songs" ? songCategories.length : singerCategories.length,
+    });
+    return mode === "songs" ? songCategories : singerCategories;
+  }, [mode, songCategories, singerCategories]);
 
-  const navigation = useXMBNavigation(displayCategories);
-  const { cursor, currentItem } = navigation;
+  const navigation = useXMBNavigation(baseCategories);
+  const { currentItem } = navigation;
+
+  console.log("[App] Render:", {
+    baseCategoriesCount: baseCategories.length,
+    currentItem: currentItem?.id,
+    cursor: navigation.cursor,
+  });
 
   const [selectedItem, setSelectedItem] = useState<Singer | Song | null>(null);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
 
   // Sync selectedItem with navigation
+  // Only depend on currentItem?.id to prevent infinite loops from object reference changes
   useEffect(() => {
+    console.log("[App] useEffect - sync selectedItem:", {
+      currentId: currentItem?.id,
+    });
     setSelectedItem(currentItem);
-  }, [currentItem]);
-
-  // Handle Pivot (Transpose)
-  const handlePivot = useCallback(() => {
-    if (
-      !selectedItem ||
-      !("singer_id" in selectedItem) ||
-      !("title" in selectedItem)
-    ) {
-      return;
-    }
-
-    const songItem = selectedItem as Song;
-    const newMode: AxisMode = mode === "songs" ? "singers" : "songs";
-    const baseCategories =
-      newMode === "songs" ? songCategories : singerCategories;
-
-    if (!baseCategories.length) return;
-
-    const currentX = cursor.x;
-    const currentY = cursor.y;
-
-    // ベースのカテゴリ配列の中で、同じカバーがどこにあるかを探す
-    let baseX = -1;
-    let baseY = -1;
-
-    if (newMode === "songs") {
-      baseX = baseCategories.findIndex((c) => c.title === songItem.title);
-      if (baseX !== -1) {
-        baseY = baseCategories[baseX].items.findIndex(
-          (i: any) => "singer_id" in i && i.singer_id === songItem.singer_id
-        );
-      }
-    } else {
-      baseX = baseCategories.findIndex(
-        (c) => c.id === `cat_singer_${songItem.singer_id}`
-      );
-      if (baseX !== -1) {
-        baseY = baseCategories[baseX].items.findIndex(
-          (i: any) => "title" in i && (i as Song).title === songItem.title
-        );
-      }
-    }
-
-    if (baseX === -1 || baseY === -1) {
-      // うまく見つからない場合は通常の並びに切り替える
-      setMode(newMode);
-      setDisplayCategories(baseCategories);
-      return;
-    }
-
-    // 横方向: 対象カテゴリが currentX に来るように回転
-    const rotatedCategories = rotateToIndex(baseCategories, baseX, currentX);
-
-    // 縦方向: currentX 上の items を回転させて、対象カバーが currentY に来るようにする
-    const targetCategory = rotatedCategories[currentX];
-    const items = targetCategory.items;
-
-    if (items.length > 0) {
-      const targetY = ((currentY % items.length) + items.length) % items.length;
-      const rotatedItems = rotateToIndex(items, baseY, targetY);
-      rotatedCategories[currentX] = {
-        ...targetCategory,
-        items: rotatedItems,
-      };
-    }
-
-    setMode(newMode);
-    setDisplayCategories(rotatedCategories);
-  }, [mode, cursor, selectedItem, songCategories, singerCategories]);
-
-  // Listen for Tab key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Tab") {
-        e.preventDefault();
-        handlePivot();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handlePivot]);
+  }, [currentItem?.id]);
 
   // Listen for Enter key to open YouTube player
   useEffect(() => {
@@ -164,37 +81,14 @@ function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedItem]);
 
-  const getStats = (item: Singer | Song | null) => {
-    if (!item) return undefined;
-    if ("ai_characteristics" in item) return item.ai_characteristics;
-    if ("ai_stats" in item) return item.ai_stats;
-    return undefined;
-  };
-
-  const getAverageStats = (item: Singer | Song | null) => {
-    if (!item || !("singer_id" in item)) return undefined;
-    if (mode === "songs") {
-      return (item as Song).average_stats;
-    } else {
-      const singer = singers.find((s) => s.id === (item as Song).singer_id);
-      return singer?.ai_characteristics;
-    }
-  };
-
-  const getCommentCloud = (item: Singer | Song | null) => {
-    if (!item || !("comment_cloud" in item)) return undefined;
-    return (item as Song).comment_cloud;
-  };
-
   if (loading) {
     return (
       <div
         style={{
           color: "white",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
+          padding: "20px",
+          backgroundColor: "#1d1d1d",
+          minHeight: "100vh",
         }}
       >
         Loading...
@@ -202,42 +96,40 @@ function App() {
     );
   }
 
+  if (baseCategories.length === 0) {
+    return (
+      <div
+        style={{
+          color: "white",
+          padding: "20px",
+          backgroundColor: "#1d1d1d",
+          minHeight: "100vh",
+        }}
+      >
+        No data
+      </div>
+    );
+  }
+
   return (
     <div className="App">
       <ModeIndicator>
-        Mode:{" "}
-        {mode === "songs"
-          ? "Song-centric (Horizontal: Songs)"
-          : "Singer-centric (Horizontal: Singers)"}{" "}
-        <br />
-        Press [Tab] to Pivot
+        Mode: {mode === "songs" ? "Song-centric" : "Singer-centric"}
       </ModeIndicator>
 
-      {/* We need to modify XMBContainer to accept external navigation control or pass props */}
-      {/* For now, let's assume XMBContainer needs update to accept 'navigation' prop or we lift logic out */}
-      {/* Actually, XMBContainer uses useXMBNavigation internally. We should refactor XMBContainer to be controlled or pass the hook result. */}
-      {/* Let's Refactor XMBContainer in next step. For now, this code assumes XMBContainer is updated. */}
-
       <XMBContainer
-        categories={displayCategories}
+        categories={baseCategories}
         navigation={navigation}
         displayMode={mode === "songs" ? "show_singer" : "show_song"}
       />
 
-      {selectedItem && (
-        <VisualizerOverlay>
-          <AIVisualizer
-            stats={getStats(selectedItem)}
-            averageStats={getAverageStats(selectedItem)}
-            title={
-              "name" in selectedItem ? selectedItem.name : selectedItem.title
-            }
-          />
-          <WordCloud
-            words={getCommentCloud(selectedItem)}
-            title="コメントワード"
-          />
-        </VisualizerOverlay>
+      {selectedItem && "video_url" in selectedItem && (
+        <VideoDetailCard
+          song={selectedItem as Song}
+          singer={singers.find(
+            (s) => s.id === (selectedItem as Song).singer_id
+          )}
+        />
       )}
 
       {isPlayerOpen && selectedItem && "video_url" in selectedItem && (
