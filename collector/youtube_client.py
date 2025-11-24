@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Set
 
 import isodate
 import requests
+from url_parser import IdentifierType, parse_youtube_url
 
 BASE_URL = "https://www.googleapis.com/youtube/v3"
 
@@ -49,6 +50,138 @@ class YouTubeClient:
         response = requests.get(url, params=params)
         response.raise_for_status()
         return response.json()
+
+    def resolve_channel_id(self, url_or_id: str) -> str:
+        """
+        Resolve any YouTube identifier to a canonical channel ID.
+
+        Supports multiple formats:
+        - https://www.youtube.com/watch?v=xxx (resolves video to channel)
+        - https://youtu.be/xxx (resolves video to channel)
+        - https://www.youtube.com/channel/UCxxxx (extracts channel ID)
+        - https://www.youtube.com/user/username (resolves via API)
+        - https://www.youtube.com/@handle (resolves via API)
+        - Direct channel ID: UCxxxx (returns as-is)
+        - Direct handle: @handle (resolves via API)
+
+        Args:
+            url_or_id: YouTube URL, channel ID, username, handle, or video URL
+
+        Returns:
+            Canonical YouTube channel ID
+
+        Raises:
+            ValueError: If the format is invalid or custom URL is provided
+        """
+        identifier_type, identifier = parse_youtube_url(url_or_id)
+
+        if identifier_type == IdentifierType.CHANNEL_ID:
+            # Already a channel ID, return as-is
+            return identifier
+
+        elif identifier_type == IdentifierType.USERNAME:
+            # Resolve username to channel ID
+            return self._fetch_channel_by_username(identifier)
+
+        elif identifier_type == IdentifierType.HANDLE:
+            # Resolve handle to channel ID
+            return self._fetch_channel_by_handle(identifier)
+
+        elif identifier_type == IdentifierType.VIDEO_ID:
+            # Resolve video ID to channel ID
+            channel_id, channel_name = self._fetch_channel_by_video_id(identifier)
+            print(f"  → Video belongs to: {channel_name}")
+            return channel_id
+
+        elif identifier_type == IdentifierType.CUSTOM_URL:
+            # Custom URLs cannot be resolved via API
+            raise ValueError(
+                f"Custom URL (/c/{identifier}) cannot be resolved via YouTube API.\n"
+                f"Please visit https://www.youtube.com/c/{identifier} in a browser\n"
+                f"and copy the channel ID from the URL (it will redirect to /channel/UCxxxx)"
+            )
+
+        else:
+            raise ValueError(f"Unsupported identifier type: {identifier_type}")
+
+    def _fetch_channel_by_username(self, username: str) -> str:
+        """
+        Fetch channel ID by username using forUsername parameter.
+
+        Args:
+            username: YouTube username (from /user/xxx URLs)
+
+        Returns:
+            Channel ID
+
+        Raises:
+            ValueError: If channel is not found
+        """
+        result = self._get(
+            "channels",
+            {
+                "forUsername": username,
+                "part": "id",
+            },
+        )
+
+        if not result.get("items"):
+            raise ValueError(f"Channel not found for username: {username}")
+
+        return result["items"][0]["id"]
+
+    def _fetch_channel_by_handle(self, handle: str) -> str:
+        """
+        Fetch channel ID by handle using forHandle parameter.
+
+        Args:
+            handle: YouTube handle (without @ prefix, from /@xxx URLs)
+
+        Returns:
+            Channel ID
+
+        Raises:
+            ValueError: If channel is not found
+        """
+        result = self._get(
+            "channels",
+            {
+                "forHandle": handle,
+                "part": "id",
+            },
+        )
+
+        if not result.get("items"):
+            raise ValueError(f"Channel not found for handle: @{handle}")
+
+        return result["items"][0]["id"]
+
+    def _fetch_channel_by_video_id(self, video_id: str) -> tuple[str, str]:
+        """
+        Fetch channel ID and name by video ID.
+
+        Args:
+            video_id: YouTube video ID (from /watch?v=xxx or youtu.be/xxx URLs)
+
+        Returns:
+            Tuple of (channel_id, channel_name)
+
+        Raises:
+            ValueError: If video is not found
+        """
+        result = self._get(
+            "videos",
+            {
+                "id": video_id,
+                "part": "snippet",
+            },
+        )
+
+        if not result.get("items"):
+            raise ValueError(f"Video not found: {video_id}")
+
+        snippet = result["items"][0]["snippet"]
+        return (snippet["channelId"], snippet["channelTitle"])
 
     def fetch_uploads_playlist_id(self, channel_id: str) -> str:
         """Get the uploads playlist ID for a channel."""

@@ -2,7 +2,16 @@
 Local CLI for running the collector once.
 
 Usage:
-  uv run python -m collector.run_once --channel-id UC1234... --max-videos 200
+  uv run python -m collector.run_once --channel-url "https://www.youtube.com/@handle" --max-videos 200
+
+Supported URL formats:
+  - https://www.youtube.com/watch?v=VIDEO_ID (video URL - collects entire channel)
+  - https://youtu.be/VIDEO_ID (short video URL - collects entire channel)
+  - https://www.youtube.com/channel/UCxxxx (direct channel ID)
+  - https://www.youtube.com/user/username (username)
+  - https://www.youtube.com/@handle (YouTube handle)
+  - Direct channel ID: UCxxxx
+  - Direct handle: @handle
 """
 
 import argparse
@@ -24,6 +33,8 @@ def collect_channel(
     video_repo: VideoRepository,
     enricher: VideoEnricher,
     max_videos: int = 0,
+    max_song_videos: int = 0,
+    overwrite: bool = False,
 ) -> None:
     """
     Collect videos from a single channel, store in DynamoDB, and enrich.
@@ -34,6 +45,8 @@ def collect_channel(
       video_repo: DynamoDB repository
       enricher: Video enricher
       max_videos: Maximum number of videos to fetch (0 = no limit)
+      max_song_videos: Maximum number of SONG videos to process (0 = no limit)
+      overwrite: Re-process existing videos (default: False)
     """
     print(f"Fetching channel info: {channel_id}")
 
@@ -59,21 +72,36 @@ def collect_channel(
     )
     print(f"Found {len(all_video_ids)} videos in channel")
 
-    # Check which videos already exist in DynamoDB
-    existing_video_ids = video_repo.list_existing_video_ids(channel_id)
-    print(f"Already stored: {len(existing_video_ids)} videos")
+    # Determine which videos to process
+    if overwrite:
+        # Overwrite mode: process all videos
+        videos_to_process = list(all_video_ids)
+        print(
+            f"Overwrite mode: Processing all {len(videos_to_process)} videos (including existing)"
+        )
+    else:
+        # Normal mode: only new videos
+        existing_video_ids = video_repo.list_existing_video_ids(channel_id)
+        print(f"Already stored: {len(existing_video_ids)} videos")
 
-    # Calculate new videos to fetch
-    new_video_ids = list(all_video_ids - existing_video_ids)
-    print(f"New videos to collect: {len(new_video_ids)}")
+        videos_to_process = list(all_video_ids - existing_video_ids)
+        print(f"New videos to collect: {len(videos_to_process)}")
 
-    if not new_video_ids:
-        print("No new videos to collect")
+    if not videos_to_process:
+        print("No videos to process")
         return
 
     # Fetch videos in chunks of 50 (YouTube API limit)
     enriched_count = 0
-    for i, chunk in enumerate(chunked(new_video_ids, 50)):
+    song_count = 0
+    game_count = 0
+    unknown_count = 0
+    should_stop = False
+
+    for i, chunk in enumerate(chunked(videos_to_process, 50)):
+        if should_stop:
+            break
+
         chunk_list = list(chunk)
         print(f"\nProcessing chunk {i+1}: {len(chunk_list)} videos")
 
@@ -88,11 +116,35 @@ def collect_channel(
 
                 # Enrich the video immediately after storing
                 try:
-                    success = enricher.enrich_video(
+                    video_type = enricher.enrich_video(
                         channel_id, video.video_id, channel_info.get("channel_name", "")
                     )
-                    if success:
+
+                    if video_type:
                         enriched_count += 1
+                        # Count by type
+                        if video_type == "SONG":
+                            song_count += 1
+                            if max_song_videos > 0:
+                                print(f"    [SONG {song_count}/{max_song_videos}]")
+                            else:
+                                print(f"    [SONG {song_count}]")
+
+                            # Check if we reached the SONG limit
+                            if max_song_videos > 0 and song_count >= max_song_videos:
+                                print(
+                                    f"\n  → Reached limit of {max_song_videos} SONG videos"
+                                )
+                                print(f"  → Skipping remaining videos")
+                                should_stop = True
+                                break
+                        elif video_type == "GAME":
+                            game_count += 1
+                            print(f"    [GAME]")
+                        elif video_type == "UNKNOWN":
+                            unknown_count += 1
+                            print(f"    [UNKNOWN]")
+
                     # Rate limit: 1 request per second
                     time.sleep(1.0)
                 except Exception as enrich_error:
@@ -104,17 +156,27 @@ def collect_channel(
             except Exception as e:
                 print(f"  ✗ Failed to store {video.video_id}: {e}", file=sys.stderr)
 
-    print(f"\nCollection complete! Stored {len(new_video_ids)} new videos")
-    print(f"Enriched: {enriched_count} videos")
+    print(f"\nCollection complete!")
+    print(f"  Total videos processed: {enriched_count}")
+    print(f"  SONG videos: {song_count}")
+    print(f"  GAME videos: {game_count}")
+    print(f"  UNKNOWN videos: {unknown_count}")
 
 
-def main(channel_ids: List[str], max_videos: int = 0) -> None:
+def main(
+    channel_urls: List[str],
+    max_videos: int = 0,
+    max_song_videos: int = 0,
+    overwrite: bool = False,
+) -> None:
     """
     Main entry point for the collector.
 
     Args:
-      channel_ids: List of YouTube channel IDs to collect
+      channel_urls: List of YouTube channel URLs, handles, or IDs to collect
       max_videos: Maximum videos per channel (0 = no limit)
+      max_song_videos: Maximum SONG videos per channel (0 = no limit)
+      overwrite: Re-process existing videos (default: False)
     """
     settings = get_collector_settings()
 
@@ -124,24 +186,41 @@ def main(channel_ids: List[str], max_videos: int = 0) -> None:
     gemini_client = GeminiClient(settings.gemini_api_key)
     enricher = VideoEnricher(gemini_client, video_repo, index_repo, youtube_client)
 
-    for channel_id in channel_ids:
+    for channel_url in channel_urls:
         try:
+            # Resolve URL/handle to canonical channel ID
+            print(f"Resolving channel: {channel_url}")
+            channel_id = youtube_client.resolve_channel_id(channel_url)
+            print(f"  → Channel ID: {channel_id}\n")
+
             collect_channel(
-                channel_id, youtube_client, video_repo, enricher, max_videos
+                channel_id,
+                youtube_client,
+                video_repo,
+                enricher,
+                max_videos,
+                max_song_videos,
+                overwrite,
             )
+        except ValueError as e:
+            # Invalid format or custom URL
+            print(f"Error: {e}", file=sys.stderr)
+            continue
         except Exception as e:
-            print(f"Error collecting channel {channel_id}: {e}", file=sys.stderr)
+            print(f"Error collecting channel {channel_url}: {e}", file=sys.stderr)
             continue
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Collect YouTube videos to DynamoDB")
     parser.add_argument(
-        "--channel-id",
+        "--channel-url",
         type=str,
         action="append",
-        dest="channel_ids",
-        help="YouTube channel ID to collect (can be specified multiple times)",
+        dest="channel_urls",
+        help="YouTube channel or video URL, handle, or ID (can be specified multiple times). "
+        "Supports: video URLs (/watch?v=xxx, youtu.be/xxx), channel URLs (/channel/UCxxx, "
+        "/user/xxx, /@handle), or direct channel ID/handle",
     )
     parser.add_argument(
         "--max-videos",
@@ -149,16 +228,34 @@ if __name__ == "__main__":
         default=0,
         help="Maximum number of videos per channel (default: no limit)",
     )
+    parser.add_argument(
+        "--max-song-videos",
+        type=int,
+        default=0,
+        help="Maximum number of SONG videos to process per channel. "
+        "When set, stops processing after enriching N SONG videos, "
+        "skipping remaining videos (default: no limit)",
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        default=False,
+        help="Re-process existing videos. Re-fetches from YouTube and re-enriches with Gemini API. "
+        "Existing videos will count toward --max-song-videos limit. "
+        "WARNING: This will consume YouTube and Gemini API quota for all videos.",
+    )
 
     args = parser.parse_args()
 
-    if not args.channel_ids:
+    if not args.channel_urls:
         # Use target channels from config if none specified
         settings = get_collector_settings()
         if not settings.target_channel_ids:
-            print("Error: No channel IDs specified", file=sys.stderr)
-            print("Use --channel-id or set TARGET_CHANNEL_IDS in .env", file=sys.stderr)
+            print("Error: No channel URLs specified", file=sys.stderr)
+            print(
+                "Use --channel-url or set TARGET_CHANNEL_IDS in .env", file=sys.stderr
+            )
             sys.exit(1)
-        args.channel_ids = settings.target_channel_ids
+        args.channel_urls = settings.target_channel_ids
 
-    main(args.channel_ids, args.max_videos)
+    main(args.channel_urls, args.max_videos, args.max_song_videos, args.overwrite)

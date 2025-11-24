@@ -36,7 +36,7 @@ class VideoEnricher:
 
     def enrich_video(
         self, channel_id: str, video_id: str, channel_name: Optional[str] = None
-    ) -> bool:
+    ) -> str:
         """
         Enrich a single video with AI-generated metadata.
 
@@ -46,18 +46,18 @@ class VideoEnricher:
           channel_name: Optional channel name for better extraction
 
         Returns:
-          True if enrichment was successful, False otherwise
+          Video type string: "SONG", "GAME", or "UNKNOWN". Empty string on error.
         """
         # 1. Get video from DynamoDB
         video = self.repo.get_video(channel_id, video_id)
         if not video:
             print(f"Video not found: {video_id}")
-            return False
+            return ""
 
         # 2. Filter by duration
         if video.duration is None:
             print(f"Skipping {video_id}: no duration")
-            return False
+            return ""
 
         if not (DURATION_MIN <= video.duration <= DURATION_MAX):
             print(
@@ -66,7 +66,7 @@ class VideoEnricher:
             )
             # Update with UNKNOWN type to mark as processed
             self.repo.update_video_type(channel_id, video_id, "UNKNOWN")
-            return False
+            return "UNKNOWN"
 
         # 3. Classify video type
         print(f"Classifying {video_id}: {video.video_title[:50]}...")
@@ -85,7 +85,7 @@ class VideoEnricher:
         if video_type != "SONG":
             # Not a song video, just update type
             self.repo.update_video_type(channel_id, video_id, video_type)
-            return True
+            return video_type
 
         # 4. Extract song information
         print(f"Extracting song info for {video_id}...")
@@ -97,7 +97,7 @@ class VideoEnricher:
             print(f"  → Failed to extract song title")
             # Mark as SONG but without detailed info
             self.repo.update_video_type(channel_id, video_id, "SONG")
-            return False
+            return "SONG"
 
         print(f"  → Song: {song_info['song_title']}")
         print(f"  → Singers: {', '.join(song_info['singers'])}")
@@ -215,4 +215,4 @@ class VideoEnricher:
                 print(f"  ✗ Index sync failed: {e}")
                 # Don't fail the whole enrichment if index sync fails
 
-        return True
+        return "SONG"
