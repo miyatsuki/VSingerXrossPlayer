@@ -18,10 +18,7 @@ class DynamoVideoRepository:
 
     @classmethod
     def from_settings(cls, settings: Settings) -> "DynamoVideoRepository":
-        client_kwargs = {"region_name": settings.aws_region}
-        if settings.dynamodb_endpoint_url:
-            client_kwargs["endpoint_url"] = settings.dynamodb_endpoint_url
-        client = boto3.client("dynamodb", **client_kwargs)
+        client = boto3.client("dynamodb", region_name=settings.aws_region)
         return cls(
             client,
             settings.dynamodb_table_videos,

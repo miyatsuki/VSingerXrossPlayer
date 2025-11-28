@@ -2,11 +2,7 @@
 Script to create DynamoDB tables for VSingerXrossPlayer.
 
 Usage:
-  # For local DynamoDB
-  DYNAMODB_ENDPOINT_URL=http://localhost:8000 uv run python scripts/create_tables.py
-
-  # For AWS DynamoDB
-  AWS_REGION=ap-northeast-1 uv run python scripts/create_tables.py
+  uv run python scripts/create_tables.py
 """
 
 import sys
@@ -107,14 +103,8 @@ def main() -> None:
     """Create all required DynamoDB tables."""
     settings = get_collector_settings()
 
-    client_kwargs = {"region_name": settings.aws_region}
-    if settings.dynamodb_endpoint_url:
-        client_kwargs["endpoint_url"] = settings.dynamodb_endpoint_url
-        print(f"Using DynamoDB endpoint: {settings.dynamodb_endpoint_url}")
-    else:
-        print(f"Using AWS DynamoDB in region: {settings.aws_region}")
-
-    client = boto3.client("dynamodb", **client_kwargs)
+    print(f"Using AWS DynamoDB in region: {settings.aws_region}")
+    client = boto3.client("dynamodb", region_name=settings.aws_region)
 
     print("\nCreating tables...")
     create_videos_table(client, settings.dynamodb_table_videos)

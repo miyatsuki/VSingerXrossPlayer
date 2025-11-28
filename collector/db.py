@@ -46,11 +46,7 @@ class VideoRepository:
     @classmethod
     def from_settings(cls, settings) -> "VideoRepository":
         """Create repository from collector settings."""
-        client_kwargs = {"region_name": settings.aws_region}
-        if settings.dynamodb_endpoint_url:
-            client_kwargs["endpoint_url"] = settings.dynamodb_endpoint_url
-
-        client = boto3.client("dynamodb", **client_kwargs)
+        client = boto3.client("dynamodb", region_name=settings.aws_region)
         return cls(client, settings.dynamodb_table_videos)
 
     def list_existing_video_ids(self, channel_id: str) -> Set[str]:
@@ -350,11 +346,7 @@ class SingerVideoIndexRepository:
     @classmethod
     def from_settings(cls, settings) -> "SingerVideoIndexRepository":
         """Create repository from collector settings."""
-        client_kwargs = {"region_name": settings.aws_region}
-        if settings.dynamodb_endpoint_url:
-            client_kwargs["endpoint_url"] = settings.dynamodb_endpoint_url
-
-        client = boto3.client("dynamodb", **client_kwargs)
+        client = boto3.client("dynamodb", region_name=settings.aws_region)
         return cls(client, settings.dynamodb_table_singer_videos)
 
     def delete_singer_video_index(self, video_id: str) -> None:

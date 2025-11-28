@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List, Optional
+from typing import List
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -16,10 +16,6 @@ class CollectorSettings(BaseSettings):
     dynamodb_table_videos: str = Field("vsxp-videos", alias="VIDEOS_TABLE_NAME")
     dynamodb_table_singer_videos: str = Field(
         "vsxp-singer-videos", alias="SINGER_VIDEOS_TABLE_NAME"
-    )
-    dynamodb_endpoint_url: Optional[str] = Field(
-        None,
-        alias="DYNAMODB_ENDPOINT_URL",
     )
 
     model_config = SettingsConfigDict(

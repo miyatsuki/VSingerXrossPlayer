@@ -11,10 +11,6 @@ class Settings(BaseSettings):
     dynamodb_table_singer_videos: str = Field(
         "vsxp-singer-videos", alias="SINGER_VIDEOS_TABLE_NAME"
     )
-    dynamodb_endpoint_url: str = Field(
-        "",
-        alias="DYNAMODB_ENDPOINT_URL",
-    )
 
     model_config = SettingsConfigDict(
         env_file=".env",

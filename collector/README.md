@@ -4,7 +4,7 @@ YouTube video metadata collector for VSingerXrossPlayer.
 
 ## Overview
 
-The collector fetches video metadata from YouTube Data API v3 and stores it in DynamoDB. It supports both local development (with DynamoDB Local) and AWS Lambda deployment.
+The collector fetches video metadata from YouTube Data API v3 and stores it in DynamoDB.
 
 ## Setup
 
@@ -27,30 +27,15 @@ GEMINI_API_KEY=your_gemini_api_key_here
 # Optional: Target channels (comma-separated)
 TARGET_CHANNEL_IDS=UC1234...,UC5678...
 
-# For local DynamoDB
-DYNAMODB_ENDPOINT_URL=http://localhost:8000
-
-# For AWS DynamoDB
+# AWS DynamoDB
 AWS_REGION=ap-northeast-1
 VIDEOS_TABLE_NAME=vsxp-videos
 ```
 
 ### 3. Create DynamoDB Table
 
-For local development with DynamoDB Local:
-
 ```bash
-# Start DynamoDB Local (if using Docker)
-docker run -p 8000:8000 amazon/dynamodb-local
-
-# Create table
-DYNAMODB_ENDPOINT_URL=http://localhost:8000 uv run python scripts/create_tables.py
-```
-
-For AWS DynamoDB:
-
-```bash
-AWS_REGION=ap-northeast-1 uv run python scripts/create_tables.py
+uv run python scripts/create_tables.py
 ```
 
 ## Usage

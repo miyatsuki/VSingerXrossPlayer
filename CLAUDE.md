@@ -117,7 +117,6 @@ Environment variables use Vite's `VITE_*` prefix (e.g., `VITE_GOOGLE_API_KEY`). 
 Uses pydantic-settings for environment-based config:
 
 - `REPOSITORY_BACKEND`: "memory" or "dynamodb" (default: "memory")
-- `DYNAMODB_ENDPOINT_URL`: For local DynamoDB testing
 - `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`: AWS credentials
 - `VIDEOS_TABLE_NAME`: DynamoDB table name (default: "vsxp-videos")
 
