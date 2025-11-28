@@ -75,34 +75,25 @@ class YouTubeClient:
         """
         identifier_type, identifier = parse_youtube_url(url_or_id)
 
-        if identifier_type == IdentifierType.CHANNEL_ID:
-            # Already a channel ID, return as-is
-            return identifier
-
-        elif identifier_type == IdentifierType.USERNAME:
-            # Resolve username to channel ID
-            return self._fetch_channel_by_username(identifier)
-
-        elif identifier_type == IdentifierType.HANDLE:
-            # Resolve handle to channel ID
-            return self._fetch_channel_by_handle(identifier)
-
-        elif identifier_type == IdentifierType.VIDEO_ID:
-            # Resolve video ID to channel ID
-            channel_id, channel_name = self._fetch_channel_by_video_id(identifier)
-            print(f"  → Video belongs to: {channel_name}")
-            return channel_id
-
-        elif identifier_type == IdentifierType.CUSTOM_URL:
-            # Custom URLs cannot be resolved via API
-            raise ValueError(
-                f"Custom URL (/c/{identifier}) cannot be resolved via YouTube API.\n"
-                f"Please visit https://www.youtube.com/c/{identifier} in a browser\n"
-                f"and copy the channel ID from the URL (it will redirect to /channel/UCxxxx)"
-            )
-
-        else:
-            raise ValueError(f"Unsupported identifier type: {identifier_type}")
+        match identifier_type:
+            case IdentifierType.CHANNEL_ID:
+                return identifier
+            case IdentifierType.USERNAME:
+                return self._fetch_channel_by_username(identifier)
+            case IdentifierType.HANDLE:
+                return self._fetch_channel_by_handle(identifier)
+            case IdentifierType.VIDEO_ID:
+                channel_id, channel_name = self._fetch_channel_by_video_id(identifier)
+                print(f"  → Video belongs to: {channel_name}")
+                return channel_id
+            case IdentifierType.CUSTOM_URL:
+                raise ValueError(
+                    f"Custom URL (/c/{identifier}) cannot be resolved via YouTube API.\n"
+                    f"Please visit https://www.youtube.com/c/{identifier} in a browser\n"
+                    f"and copy the channel ID from the URL (it will redirect to /channel/UCxxxx)"
+                )
+            case _:
+                raise ValueError(f"Unsupported identifier type: {identifier_type}")
 
     def _fetch_channel_by_username(self, username: str) -> str:
         """
