@@ -176,29 +176,6 @@ export class VideoDetailCard {
     }
 
     this.container.appendChild(metadataBox);
-
-    // Thumbnail
-    const thumbnailContainer = this.createDiv({
-      position: 'absolute',
-      bottom: '15px',
-      right: '15px',
-      width: '145px',
-      height: '82px',
-      borderRadius: '8px',
-      overflow: 'hidden',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-      background: 'rgba(0, 0, 0, 0.3)',
-    });
-    const thumbnailImg = document.createElement('img');
-    thumbnailImg.src = song.thumbnail_url || singer?.avatar_url || '/default-thumbnail.png';
-    thumbnailImg.alt = 'Video thumbnail';
-    Object.assign(thumbnailImg.style, {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover',
-    });
-    thumbnailContainer.appendChild(thumbnailImg);
-    this.container.appendChild(thumbnailContainer);
   }
 
   private createDiv(styles: Partial<CSSStyleDeclaration>): HTMLDivElement {
