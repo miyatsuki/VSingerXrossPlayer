@@ -55,7 +55,7 @@ export class VideoDetailCard {
   }
 
   private render(song: Song, singer?: Singer) {
-    const backgroundUrl = song.thumbnail_url || singer?.avatar_url;
+    const backgroundUrl = song.thumbnail_url || `https://i.ytimg.com/vi/${song.video_url}/hqdefault.jpg`;
     if (backgroundUrl) {
       this.container.style.backgroundImage = `
         linear-gradient(
