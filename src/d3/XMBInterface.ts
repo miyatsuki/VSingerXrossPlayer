@@ -10,6 +10,7 @@ export class XMBInterface {
   private categories: Category[] = [];
 
   private readonly CATEGORY_WIDTH = 160;
+  private readonly CATEGORY_GAP = 20;
   private readonly ITEM_HEIGHT = 55;
   private readonly TRANSITION_DURATION = 300;
 
@@ -46,7 +47,7 @@ export class XMBInterface {
       .style('top', '15%')
       .style('left', '20%')
       .style('display', 'flex')
-      .style('gap', '20px')
+      .style('gap', `${this.CATEGORY_GAP}px`)
       .style('transition', `transform ${this.TRANSITION_DURATION}ms cubic-bezier(0.2, 0.8, 0.2, 1)`);
 
     // Vertical list window with mask
@@ -66,7 +67,7 @@ export class XMBInterface {
     this.verticalContainer = verticalWindow.append('div')
       .attr('class', 'vertical-axis')
       .style('position', 'absolute')
-      .style('top', '20%')
+      .style('top', '40%')
       .style('left', '20%')
       .style('display', 'flex')
       .style('flex-direction', 'column')
@@ -147,12 +148,32 @@ export class XMBInterface {
 
   private renderItems(state: NavigationState) {
     const currentCategory = this.categories[state.cursorX];
-    const items = currentCategory?.items || [];
+    const originalItems = currentCategory?.items || [];
 
-    // Data bind items
+    // Reorder items: item before active at position 0, active at position 1, then loop
+    // Like a date picker where selected item is in the middle
+    const reorderedItems: any[] = [];
+    const len = originalItems.length;
+
+    if (len === 1) {
+      // Single item: add empty placeholder at position 0, actual item at position 1
+      reorderedItems.push({ id: '__placeholder__', _isPlaceholder: true, _displayIndex: 0 });
+      reorderedItems.push({ ...originalItems[0], _displayIndex: 1 });
+    } else {
+      for (let i = 0; i < len; i++) {
+        // Start from one before cursorY, then loop around
+        const index = (state.cursorY - 1 + i + len) % len;
+        reorderedItems.push({ ...originalItems[index], _displayIndex: i });
+      }
+    }
+
+    // Clear and re-render all items (force update on navigation)
+    this.verticalContainer.selectAll('.xmb-item').remove();
+
+    // Data bind items with reordered list
     const itemElements = this.verticalContainer
       .selectAll<HTMLDivElement, any>('.xmb-item')
-      .data(items, (d) => d.id);
+      .data(reorderedItems);
 
     // Enter
     const itemEnter = itemElements.enter()
@@ -166,45 +187,46 @@ export class XMBInterface {
       .style('transition', 'all 0.2s')
       .style('cursor', 'pointer');
 
-    // Avatar/thumbnail
+    // Avatar/thumbnail (hide for placeholder)
     itemEnter.append('div')
       .attr('class', 'item-avatar')
       .style('width', '24px')
       .style('height', '24px')
       .style('border-radius', '50%')
-      .style('background', 'rgba(255,255,255,0.2)')
+      .style('background', (d) => d._isPlaceholder ? 'transparent' : 'rgba(255,255,255,0.2)')
       .style('margin-right', '12px')
       .style('flex-shrink', '0');
 
-    // Name
+    // Name (skip for placeholder)
     itemEnter.append('div')
       .attr('class', 'item-name')
-      .style('font-size', '14px')
-      .style('color', 'rgba(255,255,255,0.9)')
       .style('white-space', 'nowrap')
       .style('overflow', 'hidden')
       .style('text-overflow', 'ellipsis')
-      .text((d) => d.singer_name || d.title);
+      .text((d) => d._isPlaceholder ? '' : (d.singer_name || d.title));
 
-    // Update
-    itemElements.merge(itemEnter)
-      .select('.item-name')
-      .text((d) => d.singer_name || d.title);
+    // Apply active styling (position 1 is always active - like date picker)
+    itemEnter.each(function(d, i) {
+      const isActive = i === 1;
+      const item = d3.select(this);
+
+      item.style('background', isActive ? 'rgba(255,255,255,0.1)' : 'transparent');
+
+      item.select('.item-name')
+        .style('color', isActive ? '#ffffff' : 'rgba(255,255,255,0.9)')
+        .style('font-weight', isActive ? 'bold' : 'normal')
+        .style('font-size', isActive ? '16px' : '14px');
+    });
 
     // Exit
     itemElements.exit().remove();
   }
 
   private updatePositions(state: NavigationState) {
-    // Update horizontal position
-    const offsetX = -state.cursorX * this.CATEGORY_WIDTH;
+    // Update horizontal position (include gap in calculation)
+    const offsetX = -state.cursorX * (this.CATEGORY_WIDTH + this.CATEGORY_GAP);
     this.horizontalContainer
       .style('transform', `translateX(${offsetX}px)`);
-
-    // Update vertical position
-    const offsetY = -state.cursorY * this.ITEM_HEIGHT;
-    this.verticalContainer
-      .style('transform', `translateY(${offsetY}px)`);
   }
 
   private updateActiveStates(state: NavigationState) {
@@ -224,22 +246,7 @@ export class XMBInterface {
           .style('opacity', isActive ? '1' : '0');
       });
 
-    // Update item active states
-    this.verticalContainer
-      .selectAll<HTMLDivElement, any>('.xmb-item')
-      .each(function (d, i) {
-        const isActive = i === state.cursorY;
-        const item = d3.select(this);
-
-        item.style('background', isActive ? 'rgba(255,255,255,0.1)' : 'transparent');
-
-        item.select('.item-name')
-          .style('color', isActive ? '#ffffff' : 'rgba(255,255,255,0.9)')
-          .style('font-weight', isActive ? 'bold' : 'normal')
-          .style('font-size', isActive ? '16px' : '14px');
-      });
-
-    // Re-render items for new category
+    // Re-render items (styling is applied in renderItems)
     this.renderItems(state);
   }
 
