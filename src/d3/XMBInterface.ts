@@ -187,13 +187,20 @@ export class XMBInterface {
       .style('transition', 'all 0.2s')
       .style('cursor', 'pointer');
 
-    // Avatar/thumbnail (hide for placeholder)
+    // Avatar/thumbnail (hide for placeholder, show image if available)
     itemEnter.append('div')
       .attr('class', 'item-avatar')
       .style('width', '24px')
       .style('height', '24px')
       .style('border-radius', '50%')
-      .style('background', (d) => d._isPlaceholder ? 'transparent' : 'rgba(255,255,255,0.2)')
+      .style('background-color', (d) => d._isPlaceholder ? 'transparent' : 'rgba(255,255,255,0.2)')
+      .style('background-image', (d) => {
+        if (d._isPlaceholder) return 'none';
+        if (d.singer_avatar) return `url(${d.singer_avatar})`;
+        return 'none';
+      })
+      .style('background-size', 'cover')
+      .style('background-position', 'center')
       .style('margin-right', '12px')
       .style('flex-shrink', '0');
 
