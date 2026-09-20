@@ -47,6 +47,6 @@
     "@types/d3-cloud": "^1.2.9",
     "@types/gapi.client.youtube": "^3.0.4",
     "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^7.2.4"
+    "vite": "^7.3.2"
   }
 }
