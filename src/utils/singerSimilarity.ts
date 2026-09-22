@@ -27,6 +27,13 @@ export interface SimilarSinger {
   commonSongs: RepertoireSong[];
 }
 
+export interface SingerMapPoint {
+  singer: string;
+  x: number;
+  y: number;
+  songCount: number;
+}
+
 // Keep punctuation: removing it can merge distinct titles.
 export function normalizeSongTitle(title: string): string {
   return title.normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
@@ -168,5 +175,106 @@ export class SingerSimilarity {
     return matches.sort((a, b) => b.score - a.score
       || b.commonSongs.length - a.commonSongs.length
       || a.singer.localeCompare(b.singer, 'ja')).slice(0, Math.max(0, limit));
+  }
+
+  similarityScore(first: string, second: string): number {
+    if (first === second) return this.repertoires.has(first) ? 1 : 0;
+    const source = this.repertoires.get(first);
+    const target = this.repertoires.get(second);
+    const sourceNorm = this.norms.get(first);
+    const targetNorm = this.norms.get(second);
+    if (!source || !target || !sourceNorm || !targetNorm) return 0;
+    let dot = 0;
+    for (const key of source.songs.keys()) {
+      if (target.songs.has(key)) dot += this.weights.get(key)! ** 2;
+    }
+    return Math.min(1, dot / (sourceNorm * targetNorm));
+  }
+
+  /** Deterministic force layout: similar repertoires attract, all nodes repel. */
+  createMap(): SingerMapPoint[] {
+    const singers = Array.from(this.repertoires.keys())
+      .sort((a, b) => a.localeCompare(b, 'ja'));
+    const size = singers.length;
+    if (!size) return [];
+    if (size === 1) {
+      const singer = singers[0];
+      return [{ singer, x: 0.5, y: 0.5, songCount: this.repertoires.get(singer)!.songs.size }];
+    }
+
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    const nodes = singers.map((_, index) => {
+      const radius = 0.12 + 0.38 * Math.sqrt((index + 1) / size);
+      const angle = index * goldenAngle;
+      return {
+        x: radius * Math.cos(angle), y: radius * Math.sin(angle), vx: 0, vy: 0,
+      };
+    });
+    const edges: { first: number; second: number; score: number }[] = [];
+    for (let first = 0; first < size; first += 1) {
+      for (let second = first + 1; second < size; second += 1) {
+        const score = this.similarityScore(singers[first], singers[second]);
+        if (score > 0) edges.push({ first, second, score });
+      }
+    }
+    for (let iteration = 0; iteration < 500; iteration += 1) {
+      const force = nodes.map(node => ({ x: -node.x * 0.003, y: -node.y * 0.003 }));
+      for (let first = 0; first < size; first += 1) {
+        for (let second = first + 1; second < size; second += 1) {
+          let dx = nodes[second].x - nodes[first].x;
+          let dy = nodes[second].y - nodes[first].y;
+          let distanceSquared = dx * dx + dy * dy;
+          if (distanceSquared < 1e-8) {
+            const angle = (first + second + 1) * goldenAngle;
+            dx = Math.cos(angle) * 0.001;
+            dy = Math.sin(angle) * 0.001;
+            distanceSquared = dx * dx + dy * dy;
+          }
+          const distance = Math.sqrt(distanceSquared);
+          const repulsion = 0.00022 / (distanceSquared + 0.0004);
+          const fx = dx / distance * repulsion;
+          const fy = dy / distance * repulsion;
+          force[first].x -= fx;
+          force[first].y -= fy;
+          force[second].x += fx;
+          force[second].y += fy;
+        }
+      }
+      for (const edge of edges) {
+        const first = nodes[edge.first];
+        const second = nodes[edge.second];
+        const dx = second.x - first.x;
+        const dy = second.y - first.y;
+        const distance = Math.max(1e-6, Math.hypot(dx, dy));
+        const desired = 0.06 + 0.3 * (1 - edge.score);
+        const attraction = (distance - desired) * (0.02 + 0.06 * edge.score);
+        const fx = dx / distance * attraction;
+        const fy = dy / distance * attraction;
+        force[edge.first].x += fx;
+        force[edge.first].y += fy;
+        force[edge.second].x -= fx;
+        force[edge.second].y -= fy;
+      }
+      const cooling = 1 - iteration / 650;
+      nodes.forEach((node, index) => {
+        node.vx = (node.vx + force[index].x * cooling) * 0.78;
+        node.vy = (node.vy + force[index].y * cooling) * 0.78;
+        node.x += node.vx;
+        node.y += node.vy;
+      });
+    }
+    const xValues = nodes.map(node => node.x);
+    const yValues = nodes.map(node => node.y);
+    const scale = (value: number, values: number[]) => {
+      const minimum = Math.min(...values);
+      const span = Math.max(...values) - minimum;
+      return span < 1e-12 ? 0.5 : 0.07 + 0.86 * (value - minimum) / span;
+    };
+    return singers.map((singer, index) => ({
+      singer,
+      x: scale(nodes[index].x, xValues),
+      y: scale(nodes[index].y, yValues),
+      songCount: this.repertoires.get(singer)!.songs.size,
+    }));
   }
 }

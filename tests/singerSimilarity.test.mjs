@@ -107,6 +107,34 @@ test('uses original title before display title and labels title-only matching', 
   assert.equal(index.findSimilar('A')[0].commonSongs[0].provisional, true);
 });
 
+test('projects every singer into a deterministic two-dimensional similarity map', () => {
+  const index = new SingerSimilarity([
+    video('Shared one', ['A', 'B']),
+    video('Shared two', ['A', 'B']),
+    video('Different', ['C']),
+  ]);
+  const first = index.createMap();
+  const second = index.createMap();
+  assert.deepEqual(first, second);
+  assert.deepEqual(first.map(point => point.singer), ['A', 'B', 'C']);
+  for (const point of first) {
+    assert.ok(point.x >= 0 && point.x <= 1);
+    assert.ok(point.y >= 0 && point.y <= 1);
+  }
+  const bySinger = new Map(first.map(point => [point.singer, point]));
+  const distance = (left, right) => Math.hypot(left.x - right.x, left.y - right.y);
+  assert.ok(distance(bySinger.get('A'), bySinger.get('B'))
+    < distance(bySinger.get('A'), bySinger.get('C')));
+});
+
+test('maps one or two singers without unstable empty eigenvectors', () => {
+  const one = new SingerSimilarity([video('Song', ['A'])]).createMap();
+  assert.deepEqual(one, [{ singer: 'A', x: 0.5, y: 0.5, songCount: 1 }]);
+  const two = new SingerSimilarity([video('Song', ['A', 'B'])]).createMap();
+  assert.equal(two.length, 2);
+  assert.ok(two.every(point => Number.isFinite(point.x) && Number.isFinite(point.y)));
+});
+
 test('rejects conflicting catalog aliases, video assignments and IDs', () => {
   const another = { id: 'song-b', title: '別曲', artist: '別作者' };
   assert.throws(() => new SingerSimilarity([], [catalog[0], { ...another, aliases: [{ title: '正式曲名', artist: '原作者' }] }]));

@@ -15,7 +15,7 @@
 .discovery-trigger:disabled { opacity: 0.5; }
 .singer-discovery {
   margin: auto;
-  width: min(660px, 94vw);
+  width: min(920px, 94vw);
   max-height: 90vh;
   padding: 24px;
   border: 1px solid #666;
@@ -32,29 +32,41 @@
 .singer-discovery select { max-width: 100%; min-width: 0; }
 .singer-discovery p { margin: 12px 0; overflow-wrap: anywhere; }
 .discovery-map {
-  position: relative;
-  width: min(100%, 320px);
-  aspect-ratio: 1;
-  margin: 16px auto;
+  width: 100%;
+  margin: 16px 0;
   border: 1px solid #555;
-  border-radius: 50%;
-  background: repeating-radial-gradient(circle, transparent 0, transparent 24%, #353535 24.5%, transparent 25%);
+  border-radius: 12px;
+  background: radial-gradient(circle at center, #292929 0, #202020 70%);
+  overflow-x: auto;
 }
-.discovery-center, .discovery-dot {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  background: #9bdad4;
-  color: #142522;
-  font-size: 12px;
+.discovery-map svg { display: block; width: max(100%, 720px); height: auto; }
+.discovery-link { stroke: #75cfc6; }
+.discovery-node { cursor: pointer; outline: none; }
+.discovery-node circle {
+  fill: #777;
+  stroke: #161616;
+  stroke-width: 2;
+  transition: fill 120ms ease, stroke 120ms ease;
 }
-.discovery-center { background: #fff; color: #222; }
+.discovery-node text {
+  fill: #ddd;
+  font-size: 11px;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #1d1d1d;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.discovery-node.is-neighbor circle { fill: #75cfc6; }
+.discovery-node.is-selected circle { fill: #fff; stroke: #9bdad4; stroke-width: 4; }
+.discovery-node.is-selected text { fill: #fff; font-weight: 700; font-size: 13px; }
+.discovery-node.is-low-data { opacity: 0.5; }
+.discovery-node.is-low-data text { display: none; }
+.discovery-node.is-low-data.is-neighbor text,
+.discovery-node.is-low-data:hover text,
+.discovery-node.is-low-data:focus text { display: block; }
+.discovery-node:hover circle, .discovery-node:focus circle { stroke: #fff; stroke-width: 4; }
 .singer-discovery ol { padding-left: 24px; }
 .singer-discovery li { padding: 14px 0; border-bottom: 1px solid #444; overflow-wrap: anywhere; }
 .singer-discovery li p { margin: 4px 0; }

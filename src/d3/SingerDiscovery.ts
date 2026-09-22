@@ -56,39 +56,83 @@ export class SingerDiscovery {
     const singer = this.select.value;
     const count = this.similarity.repertoires.get(singer)?.songs.size || 0;
     const matches = this.similarity.findSimilar(singer);
+    const points = this.similarity.createMap();
     const summary = document.createElement('p');
-    summary.textContent = `${singer}：比較できる登録曲 ${count}曲。共通曲のある上位${matches.length}人を表示。`;
+    summary.textContent = `${points.length}人を全体配置。${singer}：比較できる登録曲 ${count}曲。`;
     this.results.appendChild(summary);
-    if (!matches.length) {
-      const empty = document.createElement('p');
-      empty.textContent = '共通の原曲が登録されている歌手がまだいません。曲名が未登録の動画は比較対象外です。';
-      this.results.appendChild(empty);
-      return;
-    }
 
     const map = document.createElement('div');
     map.className = 'discovery-map';
-    map.setAttribute('role', 'img');
-    map.setAttribute('aria-label', '中心が選択中の歌手。番号は下の一覧に対応し、中心に近いほど選曲が似ています。');
-    const center = document.createElement('span');
-    center.className = 'discovery-center';
-    center.textContent = '基準';
-    map.appendChild(center);
-    matches.forEach((match, index) => {
-      // The central glyph needs clearance; the remaining radius encodes 1 - cosine.
-      const radius = 12 + 32 * (1 - match.score);
-      const angle = -Math.PI / 2 + index * 2 * Math.PI / matches.length;
-      const dot = document.createElement('span');
-      dot.className = 'discovery-dot';
-      dot.textContent = String(index + 1);
-      dot.style.left = `${50 + radius * Math.cos(angle)}%`;
-      dot.style.top = `${50 + radius * Math.sin(angle)}%`;
-      map.appendChild(dot);
-    });
+    map.setAttribute('role', 'group');
+    map.setAttribute('aria-label', '全歌手の選曲類似度を二次元に近似したマップ');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 800 520');
+    const positions = new Map(points.map(point => [point.singer, {
+      ...point,
+      px: 40 + point.x * 720,
+      py: 30 + point.y * 460,
+    }]));
+    const selected = positions.get(singer);
+    if (selected) {
+      for (const match of matches) {
+        const target = positions.get(match.singer);
+        if (!target) continue;
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.classList.add('discovery-link');
+        line.setAttribute('x1', String(selected.px));
+        line.setAttribute('y1', String(selected.py));
+        line.setAttribute('x2', String(target.px));
+        line.setAttribute('y2', String(target.py));
+        line.style.opacity = String(0.2 + match.score * 0.75);
+        line.style.strokeWidth = String(1 + match.score * 4);
+        svg.appendChild(line);
+      }
+    }
+    const neighborNames = new Set(matches.map(match => match.singer));
+    for (const point of positions.values()) {
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const isSelected = point.singer === singer;
+      group.classList.add('discovery-node');
+      if (isSelected) group.classList.add('is-selected');
+      if (neighborNames.has(point.singer)) group.classList.add('is-neighbor');
+      if (point.songCount < 3) group.classList.add('is-low-data');
+      group.setAttribute('transform', `translate(${point.px} ${point.py})`);
+      group.setAttribute('role', 'button');
+      group.setAttribute('tabindex', '0');
+      group.setAttribute('aria-label', `${point.singer}、比較できる登録曲${point.songCount}曲`);
+      const radius = Math.min(11, 5 + Math.sqrt(point.songCount));
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('r', String(isSelected ? radius + 3 : radius));
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.setAttribute('y', String(-radius - 5));
+      label.textContent = point.singer;
+      const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+      title.textContent = `${point.singer} · ${point.songCount}曲`;
+      const choose = () => {
+        this.select.value = point.singer;
+        this.render();
+      };
+      group.addEventListener('click', choose);
+      group.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          choose();
+        }
+      });
+      group.append(circle, label, title);
+      svg.appendChild(group);
+    }
+    map.appendChild(svg);
     const note = document.createElement('p');
     note.className = 'discovery-note';
-    note.textContent = '中心に近いほど選曲が似ています。方向と、周囲の歌手同士の距離には意味がありません。';
+    note.textContent = '全歌手間の類似度を2次元へ近似しています。近い点ほど選曲が似る傾向がありますが、軸・方向に意味はなく、実際の類似度は下の数値が基準です。点の大きさは登録曲数、薄い点は3曲未満です。';
     this.results.append(map, note);
+    if (!matches.length) {
+      const empty = document.createElement('p');
+      empty.textContent = 'この歌手と共通の原曲が登録されている歌手はまだいません。曲名が未登録の動画は比較対象外です。';
+      this.results.appendChild(empty);
+      return;
+    }
     const list = document.createElement('ol');
     for (const match of matches) {
       const item = document.createElement('li');
