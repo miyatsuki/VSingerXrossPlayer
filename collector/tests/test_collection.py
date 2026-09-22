@@ -27,27 +27,29 @@ class CollectionTest(unittest.TestCase):
             )
 
             self.assertEqual(result, ('UC-canonical', {
-                'channel_name': 'Singer', 'singers': [],
+                'channel_name': 'Singer',
             }, True))
             self.assertEqual(load_channel_registry(path), {'UC-canonical': {
-                'channel_name': 'Singer', 'singers': [],
+                'channel_name': 'Singer',
             }})
 
-    def test_channel_registration_adds_singer_without_duplication(self):
+    def test_channel_registration_refreshes_channel_name(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / 'channels.json'
-            path.write_text(json.dumps({'UC-one': 'Old'}), encoding='utf-8')
+            path.write_text(json.dumps({
+                'UC-one': {'channel_name': 'Old'},
+            }), encoding='utf-8')
             youtube = Mock()
             youtube.resolve_channel_id.return_value = 'UC-one'
             youtube.fetch_channel_info.return_value = {'channel_name': 'Ignored'}
 
-            result = register_channel('UC-one', youtube, path, singer_names=['New'])
+            result = register_channel('UC-one', youtube, path)
 
             self.assertEqual(result, ('UC-one', {
-                'channel_name': 'Ignored', 'singers': ['Old', 'New'],
+                'channel_name': 'Ignored',
             }, False))
             self.assertEqual(load_channel_registry(path), {'UC-one': {
-                'channel_name': 'Ignored', 'singers': ['Old', 'New'],
+                'channel_name': 'Ignored',
             }})
             youtube.fetch_channel_info.assert_called_once_with('UC-one')
 

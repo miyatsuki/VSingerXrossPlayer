@@ -291,7 +291,6 @@ def main(
         settings.gemini_api_key,
         model=settings.gemini_model,
         catalog_path=settings.original_songs_path,
-        singer_channels_path=settings.singer_channels_path,
     )
     enricher = VideoEnricher(
         gemini_client,
@@ -395,7 +394,7 @@ def cli():
     if not args.channel_urls and not args.video_urls:
         # Collect every channel registered in the shared channel catalog.
         settings = get_collector_settings()
-        registered_channels = load_channel_registry(settings.singer_channels_path)
+        registered_channels = load_channel_registry(settings.channels_path)
         if not registered_channels:
             print("Error: No channels are registered", file=sys.stderr)
             print(

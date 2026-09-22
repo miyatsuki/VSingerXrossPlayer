@@ -10,7 +10,6 @@ Uses Gemini API with Google Search grounding to:
 
 import json
 import unicodedata
-from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
@@ -34,36 +33,10 @@ class SongExtraction(BaseModel):
 class GeminiClient:
     """Client for Gemini API with Google Search grounding."""
 
-    def __init__(self, api_key: str, model: str = "gemini-3.8-flash", catalog_path=None,
-                 singer_channels_path=None):
+    def __init__(self, api_key: str, model: str = "gemini-3.8-flash", catalog_path=None):
         self.client = genai.Client(api_key=api_key)
         self.model = model
         self.original_songs = OriginalSongs(catalog_path)
-        self.singer_channels = self._load_singer_channels(singer_channels_path)
-
-    @staticmethod
-    def _load_singer_channels(path):
-        if not path:
-            return {}
-        value = json.loads(Path(path).read_text(encoding="utf-8"))
-        if not isinstance(value, dict):
-            raise ValueError("Singer channel catalog must be a JSON object")
-        catalog = {}
-        for channel, registration in value.items():
-            if not isinstance(channel, str) or not channel.startswith("UC"):
-                raise ValueError("Singer channel catalog keys must be channel IDs")
-            if isinstance(registration, str):
-                singers = [registration]
-            elif isinstance(registration, dict):
-                singers = registration.get("singers", [])
-            else:
-                raise ValueError("Singer channel registration must be an object")
-            if not isinstance(singers, list) or any(
-                not isinstance(singer, str) or not singer.strip() for singer in singers
-            ):
-                raise ValueError("Registered singers must be an array of names")
-            catalog[channel] = list(dict.fromkeys(singer.strip() for singer in singers))
-        return catalog
 
     @staticmethod
     def _searchable(value):
@@ -73,21 +46,13 @@ class GeminiClient:
     def _validated_singers(self, singers, title, description, channel_name, channel_id):
         context = self._searchable(" ".join((title, description, channel_name)))
         validated = []
-        configured = self.singer_channels.get(channel_id, [])
-        configured_by_key = {self._searchable(singer): singer for singer in configured}
         for singer in singers:
             clean = singer.strip()
             key = self._searchable(clean)
-            canonical = configured_by_key.get(key)
-            explicitly_named = bool(key and key in context)
-            if canonical and (len(configured) == 1 or explicitly_named):
-                clean = canonical
-            elif not explicitly_named:
+            if not key or key not in context:
                 continue
             if clean and clean not in validated:
                 validated.append(clean)
-        if not validated and len(configured) == 1:
-            validated.append(configured[0])
         return validated
 
     def classify_video_type(self, title: str, description: str) -> Dict[str, Any]:

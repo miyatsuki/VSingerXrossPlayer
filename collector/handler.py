@@ -26,6 +26,7 @@ Supported formats for channelUrl:
 import json
 from typing import Any, Dict
 
+from .channel_registry import load_channel_registry
 from .config import get_collector_settings
 from .db import SingerVideoIndexRepository, VideoRepository
 from .enricher import VideoEnricher
@@ -55,7 +56,6 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         settings.gemini_api_key,
         model=settings.gemini_model,
         catalog_path=settings.original_songs_path,
-        singer_channels_path=settings.singer_channels_path,
     )
     enricher = VideoEnricher(gemini_client, video_repo, index_repo, youtube_client)
 
@@ -68,8 +68,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Fallback to deprecated channelId for backward compatibility
         channel_urls = [event["channelId"]]
     else:
-        # Use config defaults
-        channel_urls = settings.target_channel_ids
+        channel_urls = list(load_channel_registry(settings.channels_path))
 
     if not channel_urls:
         return {

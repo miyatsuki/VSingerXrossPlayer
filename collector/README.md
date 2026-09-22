@@ -30,7 +30,6 @@ SSOを使う場合は `aws sso login --profile PROFILE_NAME` の後に
 YOUTUBE_API_KEY=your_youtube_api_key
 GEMINI_API_KEY=your_gemini_api_key
 GEMINI_MODEL=gemini-3.8-flash
-TARGET_CHANNEL_IDS=["UC_channel_a","UC_channel_b"]
 STORAGE_BACKEND=json
 LOCAL_STORE_PATH=../data/collector-store.json
 PUBLIC_DATA_DIR=../public/data
@@ -38,7 +37,7 @@ AWS_REGION=ap-northeast-1
 VIDEOS_TABLE_NAME=vsxp-videos
 SINGER_VIDEOS_TABLE_NAME=vsxp-singer-videos
 ORIGINAL_SONGS_PATH=../public/original-songs.json
-SINGER_CHANNELS_PATH=../public/singer-channels.json
+CHANNELS_PATH=../public/channels.json
 ```
 
 `ORIGINAL_SONGS_PATH` は確認済み原曲の対応表です。未登録の初期値は `[]` です。存在しないファイルや矛盾した対応表はエラーになります。
@@ -47,9 +46,9 @@ SINGER_CHANNELS_PATH=../public/singer-channels.json
 画面用に必要な項目だけを `PUBLIC_DATA_DIR/videos.json` と `singers.json` へ自動出力します。
 フロントエンドは既定でこの公開スナップショットを読みます。
 
-`SINGER_CHANNELS_PATH` は、チャンネルIDと基準となる歌手名の対応表です。Geminiが原曲側の
-歌手をカバー歌手と誤認するのを防ぎます。コラボ相手は、動画タイトル・説明・チャンネル名に
-実際に名前が含まれる場合だけ追加します。
+`CHANNELS_PATH` は収集対象のチャンネルIDとYouTube上のチャンネル名だけを保存します。
+歌手名は登録せず、動画タイトル・説明・チャンネル名とGeminiのgrounding結果から動画ごとに
+判定します。
 
 AWSへ定期収集する場合だけ `STORAGE_BACKEND=dynamodb` に変更します。この場合は通常の
 AWSプロファイル・環境変数・IAMロールを使用してください。
@@ -68,25 +67,11 @@ YouTube APIから取得しますが、歌手名とは別の情報として保存
 
 ```bash
 uv run vsxp-register-channel \
-  --channel-url 'https://www.youtube.com/watch?v=VIDEO_ID' \
-  --singer-name '歌手名'
+  --channel-url 'https://www.youtube.com/watch?v=VIDEO_ID'
 ```
 
-`--singer-name` は省略可能で、共同チャンネルでは繰り返し指定できます。候補が複数ある場合、
-動画タイトル・説明・チャンネル名に実際に現れる歌手だけをその動画へ割り当てます。候補を登録
-しない場合は、Geminiのgrounding結果と動画上の表記から動画ごとに歌手を判定します。
-
-```bash
-uv run vsxp-register-channel \
-  --channel-id UC_xxx \
-  --singer-name 'KMNZ NERO' \
-  --singer-name 'KMNZ TINA' \
-  --singer-name 'KMNZ LITA' \
-  --singer-name 'KMNZ LIZ'
-```
-
-登録内容は `SINGER_CHANNELS_PATH`（既定は `public/singer-channels.json`）に保存され、
-Geminiが原曲側の歌手をカバー歌手と誤認するのを防ぐ対応表としても使われます。
+登録内容は `CHANNELS_PATH`（既定は `public/channels.json`）に保存されます。共同チャンネルでも
+メンバー名を事前登録する必要はありません。
 
 次に、引数なしの `vsxp-collect` で登録済みの全チャンネルを巡回します。保存済み動画は候補数に
 含めず、未確認動画だけを取得・分類・登録します。

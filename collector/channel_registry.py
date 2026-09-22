@@ -6,7 +6,7 @@ import os
 import sys
 import tempfile
 from pathlib import Path
-from typing import Dict, List, TypedDict
+from typing import Dict, TypedDict
 
 from .config import get_collector_settings
 from .youtube_client import YouTubeClient
@@ -14,7 +14,6 @@ from .youtube_client import YouTubeClient
 
 class ChannelRegistration(TypedDict):
     channel_name: str
-    singers: List[str]
 
 
 def load_channel_registry(path: str | Path) -> Dict[str, ChannelRegistration]:
@@ -28,28 +27,12 @@ def load_channel_registry(path: str | Path) -> Dict[str, ChannelRegistration]:
     for channel_id, registration in value.items():
         if not isinstance(channel_id, str) or not channel_id.startswith("UC"):
             raise ValueError("Channel registry keys must be YouTube channel IDs")
-        # Read the original string format so existing installations can migrate
-        # when they next register a channel.
-        if isinstance(registration, str) and registration.strip():
-            channels[channel_id] = {
-                "channel_name": registration.strip(),
-                "singers": [registration.strip()],
-            }
-            continue
         if not isinstance(registration, dict):
             raise ValueError("Each channel registration must be an object")
         channel_name = registration.get("channel_name")
-        singers = registration.get("singers", [])
         if not isinstance(channel_name, str) or not channel_name.strip():
             raise ValueError("Each channel registration requires channel_name")
-        if not isinstance(singers, list) or any(
-            not isinstance(singer, str) or not singer.strip() for singer in singers
-        ):
-            raise ValueError("Channel singers must be an array of non-empty names")
-        channels[channel_id] = {
-            "channel_name": channel_name.strip(),
-            "singers": list(dict.fromkeys(singer.strip() for singer in singers)),
-        }
+        channels[channel_id] = {"channel_name": channel_name.strip()}
     return channels
 
 
@@ -80,17 +63,13 @@ def register_channel(
     identifier: str,
     youtube_client: YouTubeClient,
     registry_path: str | Path,
-    singer_names: List[str] | None = None,
 ) -> tuple[str, ChannelRegistration, bool]:
     channel_id = youtube_client.resolve_channel_id(identifier)
     channel_info = youtube_client.fetch_channel_info(channel_id)
     channels = load_channel_registry(registry_path)
     added = channel_id not in channels
-    existing_singers = channels.get(channel_id, {}).get("singers", [])
-    supplied_singers = [name.strip() for name in singer_names or [] if name.strip()]
     registration: ChannelRegistration = {
         "channel_name": channel_info["channel_name"],
-        "singers": list(dict.fromkeys(existing_singers + supplied_singers)),
     }
     channels[channel_id] = registration
     save_channel_registry(registry_path, channels)
@@ -108,15 +87,7 @@ def cli() -> int:
         required=True,
         help="YouTube channel/video URL, handle, or channel ID (repeatable)",
     )
-    parser.add_argument(
-        "--singer-name",
-        action="append",
-        dest="singer_names",
-        help="Possible singer name for this channel (repeatable; one channel only)",
-    )
     args = parser.parse_args()
-    if args.singer_names and len(args.channels) != 1:
-        parser.error("--singer-name can only be used with one channel")
 
     settings = get_collector_settings()
     youtube_client = YouTubeClient(settings.youtube_api_key)
@@ -126,15 +97,10 @@ def cli() -> int:
             channel_id, registration, added = register_channel(
                 identifier,
                 youtube_client,
-                settings.singer_channels_path,
-                args.singer_names,
+                settings.channels_path,
             )
             action = "Registered" if added else "Updated"
-            singers = ", ".join(registration["singers"]) or "auto-detect per video"
-            print(
-                f"{action}: {channel_id} - {registration['channel_name']} "
-                f"(singers: {singers})"
-            )
+            print(f"{action}: {channel_id} - {registration['channel_name']}")
         except Exception as error:
             failures += 1
             print(f"Failed to register {identifier}: {error}", file=sys.stderr)

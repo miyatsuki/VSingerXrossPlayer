@@ -25,7 +25,6 @@ class GroundingTest(unittest.TestCase):
         client = GeminiClient.__new__(GeminiClient)
         client.model = 'test-model'
         client.original_songs = OriginalSongs()
-        client.singer_channels = {}
         client.client = Mock()
         research = SimpleNamespace(text='Official song from Artist https://example.org/official',
                                    candidates=[SimpleNamespace(grounding_metadata=meta)])
@@ -64,13 +63,12 @@ class GroundingTest(unittest.TestCase):
                 'singers': ['Singer'], 'original_artists': ['Artist'], 'source_indices': indices})
             self.assertEqual(client.extract_song_info('title', '')['song_title'], '')
 
-    def test_channel_catalog_rejects_original_side_performers(self):
+    def test_unsubstantiated_singers_are_rejected(self):
         client = self.client(metadata(), {
             'status': 'identified', 'song_title': 'ピッカーン！',
             'singers': ['松田里奈', '森田ひかる'],
             'original_artists': ['Giga', 'TeddyLoid'], 'source_indices': [0],
         })
-        client.singer_channels = {'UCnwnKd78qy2Txjs1WlfwkxA': ['KMNZ TINA']}
         result = client.extract_song_info(
             'ピッカーン！ - Giga & TeddyLoid (Cover) / KMNZ TINA',
             '',
@@ -78,7 +76,7 @@ class GroundingTest(unittest.TestCase):
             'u1LWGCiGCHE',
             'UCnwnKd78qy2Txjs1WlfwkxA',
         )
-        self.assertEqual(result['singers'], ['KMNZ TINA'])
+        self.assertEqual(result['singers'], [])
 
     def test_title_listed_collaborator_is_preserved(self):
         client = self.client(metadata(), {
@@ -86,7 +84,6 @@ class GroundingTest(unittest.TestCase):
             'singers': ['KMNZ TINA', 'CULUA'],
             'original_artists': ['Artist'], 'source_indices': [0],
         })
-        client.singer_channels = {'channel': ['KMNZ TINA']}
         result = client.extract_song_info(
             'Song (Cover) / KMNZ TINA × CULUA', '', 'KMNZ_TINAM', 'video', 'channel',
         )
@@ -98,7 +95,6 @@ class GroundingTest(unittest.TestCase):
             'singers': ['KMNZ TINA', 'KMNZ NERO'],
             'original_artists': ['Artist'], 'source_indices': [0],
         })
-        client.singer_channels = {'channel': ['KMNZ TINA', 'KMNZ NERO']}
         result = client.extract_song_info(
             'Song (Cover) / KMNZ NERO', '', 'KMNZ', 'video', 'channel',
         )

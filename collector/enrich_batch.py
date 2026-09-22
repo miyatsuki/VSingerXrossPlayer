@@ -10,6 +10,7 @@ import sys
 import time
 from typing import List
 
+from .channel_registry import load_channel_registry
 from .config import get_collector_settings
 from .db import SingerVideoIndexRepository, VideoRepository
 from .enricher import VideoEnricher
@@ -125,7 +126,6 @@ def main(
         settings.gemini_api_key,
         model=settings.gemini_model,
         catalog_path=settings.original_songs_path,
-        singer_channels_path=settings.singer_channels_path,
     )
     youtube_client = YouTubeClient(settings.youtube_api_key)
     video_repo = VideoRepository.from_settings(settings)
@@ -177,13 +177,13 @@ def cli():
     args = parser.parse_args()
 
     if not args.channel_ids:
-        # Use target channels from config if none specified
         settings = get_collector_settings()
-        if not settings.target_channel_ids:
-            print("Error: No channel IDs specified", file=sys.stderr)
-            print("Use --channel-id or set TARGET_CHANNEL_IDS in .env", file=sys.stderr)
+        registered_channels = load_channel_registry(settings.channels_path)
+        if not registered_channels:
+            print("Error: No channels are registered", file=sys.stderr)
+            print("Run vsxp-register-channel --channel-url URL first", file=sys.stderr)
             sys.exit(1)
-        args.channel_ids = settings.target_channel_ids
+        args.channel_ids = list(registered_channels)
 
     return main(args.channel_ids, args.max_videos, args.overwrite, args.metadata_only)
 
