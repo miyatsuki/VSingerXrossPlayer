@@ -70,7 +70,7 @@ class GroundingTest(unittest.TestCase):
             'singers': ['松田里奈', '森田ひかる'],
             'original_artists': ['Giga', 'TeddyLoid'], 'source_indices': [0],
         })
-        client.singer_channels = {'UCnwnKd78qy2Txjs1WlfwkxA': 'KMNZ TINA'}
+        client.singer_channels = {'UCnwnKd78qy2Txjs1WlfwkxA': ['KMNZ TINA']}
         result = client.extract_song_info(
             'ピッカーン！ - Giga & TeddyLoid (Cover) / KMNZ TINA',
             '',
@@ -86,11 +86,23 @@ class GroundingTest(unittest.TestCase):
             'singers': ['KMNZ TINA', 'CULUA'],
             'original_artists': ['Artist'], 'source_indices': [0],
         })
-        client.singer_channels = {'channel': 'KMNZ TINA'}
+        client.singer_channels = {'channel': ['KMNZ TINA']}
         result = client.extract_song_info(
             'Song (Cover) / KMNZ TINA × CULUA', '', 'KMNZ_TINAM', 'video', 'channel',
         )
         self.assertEqual(result['singers'], ['KMNZ TINA', 'CULUA'])
+
+    def test_shared_channel_only_accepts_named_member(self):
+        client = self.client(metadata(), {
+            'status': 'identified', 'song_title': 'Song',
+            'singers': ['KMNZ TINA', 'KMNZ NERO'],
+            'original_artists': ['Artist'], 'source_indices': [0],
+        })
+        client.singer_channels = {'channel': ['KMNZ TINA', 'KMNZ NERO']}
+        result = client.extract_song_info(
+            'Song (Cover) / KMNZ NERO', '', 'KMNZ', 'video', 'channel',
+        )
+        self.assertEqual(result['singers'], ['KMNZ NERO'])
 
     def test_malformed_json_and_api_failure_are_retryable(self):
         client = self.client(metadata())

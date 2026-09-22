@@ -9,7 +9,6 @@ Uses Gemini API with Google Search grounding to:
 """
 
 import json
-import re
 import unicodedata
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
@@ -47,13 +46,24 @@ class GeminiClient:
         if not path:
             return {}
         value = json.loads(Path(path).read_text(encoding="utf-8"))
-        if not isinstance(value, dict) or any(
-            not isinstance(channel, str) or not channel.startswith("UC")
-            or not isinstance(singer, str) or not singer.strip()
-            for channel, singer in value.items()
-        ):
-            raise ValueError("Singer channel catalog must map channel IDs to singer names")
-        return {channel: singer.strip() for channel, singer in value.items()}
+        if not isinstance(value, dict):
+            raise ValueError("Singer channel catalog must be a JSON object")
+        catalog = {}
+        for channel, registration in value.items():
+            if not isinstance(channel, str) or not channel.startswith("UC"):
+                raise ValueError("Singer channel catalog keys must be channel IDs")
+            if isinstance(registration, str):
+                singers = [registration]
+            elif isinstance(registration, dict):
+                singers = registration.get("singers", [])
+            else:
+                raise ValueError("Singer channel registration must be an object")
+            if not isinstance(singers, list) or any(
+                not isinstance(singer, str) or not singer.strip() for singer in singers
+            ):
+                raise ValueError("Registered singers must be an array of names")
+            catalog[channel] = list(dict.fromkeys(singer.strip() for singer in singers))
+        return catalog
 
     @staticmethod
     def _searchable(value):
@@ -63,17 +73,21 @@ class GeminiClient:
     def _validated_singers(self, singers, title, description, channel_name, channel_id):
         context = self._searchable(" ".join((title, description, channel_name)))
         validated = []
-        canonical = self.singer_channels.get(channel_id)
-        if canonical:
-            validated.append(canonical)
+        configured = self.singer_channels.get(channel_id, [])
+        configured_by_key = {self._searchable(singer): singer for singer in configured}
         for singer in singers:
             clean = singer.strip()
-            if clean and self._searchable(clean) in context and clean not in validated:
+            key = self._searchable(clean)
+            canonical = configured_by_key.get(key)
+            explicitly_named = bool(key and key in context)
+            if canonical and (len(configured) == 1 or explicitly_named):
+                clean = canonical
+            elif not explicitly_named:
+                continue
+            if clean and clean not in validated:
                 validated.append(clean)
-        if not validated and channel_name.strip():
-            fallback = re.split(r"\s[/｜|【]", channel_name.strip(), maxsplit=1)[0].strip()
-            if fallback:
-                validated.append(fallback)
+        if not validated and len(configured) == 1:
+            validated.append(configured[0])
         return validated
 
     def classify_video_type(self, title: str, description: str) -> Dict[str, Any]:

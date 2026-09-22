@@ -63,13 +63,26 @@ uv run python scripts/create_tables.py
 ## チャンネル登録と収集
 
 収集対象は2段階で扱います。最初にチャンネルを一度だけ登録します。チャンネルURL、動画URL、
-ハンドル、チャンネルIDを指定でき、動画URLからは所属チャンネルを解決します。歌手名を省略すると
-YouTubeのチャンネル名を使います。
+ハンドル、チャンネルIDを指定でき、動画URLからは所属チャンネルを解決します。チャンネル名は
+YouTube APIから取得しますが、歌手名とは別の情報として保存します。
 
 ```bash
 uv run vsxp-register-channel \
   --channel-url 'https://www.youtube.com/watch?v=VIDEO_ID' \
   --singer-name '歌手名'
+```
+
+`--singer-name` は省略可能で、共同チャンネルでは繰り返し指定できます。候補が複数ある場合、
+動画タイトル・説明・チャンネル名に実際に現れる歌手だけをその動画へ割り当てます。候補を登録
+しない場合は、Geminiのgrounding結果と動画上の表記から動画ごとに歌手を判定します。
+
+```bash
+uv run vsxp-register-channel \
+  --channel-id UC_xxx \
+  --singer-name 'KMNZ NERO' \
+  --singer-name 'KMNZ TINA' \
+  --singer-name 'KMNZ LITA' \
+  --singer-name 'KMNZ LIZ'
 ```
 
 登録内容は `SINGER_CHANNELS_PATH`（既定は `public/singer-channels.json`）に保存され、
