@@ -106,7 +106,7 @@ def collect_channel(
       youtube_client: YouTube API client
       video_repo: DynamoDB repository
       enricher: Video enricher
-      max_videos: Maximum number of videos to fetch (0 = no limit)
+      max_videos: Maximum number of new videos to fetch (0 = no limit)
       max_song_videos: Maximum number of SONG videos to process (0 = no limit)
       overwrite: Re-process existing videos (default: False)
       song_search_results: Additional channel-search candidates (0 = disabled)
@@ -127,13 +127,23 @@ def collect_channel(
         print(f"  ✗ Failed to fetch channel info: {e}", file=sys.stderr)
         channel_info = {"channel_name": "", "subscriber_count": 0}
 
+    if overwrite:
+        existing_video_ids = set()
+    else:
+        existing_video_ids = video_repo.list_existing_video_ids(channel_id)
+        print(f"Already stored: {len(existing_video_ids)} videos")
+
     print(f"\nFetching video IDs from channel: {channel_id}")
 
-    # Fetch all video IDs from the channel
+    # Fetch new video IDs from the channel. Stored IDs do not consume the
+    # max_videos allowance, so pagination continues until enough new videos
+    # are found or the uploads playlist is exhausted.
     all_video_ids = youtube_client.fetch_video_ids_from_channel(
-        channel_id, max_videos=max_videos
+        channel_id,
+        max_videos=max_videos,
+        exclude_video_ids=existing_video_ids,
     )
-    print(f"Found {len(all_video_ids)} videos in channel uploads")
+    print(f"Found {len(all_video_ids)} videos to consider in channel uploads")
     if song_search_results > 0:
         search_ids = youtube_client.search_song_candidate_ids(
             channel_id, max_results=song_search_results,
@@ -154,9 +164,6 @@ def collect_channel(
         )
     else:
         # Normal mode: only new videos
-        existing_video_ids = video_repo.list_existing_video_ids(channel_id)
-        print(f"Already stored: {len(existing_video_ids)} videos")
-
         videos_to_process = list(all_video_ids - existing_video_ids)
         print(f"New videos to collect: {len(videos_to_process)}")
 
@@ -260,7 +267,7 @@ def main(
 
     Args:
       channel_urls: List of YouTube channel URLs, handles, or IDs to collect
-      max_videos: Maximum videos per channel (0 = no limit)
+      max_videos: Maximum new videos per channel (0 = no limit)
       max_song_videos: Maximum SONG videos per channel (0 = no limit)
       overwrite: Re-process existing videos (default: False)
     """
@@ -351,7 +358,8 @@ def cli():
         "--max-videos",
         type=int,
         default=0,
-        help="Maximum number of videos per channel (default: no limit)",
+        help="Maximum number of new videos per channel; already stored videos "
+        "do not count toward the limit (default: no limit)",
     )
     parser.add_argument(
         "--max-song-videos",

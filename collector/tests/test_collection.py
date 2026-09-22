@@ -114,6 +114,35 @@ class CollectionTest(unittest.TestCase):
         )
         self.assertEqual(set(youtube.fetch_videos.call_args.args[0]), {'recent', 'older-song'})
 
+    def test_max_videos_excludes_already_stored_uploads(self):
+        client = YouTubeClient('key')
+        client.fetch_uploads_playlist_id = Mock(return_value='uploads')
+        client.fetch_video_ids_from_playlist = Mock(side_effect=[
+            {
+                'items': [
+                    {'contentDetails': {'videoId': 'stored-one'}},
+                    {'contentDetails': {'videoId': 'stored-two'}},
+                    {'contentDetails': {'videoId': 'new-one'}},
+                ],
+                'nextPageToken': 'next',
+            },
+            {
+                'items': [
+                    {'contentDetails': {'videoId': 'new-two'}},
+                    {'contentDetails': {'videoId': 'new-three'}},
+                ],
+            },
+        ])
+
+        result = client.fetch_video_ids_from_channel(
+            'channel',
+            max_videos=3,
+            exclude_video_ids={'stored-one', 'stored-two'},
+        )
+
+        self.assertEqual(result, {'new-one', 'new-two', 'new-three'})
+        self.assertEqual(client.fetch_video_ids_from_playlist.call_count, 2)
+
     def test_song_candidate_search_paginates_and_extracts_video_ids(self):
         client = YouTubeClient('key')
         client._get = Mock(side_effect=[

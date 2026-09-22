@@ -244,14 +244,18 @@ class YouTubeClient:
         return self._get("playlistItems", params)
 
     def fetch_video_ids_from_channel(
-        self, channel_id: str, max_videos: int = 0
+        self,
+        channel_id: str,
+        max_videos: int = 0,
+        exclude_video_ids: Set[str] | None = None,
     ) -> Set[str]:
         """
         Fetch all video IDs from a channel's uploads playlist.
 
         Args:
           channel_id: YouTube channel ID
-          max_videos: Maximum number of videos to fetch (0 = no limit)
+          max_videos: Maximum number of non-excluded videos to fetch (0 = no limit)
+          exclude_video_ids: Video IDs that should not count toward max_videos
 
         Returns:
           Set of video IDs
@@ -259,6 +263,7 @@ class YouTubeClient:
         playlist_id = self.fetch_uploads_playlist_id(channel_id)
 
         video_ids: Set[str] = set()
+        excluded = exclude_video_ids or set()
         page_token = ""
 
         while True:
@@ -268,7 +273,10 @@ class YouTubeClient:
                 break
 
             for item in result["items"]:
-                video_ids.add(item["contentDetails"]["videoId"])
+                video_id = item["contentDetails"]["videoId"]
+                if video_id in excluded:
+                    continue
+                video_ids.add(video_id)
 
                 if max_videos > 0 and len(video_ids) >= max_videos:
                     return video_ids
