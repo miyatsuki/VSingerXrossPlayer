@@ -10,9 +10,9 @@ Enriches video metadata with:
 
 from typing import Optional
 
-from db import SingerVideoIndexRepository
-from gemini_client import GeminiClient
-from youtube_client import YouTubeClient
+from .db import SingerVideoIndexRepository
+from .gemini_client import GeminiClient
+from .youtube_client import YouTubeClient
 
 # Duration thresholds (in seconds)
 DURATION_MIN = 60  # Exclude Shorts (< 1 minute)
@@ -28,11 +28,13 @@ class VideoEnricher:
         video_repo,
         index_repo: Optional[SingerVideoIndexRepository] = None,
         youtube_client: Optional[YouTubeClient] = None,
+        analyze_features: bool = True,
     ):
         self.gemini = gemini_client
         self.repo = video_repo
         self.index_repo = index_repo
         self.youtube = youtube_client
+        self.analyze_features = analyze_features
 
     def enrich_video(
         self, channel_id: str, video_id: str, channel_name: Optional[str] = None
@@ -74,6 +76,12 @@ class VideoEnricher:
             video.video_title, video.description or ""
         )
 
+        if video_type_result.get('error'):
+            self.repo.update_grounding(channel_id, video_id, {
+                'status': 'error', 'reason': 'Classification failed',
+            })
+            return ''
+
         video_type = video_type_result["type"]
         confidence = video_type_result["confidence"]
 
@@ -90,14 +98,19 @@ class VideoEnricher:
         # 4. Extract song information
         print(f"Extracting song info for {video_id}...")
         song_info = self.gemini.extract_song_info(
-            video.video_title, video.description or "", channel_name or ""
+            video.video_title, video.description or "", channel_name or "",
+            video_id=video_id, channel_id=channel_id,
         )
 
+        grounding = song_info.get('grounding', {})
+        self.repo.update_grounding(channel_id, video_id, {
+            **grounding, 'status': 'pending' if song_info.get('song_title') else grounding.get('status', 'unresolved'),
+        })
         if not song_info.get("song_title"):
             print(f"  → Failed to extract song title")
             # Mark as SONG but without detailed info
             self.repo.update_video_type(channel_id, video_id, "SONG")
-            return "SONG"
+            return ""
 
         print(f"  → Song: {song_info['song_title']}")
         print(f"  → Singers: {', '.join(song_info['singers'])}")
@@ -108,7 +121,7 @@ class VideoEnricher:
         comment_cloud = None
         chorus_info = None
 
-        if self.youtube:
+        if self.youtube and self.analyze_features:
             try:
                 # Fetch comments
                 print(f"  → Fetching comments...")
@@ -169,6 +182,8 @@ class VideoEnricher:
             singers=song_info["singers"],
             is_cover=song_info["is_cover"],
             link=song_info.get("original_url"),
+            original_song_id=song_info.get('original_song_id'),
+            original_artist_name=' / '.join(song_info.get('original_artists', [])),
             ai_stats=ai_stats,
             comment_cloud=comment_cloud,
             chorus_start_time=chorus_info["start"] if chorus_info else None,
@@ -181,9 +196,9 @@ class VideoEnricher:
                 # Delete existing index entries for this video
                 self.index_repo.delete_singer_video_index(video_id)
 
-                # Extract original artist name (first artist from list)
+                # Preserve all original artists
                 original_artists = song_info.get("original_artists", [])
-                original_artist_name = original_artists[0] if original_artists else None
+                original_artist_name = " / ".join(original_artists) if original_artists else None
 
                 # Create new index entries
                 self.index_repo.upsert_singer_video_index(
@@ -200,6 +215,7 @@ class VideoEnricher:
                         "song_title"
                     ],  # Use song_title as original
                     original_artist_name=original_artist_name,
+                    original_song_id=song_info.get("original_song_id"),
                     ai_stats=ai_stats,
                     comment_cloud=comment_cloud,
                     chorus_start_time=chorus_info["start"] if chorus_info else None,
@@ -213,6 +229,8 @@ class VideoEnricher:
                 print(f"  → Synced to index table")
             except Exception as e:
                 print(f"  ✗ Index sync failed: {e}")
-                # Don't fail the whole enrichment if index sync fails
+                self.repo.update_grounding(channel_id, video_id, {**grounding, 'status': 'error', 'reason': 'Index sync failed'})
+                return ''
 
+        self.repo.update_grounding(channel_id, video_id, grounding)
         return "SONG"

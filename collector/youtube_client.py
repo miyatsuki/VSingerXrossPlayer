@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Set
 
 import isodate
 import requests
-from url_parser import IdentifierType, parse_youtube_url
+from .url_parser import IdentifierType, parse_youtube_url
 
 BASE_URL = "https://www.googleapis.com/youtube/v3"
 
@@ -278,6 +278,42 @@ class YouTubeClient:
             else:
                 break
 
+        return video_ids
+
+    def search_song_candidate_ids(
+        self, channel_id: str, max_results: int = 50
+    ) -> Set[str]:
+        """Search a channel for likely standalone song videos.
+
+        This complements the newest-uploads scan for channels that publish many
+        streams or Shorts between full song uploads. Search results are only
+        candidates; duration filtering, Gemini classification, and grounded
+        original-song identification still run before a song is exported.
+        """
+        if max_results <= 0:
+            return set()
+
+        video_ids: Set[str] = set()
+        page_token = ""
+        while len(video_ids) < max_results:
+            params = {
+                "channelId": channel_id,
+                "part": "id",
+                "type": "video",
+                "order": "relevance",
+                "q": "歌ってみた|cover|covered|music video|MV|original song",
+                "maxResults": min(50, max_results - len(video_ids)),
+            }
+            if page_token:
+                params["pageToken"] = page_token
+            result = self._get("search", params)
+            for item in result.get("items", []):
+                video_id = item.get("id", {}).get("videoId")
+                if video_id:
+                    video_ids.add(video_id)
+            page_token = result.get("nextPageToken", "")
+            if not page_token or not result.get("items"):
+                break
         return video_ids
 
     def fetch_videos(self, video_ids: List[str]) -> List[YouTubeVideo]:

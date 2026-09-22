@@ -1,8 +1,11 @@
+import base64
+import json
+
 from typing import List, Optional
 
 import boto3
 from config import Settings
-from models import AIStats, CommentWord, SingerSummary, Video
+from models import AIStats, CommentWord, SingerSummary, Video, VideoPage
 
 
 def normalize(text: str) -> str:
@@ -75,6 +78,7 @@ class DynamoVideoRepository:
             duration=None,  # Not stored in index table
             published_at=item.get("published_at", {}).get("S"),
             song_title=item.get("song_title", {}).get("S"),
+            original_song_id=item.get("original_song_id", {}).get("S"),
             singers=[
                 item.get("singer_name", {}).get("S", "")
             ],  # Single singer per record
@@ -123,12 +127,15 @@ class DynamoVideoRepository:
             duration=int(item["duration"]["N"]) if "duration" in item else None,
             published_at=item.get("published_at", {}).get("S"),
             song_title=item.get("song_title", {}).get("S"),
+            original_song_id=item.get("original_song_id", {}).get("S"),
             singers=self._parse_list(item.get("singers")),
             tags=self._parse_list(item.get("tags")),
             is_cover=item.get("is_cover", {}).get("BOOL"),
             link=item.get("link", {}).get("S"),
             game_title=item.get("game_title", {}).get("S"),
             genre=item.get("genre", {}).get("S"),
+            original_song_title=item.get("original_song_title", {}).get("S"),
+            original_artist_name=item.get("original_artist_name", {}).get("S"),
             ai_stats=self._parse_ai_stats(item.get("ai_stats")),
             comment_cloud=self._parse_comment_cloud(item.get("comment_cloud")),
             chorus_start_time=(
@@ -140,6 +147,33 @@ class DynamoVideoRepository:
                 int(item["chorus_end_time"]["N"]) if "chorus_end_time" in item else None
             ),
         )
+
+    def list_video_page(self, limit=200, cursor=None) -> VideoPage:
+        # Limit refers to index records; a collaboration can span several pages.
+        kwargs = {'TableName': self._singer_videos_table, 'Limit': limit}
+        if cursor:
+            try:
+                key = json.loads(base64.urlsafe_b64decode(cursor.encode()).decode())
+                if not isinstance(key, dict) or set(key) != {'singer_key', 'sort_key'}:
+                    raise ValueError('Invalid cursor keys')
+                if any(not isinstance(value, dict) or set(value) != {'S'}
+                       or not isinstance(value['S'], str) or not value['S'] for value in key.values()):
+                    raise ValueError('Invalid cursor values')
+                kwargs['ExclusiveStartKey'] = key
+            except Exception as error:
+                raise ValueError('Invalid video cursor') from error
+        response = self._client.scan(**kwargs)
+        videos = {}
+        for item in response.get('Items', []):
+            video = self._singer_video_item_to_video(item)
+            if video.video_id not in videos:
+                videos[video.video_id] = video
+            else:
+                existing = videos[video.video_id]
+                existing.singers = list(dict.fromkeys([*existing.singers, *video.singers]))
+        key = response.get('LastEvaluatedKey')
+        next_cursor = base64.urlsafe_b64encode(json.dumps(key).encode()).decode() if key else None
+        return VideoPage(videos=list(videos.values()), next_cursor=next_cursor)
 
     def list_videos(
         self,
@@ -240,8 +274,14 @@ class DynamoVideoRepository:
 
     def list_singers(self) -> List[SingerSummary]:
         # Use singer-videos table for efficient singer aggregation
-        response = self._client.scan(TableName=self._singer_videos_table)
-        items = response.get("Items", [])
+        kwargs = {'TableName': self._singer_videos_table}
+        items = []
+        while True:
+            response = self._client.scan(**kwargs)
+            items.extend(response.get('Items', []))
+            if not response.get('LastEvaluatedKey'):
+                break
+            kwargs['ExclusiveStartKey'] = response['LastEvaluatedKey']
         counts = {}
         latest_ids = {}
         singer_channels = {}  # Map singer_name -> channel_id

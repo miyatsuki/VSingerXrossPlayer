@@ -10,11 +10,11 @@ import sys
 import time
 from typing import List
 
-from config import get_collector_settings
-from db import SingerVideoIndexRepository, VideoRepository
-from enricher import VideoEnricher
-from gemini_client import GeminiClient
-from youtube_client import YouTubeClient
+from .config import get_collector_settings
+from .db import SingerVideoIndexRepository, VideoRepository
+from .enricher import VideoEnricher
+from .gemini_client import GeminiClient
+from .youtube_client import YouTubeClient
 
 
 def enrich_channel(
@@ -25,6 +25,8 @@ def enrich_channel(
     youtube_client,
     max_videos: int = 0,
     sleep_seconds: float = 1.0,
+    overwrite: bool = False,
+    metadata_only: bool = False,
 ) -> None:
     """
     Enrich videos from a single channel.
@@ -42,7 +44,13 @@ def enrich_channel(
     print(f"Enriching videos from channel: {channel_id}")
     print(f"{'='*60}\n")
 
-    enricher = VideoEnricher(gemini_client, video_repo, index_repo, youtube_client)
+    enricher = VideoEnricher(
+        gemini_client,
+        video_repo,
+        index_repo,
+        youtube_client,
+        analyze_features=not metadata_only,
+    )
 
     # Get all videos from channel (unenriched videos have no song_title)
     videos = video_repo.list_videos_by_channel(channel_id)
@@ -54,7 +62,9 @@ def enrich_channel(
     print(f"Found {len(videos)} total videos")
 
     # Filter videos that haven't been enriched yet
-    unenriched = [v for v in videos if not v.song_title and not v.game_title]
+    unenriched = [v for v in videos if overwrite or v.grounding_status in ('unresolved', 'error', 'pending')
+                  or ((v.song_title or v.video_type == 'SONG') and not v.original_song_id)
+                  or (not v.song_title and not v.game_title and v.video_type not in ('GAME', 'UNKNOWN'))]
     print(f"Unenriched videos: {len(unenriched)}")
 
     if not unenriched:
@@ -91,10 +101,17 @@ def enrich_channel(
     print(f"Enrichment complete!")
     print(f"  Success: {success_count}")
     print(f"  Errors:  {error_count}")
+    if error_count:
+        raise RuntimeError(f'{error_count} videos failed or remain unresolved')
     print(f"{'='*60}\n")
 
 
-def main(channel_ids: List[str], max_videos: int = 0) -> None:
+def main(
+    channel_ids: List[str],
+    max_videos: int = 0,
+    overwrite: bool = False,
+    metadata_only: bool = False,
+) -> int:
     """
     Main entry point for batch enrichment.
 
@@ -104,22 +121,38 @@ def main(channel_ids: List[str], max_videos: int = 0) -> None:
     """
     settings = get_collector_settings()
 
-    gemini_client = GeminiClient(settings.gemini_api_key)
+    gemini_client = GeminiClient(
+        settings.gemini_api_key,
+        model=settings.gemini_model,
+        catalog_path=settings.original_songs_path,
+        singer_channels_path=settings.singer_channels_path,
+    )
     youtube_client = YouTubeClient(settings.youtube_api_key)
     video_repo = VideoRepository.from_settings(settings)
     index_repo = SingerVideoIndexRepository.from_settings(settings)
 
+    failures = 0
     for channel_id in channel_ids:
         try:
             enrich_channel(
-                channel_id, gemini_client, video_repo, index_repo, youtube_client, max_videos
+                channel_id,
+                gemini_client,
+                video_repo,
+                index_repo,
+                youtube_client,
+                max_videos,
+                overwrite=overwrite,
+                metadata_only=metadata_only,
             )
         except Exception as e:
+            failures += 1
             print(f"\nError processing channel {channel_id}: {e}", file=sys.stderr)
             continue
 
+    return 1 if failures else 0
 
-if __name__ == "__main__":
+
+def cli():
     parser = argparse.ArgumentParser(description="Batch enrich videos with Gemini API")
     parser.add_argument(
         "--channel-id",
@@ -135,6 +168,12 @@ if __name__ == "__main__":
         help="Maximum number of videos per channel (default: no limit)",
     )
 
+    parser.add_argument("--overwrite", action="store_true", help="Re-enrich already identified songs too")
+    parser.add_argument(
+        "--metadata-only",
+        action="store_true",
+        help="Skip Gemini video/audio feature analysis and collect song metadata only",
+    )
     args = parser.parse_args()
 
     if not args.channel_ids:
@@ -146,4 +185,8 @@ if __name__ == "__main__":
             sys.exit(1)
         args.channel_ids = settings.target_channel_ids
 
-    main(args.channel_ids, args.max_videos)
+    return main(args.channel_ids, args.max_videos, args.overwrite, args.metadata_only)
+
+
+if __name__ == "__main__":
+    sys.exit(cli())

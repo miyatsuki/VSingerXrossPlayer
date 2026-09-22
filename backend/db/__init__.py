@@ -1,10 +1,12 @@
 from typing import List, Optional, Protocol
 
 from config import Settings
-from models import SingerSummary, Video
+from models import SingerSummary, Video, VideoPage
 
 
 class VideoRepository(Protocol):
+    def list_video_page(self, limit: int = 200, cursor: Optional[str] = None) -> VideoPage: ...
+
     def list_videos(
         self,
         q: Optional[str] = None,

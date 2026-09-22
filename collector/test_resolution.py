@@ -5,7 +5,7 @@ This tests that the resolution logic correctly identifies what type of identifie
 it received and what API call it would make.
 """
 
-from url_parser import IdentifierType, parse_youtube_url
+from .url_parser import IdentifierType, parse_youtube_url
 
 
 def test_resolution_logic():

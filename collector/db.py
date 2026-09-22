@@ -1,7 +1,9 @@
+import json
+
 from typing import Any, Dict, List, Optional, Set
 
 import boto3
-from youtube_client import YouTubeVideo
+from .youtube_client import YouTubeVideo
 
 
 class VideoRecord:
@@ -21,6 +23,10 @@ class VideoRecord:
         like_count: int = 0,
         comment_count: int = 0,
         channel_title: str = "",
+        original_song_id: str = "",
+        grounding_status: str = "",
+        video_type: str = "",
+        thumbnail_url: str = "",
     ):
         self.video_id = video_id
         self.video_title = video_title
@@ -34,6 +40,10 @@ class VideoRecord:
         self.like_count = like_count
         self.comment_count = comment_count
         self.channel_title = channel_title
+        self.original_song_id = original_song_id
+        self.grounding_status = grounding_status
+        self.video_type = video_type
+        self.thumbnail_url = thumbnail_url
 
 
 class VideoRepository:
@@ -43,9 +53,18 @@ class VideoRepository:
         self._client = client
         self._table_name = table_name
 
+    def verify_table_access(self) -> None:
+        """Fail before consuming collection API quota if DynamoDB is unavailable."""
+        self._client.describe_table(TableName=self._table_name)
+
     @classmethod
     def from_settings(cls, settings) -> "VideoRepository":
         """Create repository from collector settings."""
+        if settings.storage_backend == "json":
+            from .local_db import LocalVideoRepository, get_store
+            return LocalVideoRepository(get_store(settings))
+        if settings.storage_backend != "dynamodb":
+            raise ValueError(f"Unsupported STORAGE_BACKEND: {settings.storage_backend}")
         client = boto3.client("dynamodb", region_name=settings.aws_region)
         return cls(client, settings.dynamodb_table_videos)
 
@@ -109,7 +128,14 @@ class VideoRepository:
         if video.thumbnail_url:
             item["thumbnail_url"] = {"S": video.thumbnail_url}
 
-        self._client.put_item(TableName=self._table_name, Item=item)
+        attributes = {key: value for key, value in item.items() if key not in ('channel_id', 'video_id')}
+        self._client.update_item(
+            TableName=self._table_name,
+            Key={'channel_id': item['channel_id'], 'video_id': item['video_id']},
+            UpdateExpression='SET ' + ', '.join(f'#a{i} = :a{i}' for i in range(len(attributes))),
+            ExpressionAttributeNames={f'#a{i}': key for i, key in enumerate(attributes)},
+            ExpressionAttributeValues={f':a{i}': value for i, value in enumerate(attributes.values())},
+        )
 
     def batch_upsert_videos(self, videos: List[YouTubeVideo]) -> None:
         """
@@ -176,6 +202,9 @@ class VideoRepository:
             published_at=item.get("published_at", {}).get("S", ""),
             song_title=item.get("song_title", {}).get("S", ""),
             game_title=item.get("game_title", {}).get("S", ""),
+            original_song_id=item.get("original_song_id", {}).get("S", ""),
+            grounding_status=item.get("grounding_status", {}).get("S", ""),
+            video_type=item.get("video_type", {}).get("S", ""),
         )
 
     def list_videos_by_channel(self, channel_id: str) -> List[VideoRecord]:
@@ -200,6 +229,8 @@ class VideoRepository:
             response = self._client.query(**query_kwargs)
 
             for item in response.get("Items", []):
+                if item.get("video_id", {}).get("S") == "CHANNEL_INFO":
+                    continue
                 videos.append(
                     VideoRecord(
                         video_id=item["video_id"]["S"],
@@ -212,6 +243,9 @@ class VideoRepository:
                         published_at=item.get("published_at", {}).get("S", ""),
                         song_title=item.get("song_title", {}).get("S", ""),
                         game_title=item.get("game_title", {}).get("S", ""),
+                        original_song_id=item.get("original_song_id", {}).get("S", ""),
+                        grounding_status=item.get("grounding_status", {}).get("S", ""),
+                        video_type=item.get("video_type", {}).get("S", ""),
                     )
                 )
 
@@ -240,6 +274,17 @@ class VideoRepository:
             ExpressionAttributeValues={":video_type": {"S": video_type}},
         )
 
+    def update_grounding(self, channel_id, video_id, grounding):
+        self._client.update_item(
+            TableName=self._table_name,
+            Key={'channel_id': {'S': channel_id}, 'video_id': {'S': video_id}},
+            UpdateExpression='SET grounding_status = :status, grounding_json = :grounding',
+            ExpressionAttributeValues={
+                ':status': {'S': grounding.get('status', 'unresolved')},
+                ':grounding': {'S': json.dumps(grounding, ensure_ascii=False)},
+            },
+        )
+
     def update_song_info(
         self,
         channel_id: str,
@@ -252,6 +297,8 @@ class VideoRepository:
         comment_cloud: Optional[List[Dict[str, Any]]] = None,
         chorus_start_time: Optional[int] = None,
         chorus_end_time: Optional[int] = None,
+        original_song_id: Optional[str] = None,
+        original_artist_name: Optional[str] = None,
     ) -> None:
         """
         Update song-related attributes.
@@ -278,6 +325,15 @@ class VideoRepository:
             ":singers": {"L": [{"S": singer} for singer in singers]},
             ":is_cover": {"BOOL": is_cover},
         }
+
+        for name, value in {
+            'original_song_id': original_song_id,
+            'original_song_title': song_title,
+            'original_artist_name': original_artist_name,
+        }.items():
+            if value:
+                update_expr += f', {name} = :{name}'
+                attr_values[f':{name}'] = {'S': value}
 
         if link:
             update_expr += ", link = :link"
@@ -343,9 +399,18 @@ class SingerVideoIndexRepository:
         self._client = client
         self._table_name = table_name
 
+    def verify_table_access(self) -> None:
+        """Fail before consuming collection API quota if DynamoDB is unavailable."""
+        self._client.describe_table(TableName=self._table_name)
+
     @classmethod
     def from_settings(cls, settings) -> "SingerVideoIndexRepository":
         """Create repository from collector settings."""
+        if settings.storage_backend == "json":
+            from .local_db import LocalSingerVideoIndexRepository, get_store
+            return LocalSingerVideoIndexRepository(get_store(settings))
+        if settings.storage_backend != "dynamodb":
+            raise ValueError(f"Unsupported STORAGE_BACKEND: {settings.storage_backend}")
         client = boto3.client("dynamodb", region_name=settings.aws_region)
         return cls(client, settings.dynamodb_table_singer_videos)
 
@@ -398,6 +463,7 @@ class SingerVideoIndexRepository:
         comment_count: int = 0,
         channel_title: str = "",
         subscriber_count: int = 0,
+        original_song_id: Optional[str] = None,
     ) -> None:
         """
         Create or update singer-video index records.
@@ -414,6 +480,7 @@ class SingerVideoIndexRepository:
           is_cover: Whether this is a cover song
           link: Link to original song (optional)
           thumbnail_url: Video thumbnail URL (optional)
+          original_song_id: Curated stable original song ID (optional)
           original_song_title: Original song title (optional)
           original_artist_name: Original artist name (optional)
           ai_stats: Optional AI characteristics (cool, cute, energetic, surprising, emotional)
@@ -458,6 +525,8 @@ class SingerVideoIndexRepository:
                 item["link"] = {"S": link}
             if thumbnail_url:
                 item["thumbnail_url"] = {"S": thumbnail_url}
+            if original_song_id:
+                item["original_song_id"] = {"S": original_song_id}
             if original_song_title:
                 item["original_song_title"] = {"S": original_song_title}
             if original_artist_name:

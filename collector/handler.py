@@ -9,6 +9,7 @@ Event format:
     "channelId": "UC1234...",                          // Optional: deprecated, use channelUrl
     "maxVideos": 100,                                  // Optional: limit number of videos fetched
     "maxSongVideos": 50,                               // Optional: limit SONG videos processed
+    "songSearchResults": 50,                           // Optional: channel-search candidates
     "overwrite": true                                  // Optional: re-process existing videos (default: false)
   }
 
@@ -25,12 +26,12 @@ Supported formats for channelUrl:
 import json
 from typing import Any, Dict
 
-from config import get_collector_settings
-from db import SingerVideoIndexRepository, VideoRepository
-from enricher import VideoEnricher
-from gemini_client import GeminiClient
-from run_once import collect_channel
-from youtube_client import YouTubeClient
+from .config import get_collector_settings
+from .db import SingerVideoIndexRepository, VideoRepository
+from .enricher import VideoEnricher
+from .gemini_client import GeminiClient
+from .run_once import collect_channel
+from .youtube_client import YouTubeClient
 
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -50,7 +51,12 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     youtube_client = YouTubeClient(settings.youtube_api_key)
     video_repo = VideoRepository.from_settings(settings)
     index_repo = SingerVideoIndexRepository.from_settings(settings)
-    gemini_client = GeminiClient(settings.gemini_api_key)
+    gemini_client = GeminiClient(
+        settings.gemini_api_key,
+        model=settings.gemini_model,
+        catalog_path=settings.original_songs_path,
+        singer_channels_path=settings.singer_channels_path,
+    )
     enricher = VideoEnricher(gemini_client, video_repo, index_repo, youtube_client)
 
     # Determine which channels to collect
@@ -75,6 +81,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
     max_videos = event.get("maxVideos", 0)
     max_song_videos = event.get("maxSongVideos", 0)
+    song_search_results = event.get("songSearchResults", 0)
     overwrite = event.get("overwrite", False)
 
     results = []
@@ -90,9 +97,10 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 youtube_client,
                 video_repo,
                 enricher,
-                max_videos,
-                max_song_videos,
-                overwrite,
+                max_videos=max_videos,
+                max_song_videos=max_song_videos,
+                overwrite=overwrite,
+                song_search_results=song_search_results,
             )
             results.append(
                 {

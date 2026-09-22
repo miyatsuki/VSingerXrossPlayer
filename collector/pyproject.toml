@@ -21,17 +21,13 @@ dev = ["pytest"]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[project.scripts]
+vsxp-collect = "collector.run_once:cli"
+vsxp-enrich = "collector.enrich_batch:cli"
+
 [tool.setuptools]
-py-modules = [
-  "config",
-  "db",
-  "enricher",
-  "enrich_batch",
-  "gemini_client",
-  "handler",
-  "run_once",
-  "youtube_client",
-]
+packages = ["collector"]
+package-dir = {collector = "."}
 
 [tool.uv]
 package = true

@@ -50,6 +50,7 @@ class Video(BaseModel):
     link: Optional[str] = None
     game_title: Optional[str] = None
     genre: Optional[str] = None
+    original_song_id: Optional[str] = None
     original_song_title: Optional[str] = None
     original_artist_name: Optional[str] = None
     ai_stats: Optional[AIStats] = None
@@ -78,3 +79,8 @@ class MasterData(BaseModel):
     singers: List[Singer]
     reference_songs: List[Song]
     song_averages: Dict[str, AIStats]
+
+
+class VideoPage(BaseModel):
+    videos: List[Video]
+    next_cursor: Optional[str] = None

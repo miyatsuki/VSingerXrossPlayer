@@ -4,7 +4,7 @@ Test script for URL parser functionality.
 This script tests various YouTube URL formats to ensure they are parsed correctly.
 """
 
-from url_parser import IdentifierType, parse_youtube_url
+from .url_parser import IdentifierType, parse_youtube_url
 
 
 def test_url_formats():

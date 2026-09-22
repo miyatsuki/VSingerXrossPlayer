@@ -4,7 +4,7 @@ from config import Settings, get_settings
 from db import VideoRepository, create_video_repository
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from models import SingerSummary, Video
+from models import SingerSummary, Video, VideoPage
 
 
 def create_app(settings: Settings) -> FastAPI:
@@ -32,6 +32,17 @@ def create_app(settings: Settings) -> FastAPI:
     @app.get("/health")
     def health() -> dict:
         return {"status": "ok"}
+
+    @app.get('/video-pages', response_model=VideoPage)
+    def list_video_page(
+        limit: int = Query(200, ge=1, le=200),
+        cursor: Optional[str] = Query(None, max_length=4096),
+        repository: VideoRepository = Depends(get_repo),
+    ) -> VideoPage:
+        try:
+            return repository.list_video_page(limit=limit, cursor=cursor)
+        except ValueError as error:
+            raise HTTPException(status_code=400, detail=str(error)) from error
 
     @app.get("/videos", response_model=List[Video])
     def list_videos(

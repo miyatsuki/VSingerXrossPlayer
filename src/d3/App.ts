@@ -1,10 +1,12 @@
 import { Category, Singer, Song } from '../types';
-import { fetchVideos, fetchSingers } from '../api/client';
+import { fetchVideos, fetchSingers, fetchOriginalSongs } from '../api/client';
 import { NavigationController } from './NavigationController';
 import { XMBInterface } from './XMBInterface';
 import { VideoDetailCard } from './VideoDetailCard';
 import { RadarChart } from './RadarChart';
 import { WordCloud } from './WordCloud';
+import { SingerSimilarity } from '../utils/singerSimilarity';
+import { SingerDiscovery } from './SingerDiscovery';
 
 export class App {
   private navigation: NavigationController | null = null;
@@ -15,7 +17,8 @@ export class App {
 
   private categories: Category[] = [];
   private singers: Singer[] = [];
-  private mode: 'songs' | 'singers' = 'songs';
+  private similarity = new SingerSimilarity([]);
+  private singerDiscovery: SingerDiscovery | null = null;
 
   async init() {
     console.log('[App] Initializing...');
@@ -39,10 +42,13 @@ export class App {
       const appContainer = document.getElementById('app');
       if (appContainer) {
         this.videoDetailCard = new VideoDetailCard(appContainer);
+        this.singerDiscovery = new SingerDiscovery(appContainer, this.similarity,
+          () => this.navigation?.disable(), () => this.navigation?.enable());
       }
 
       // Listen to navigation changes
       this.navigation.addListener(this.handleItemSelection);
+      this.handleItemSelection(this.navigation.getState(), this.navigation.getCurrentItem());
 
       console.log('[App] Initialization complete');
     } catch (error) {
@@ -52,10 +58,13 @@ export class App {
   }
 
   private async loadData() {
-    const [apiVideos, apiSingers] = await Promise.all([
+    const [apiVideos, apiSingers, originalSongs] = await Promise.all([
       fetchVideos(),
       fetchSingers(),
+      fetchOriginalSongs(),
     ]);
+
+    this.similarity = new SingerSimilarity(apiVideos, originalSongs);
 
     // Build singer map
     const singerMap = new Map<string, Singer>();
@@ -86,6 +95,7 @@ export class App {
       const songTitle = v.song_title || v.video_title;
       const youtubeId = v.video_id;
       const primarySingerName = v.singers && v.singers.length > 0 ? v.singers[0] : 'Unknown';
+      v.singers?.forEach(ensureSinger);
       const singer = ensureSinger(primarySingerName);
 
       return {
@@ -139,6 +149,8 @@ export class App {
 
     const song = currentItem as Song;
     const singer = this.singers.find(s => s.id === song.singer_id);
+
+    if (singer) this.singerDiscovery?.setSinger(singer.name);
 
     // Show detail card
     this.videoDetailCard?.show(song, singer);
@@ -204,6 +216,7 @@ export class App {
     this.navigation?.destroy();
     this.xmbInterface?.destroy();
     this.videoDetailCard?.destroy();
+    this.singerDiscovery?.destroy();
     this.destroyVisualizations();
   }
 }

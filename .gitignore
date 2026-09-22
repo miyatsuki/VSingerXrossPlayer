@@ -106,3 +106,6 @@ dist
 
 .claude
 .mcp.json
+
+# Private collector state (public snapshots live in public/data/)
+data/collector-store.json

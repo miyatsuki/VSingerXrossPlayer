@@ -9,10 +9,10 @@ import sys
 from pathlib import Path
 
 # Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import boto3
-from config import get_collector_settings
+from collector.config import get_collector_settings
 
 
 def create_videos_table(client, table_name: str) -> None:

@@ -1,0 +1,116 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
+import ts from 'typescript';
+
+const source = readFileSync(new URL('../src/utils/singerSimilarity.ts', import.meta.url), 'utf8');
+const { outputText } = ts.transpileModule(source, {
+  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+});
+const { SingerSimilarity } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
+const video = (song_title, singers, video_id = song_title) => ({ song_title, singers, video_id, video_title: 'video title' });
+
+test('deduplicates covers and normalizes width, whitespace and case; includes collaborators', () => {
+  const index = new SingerSimilarity([
+    video(' ＡＢＣ ', ['A', 'B', 'B'], 'first'),
+    video('abc', ['A'], 'repeat'),
+    video('Other', ['C']),
+  ]);
+  assert.equal(index.repertoires.get('A').songs.size, 1);
+  const [match] = index.findSimilar('A');
+  assert.equal(match.singer, 'B');
+  assert.equal(match.score, 1);
+  assert.equal(match.commonSongs[0].videoId, 'first');
+  assert.equal(match.commonSongs.length, 1);
+});
+
+test('does not infer originals from video titles or merge punctuation', () => {
+  const index = new SingerSimilarity([
+    video(undefined, ['A']), video(' ', ['B']), video('Song!', ['C']), video('Song', ['D']),
+  ]);
+  assert.equal(index.repertoires.has('A'), false);
+  assert.equal(index.repertoires.has('B'), false);
+  assert.deepEqual(index.findSimilar('C'), []);
+  assert.deepEqual(index.findSimilar('missing'), []);
+});
+
+test('weights uncommon shared songs above ubiquitous songs', () => {
+  const index = new SingerSimilarity([
+    video('Popular', ['A', 'B', 'D', 'E']), video('Rare', ['A', 'C']),
+  ]);
+  const matches = index.findSimilar('A');
+  assert.equal(matches[0].singer, 'C');
+  assert.ok(matches[0].score > matches[1].score);
+  assert.equal(matches.some(match => match.singer === 'A'), false);
+  assert.equal(index.findSimilar('A', 1).length, 1);
+});
+
+test('normalizes repertoire size and keeps symmetric similarity', () => {
+  const index = new SingerSimilarity([
+    video('Shared', ['A', 'B']), video('Unique', ['B']),
+  ]);
+  const [a] = index.findSimilar('A');
+  const [b] = index.findSimilar('B');
+  assert.ok(a.score > 0 && a.score < 1);
+  assert.equal(a.score, b.score);
+  assert.equal(a.songCount, 2);
+  assert.equal(b.songCount, 1);
+});
+
+const withOriginal = (title, singer, artist, id) => ({
+  ...video(title, [singer], singer), original_artist_name: artist, original_song_id: id,
+});
+const catalog = [{
+  id: 'song-a', title: '正式曲名', artist: '原作者',
+  aliases: [{ title: '別名', artist: '別表記の原作者' }], videoIds: ['known-video'],
+}];
+
+test('separates homonymous originals and unknown artists', () => {
+  const index = new SingerSimilarity([
+    withOriginal('同名曲', 'A', '作者A'), withOriginal('同名曲', 'B', '作者B'),
+    withOriginal('同名曲', 'C', ' 作者Ａ '), withOriginal('同名曲', 'D'),
+  ]);
+  assert.deepEqual(index.findSimilar('A').map(match => match.singer), ['C']);
+  assert.deepEqual(index.findSimilar('D'), []);
+});
+
+test('unifies curated aliases and video mappings with explicit IDs', () => {
+  const index = new SingerSimilarity([
+    withOriginal('正式曲名', 'A', '原作者'),
+    withOriginal('別名', 'B', '別表記の原作者'),
+    withOriginal('異なる表示名', 'C', undefined, 'song-a'),
+    { ...video(undefined, ['D'], 'known-video') },
+  ], catalog);
+  const matches = index.findSimilar('A');
+  assert.equal(matches.length, 3);
+  for (const match of matches) {
+    assert.equal(match.score, 1);
+    assert.equal(match.commonSongs[0].title, '正式曲名');
+    assert.equal(match.commonSongs[0].artist, '原作者');
+    assert.equal(match.commonSongs[0].provisional, false);
+  }
+});
+
+test('explicit IDs take priority over aliases and prevent same-name collisions', () => {
+  const index = new SingerSimilarity([
+    withOriginal('正式曲名', 'A', '原作者', 'different-id'),
+    withOriginal('正式曲名', 'B', '原作者'),
+  ], catalog);
+  assert.deepEqual(index.findSimilar('A'), []);
+});
+
+test('uses original title before display title and labels title-only matching', () => {
+  const index = new SingerSimilarity([
+    { ...video('cover title', ['A']), original_song_title: 'Original' },
+    video('Original', ['B']),
+  ]);
+  assert.equal(index.findSimilar('A')[0].commonSongs[0].provisional, true);
+});
+
+test('rejects conflicting catalog aliases, video assignments and IDs', () => {
+  const another = { id: 'song-b', title: '別曲', artist: '別作者' };
+  assert.throws(() => new SingerSimilarity([], [catalog[0], { ...another, aliases: [{ title: '正式曲名', artist: '原作者' }] }]));
+  assert.throws(() => new SingerSimilarity([], [catalog[0], { ...another, videoIds: ['known-video'] }]));
+  assert.throws(() => new SingerSimilarity([], [catalog[0], { ...another, id: 'song-a' }]));
+  assert.throws(() => new SingerSimilarity([], [{ ...another, aliases: [null] }]));
+});
