@@ -57,7 +57,13 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         model=settings.gemini_model,
         catalog_path=settings.original_songs_path,
     )
-    enricher = VideoEnricher(gemini_client, video_repo, index_repo, youtube_client)
+    enricher = VideoEnricher(
+        gemini_client,
+        video_repo,
+        index_repo,
+        youtube_client,
+        channel_registry_path=settings.channels_path,
+    )
 
     # Determine which channels to collect
     channel_urls = []

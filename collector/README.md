@@ -74,7 +74,9 @@ uv run vsxp-register-channel \
 メンバー名を事前登録する必要はありません。
 
 次に、引数なしの `vsxp-collect` で登録済みの全チャンネルを巡回します。保存済み動画は候補数に
-含めず、未確認動画だけを取得・分類・登録します。
+含めず、未確認動画だけを取得・分類・登録します。コラボ歌手が見つかった場合は、Geminiの
+Google Search groundingで本人の公式YouTubeチャンネルを確認し、YouTube APIでも解決できた
+チャンネルだけを `channels.json` へ自動追加します。追加されたチャンネルは次回の収集対象です。
 
 ```bash
 uv run vsxp-collect --max-videos 100 --max-song-videos 30 --metadata-only

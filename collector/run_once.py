@@ -298,6 +298,7 @@ def main(
         index_repo,
         youtube_client,
         analyze_features=not metadata_only,
+        channel_registry_path=settings.channels_path,
     )
 
     failures = 0

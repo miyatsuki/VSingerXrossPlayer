@@ -10,6 +10,7 @@ Enriches video metadata with:
 
 from typing import Optional
 
+from .channel_registry import register_channel
 from .db import SingerVideoIndexRepository
 from .gemini_client import GeminiClient
 from .youtube_client import YouTubeClient
@@ -29,12 +30,15 @@ class VideoEnricher:
         index_repo: Optional[SingerVideoIndexRepository] = None,
         youtube_client: Optional[YouTubeClient] = None,
         analyze_features: bool = True,
+        channel_registry_path: Optional[str] = None,
     ):
         self.gemini = gemini_client
         self.repo = video_repo
         self.index_repo = index_repo
         self.youtube = youtube_client
         self.analyze_features = analyze_features
+        self.channel_registry_path = channel_registry_path
+        self._collaborator_channels_checked = set()
 
     def enrich_video(
         self, channel_id: str, video_id: str, channel_name: Optional[str] = None
@@ -115,6 +119,37 @@ class VideoEnricher:
         print(f"  → Song: {song_info['song_title']}")
         print(f"  → Singers: {', '.join(song_info['singers'])}")
         print(f"  → Cover: {song_info['is_cover']}")
+
+        # The first singer is the uploader-side performer. Discover only the
+        # remaining collaborators, and persist channels only after grounded
+        # research and YouTube API resolution both succeed.
+        if self.youtube and self.channel_registry_path:
+            for collaborator in song_info["singers"][1:]:
+                if collaborator in self._collaborator_channels_checked:
+                    continue
+                self._collaborator_channels_checked.add(collaborator)
+                discovery = self.gemini.discover_official_channel(collaborator)
+                if discovery.get("status") != "identified":
+                    print(f"  → Collaborator channel unresolved: {collaborator}")
+                    continue
+                try:
+                    discovered_id, registration, added = register_channel(
+                        discovery["channel_url"],
+                        self.youtube,
+                        self.channel_registry_path,
+                    )
+                    if discovered_id == channel_id:
+                        continue
+                    action = "Registered" if added else "Already registered"
+                    print(
+                        f"  → {action} collaborator channel: "
+                        f"{registration['channel_name']} ({discovered_id})"
+                    )
+                except Exception as error:
+                    print(
+                        f"  → Collaborator channel registration failed: "
+                        f"{collaborator} ({type(error).__name__})"
+                    )
 
         # 4.5. Analyze AI characteristics and extract comment keywords
         ai_stats = None

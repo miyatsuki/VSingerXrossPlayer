@@ -246,6 +246,44 @@ class CollectionTest(unittest.TestCase):
         youtube.fetch_video_comments.assert_not_called()
         gemini.analyze_video_characteristics.assert_not_called()
 
+    def test_grounded_collaborator_channel_is_registered(self):
+        with tempfile.TemporaryDirectory() as directory:
+            registry_path = Path(directory) / 'channels.json'
+            registry_path.write_text(json.dumps({
+                'UCbbbbbbbbbbbbbbbbbbbbbb': {'channel_name': 'Main Channel'},
+            }), encoding='utf-8')
+            repo, gemini, youtube = Mock(), Mock(), Mock()
+            repo.get_video.return_value = SimpleNamespace(
+                duration=200, video_title='Song / Main × Guest', description='',
+                published_at='2026-01-01', thumbnail_url='', view_count=0,
+                like_count=0, comment_count=0, channel_title='Main Channel',
+            )
+            gemini.classify_video_type.return_value = {
+                'type': 'SONG', 'confidence': 1, 'reason': '',
+            }
+            gemini.extract_song_info.return_value = {
+                'song_title': 'Song', 'singers': ['Main', 'Guest'],
+                'is_cover': True, 'original_artists': ['Artist'],
+                'original_song_id': 'song-id', 'grounding': {'status': 'identified'},
+            }
+            gemini.discover_official_channel.return_value = {
+                'status': 'identified',
+                'channel_url': 'https://www.youtube.com/@guest.singer',
+            }
+            youtube.resolve_channel_id.return_value = 'UCcccccccccccccccccccccc'
+            youtube.fetch_channel_info.return_value = {'channel_name': 'Guest Singer'}
+
+            result = VideoEnricher(
+                gemini, repo, youtube_client=youtube, analyze_features=False,
+                channel_registry_path=str(registry_path),
+            ).enrich_video('UCbbbbbbbbbbbbbbbbbbbbbb', 'video', 'Main Channel')
+
+            self.assertEqual(result, 'SONG')
+            self.assertEqual(load_channel_registry(registry_path), {
+                'UCbbbbbbbbbbbbbbbbbbbbbb': {'channel_name': 'Main Channel'},
+                'UCcccccccccccccccccccccc': {'channel_name': 'Guest Singer'},
+            })
+
 
 if __name__ == '__main__':
     unittest.main()

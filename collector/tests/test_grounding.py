@@ -49,6 +49,29 @@ class GroundingTest(unittest.TestCase):
         self.assertIsNone(second.kwargs['config'].tools)
         self.assertIn('cover-id', first.kwargs['contents'])
 
+    def test_grounded_official_channel_is_discovered(self):
+        channel_url = 'https://www.youtube.com/channel/UCaaaaaaaaaaaaaaaaaaaaaa'
+        client = GeminiClient.__new__(GeminiClient)
+        client.model = 'test-model'
+        client.client = Mock()
+        research = SimpleNamespace(
+            text=f'Official channel: {channel_url}',
+            candidates=[SimpleNamespace(grounding_metadata=metadata())],
+        )
+        structured = SimpleNamespace(text=json.dumps({
+            'status': 'identified', 'channel_url': channel_url,
+            'source_indices': [0], 'reason': 'Official profile links to it',
+        }))
+        client.client.models.generate_content.side_effect = [research, structured]
+
+        result = client.discover_official_channel('Guest Singer')
+
+        self.assertEqual(result['status'], 'identified')
+        self.assertEqual(result['channel_url'], channel_url)
+        first, second = client.client.models.generate_content.call_args_list
+        self.assertIsNotNone(first.kwargs['config'].tools[0].google_search)
+        self.assertIsNone(second.kwargs['config'].tools)
+
     def test_no_search_evidence_never_becomes_a_song(self):
         for meta in [None, types.GroundingMetadata(web_search_queries=['query'])]:
             client = self.client(meta)

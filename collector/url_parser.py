@@ -79,7 +79,7 @@ def parse_youtube_url(url_or_id: str) -> Tuple[IdentifierType, str]:
         return (IdentifierType.USERNAME, user_match.group(1))
 
     # Pattern 5: /@handle (handle in URL)
-    handle_url_match = re.search(r"youtube\.com/@([A-Za-z0-9_-]+)", url_or_id)
+    handle_url_match = re.search(r"youtube\.com/@([A-Za-z0-9_.-]+)", url_or_id)
     if handle_url_match:
         return (IdentifierType.HANDLE, handle_url_match.group(1))
 
@@ -95,7 +95,7 @@ def parse_youtube_url(url_or_id: str) -> Tuple[IdentifierType, str]:
     # Pattern 8: Direct handle (@handle)
     if url_or_id.startswith("@"):
         handle = url_or_id[1:]  # Remove @ prefix
-        if re.match(r"^[A-Za-z0-9_-]+$", handle):
+        if re.match(r"^[A-Za-z0-9_.-]+$", handle):
             return (IdentifierType.HANDLE, handle)
 
     # If none of the patterns match, raise an error

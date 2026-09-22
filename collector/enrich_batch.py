@@ -51,6 +51,7 @@ def enrich_channel(
         index_repo,
         youtube_client,
         analyze_features=not metadata_only,
+        channel_registry_path=get_collector_settings().channels_path,
     )
 
     # Get all videos from channel (unenriched videos have no song_title)
