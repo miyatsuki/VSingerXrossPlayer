@@ -96,7 +96,25 @@ test('explicit IDs take priority over aliases and prevent same-name collisions',
     withOriginal('正式曲名', 'A', '原作者', 'different-id'),
     withOriginal('正式曲名', 'B', '原作者'),
   ], catalog);
-  assert.deepEqual(index.findSimilar('A'), []);
+  const [match] = index.findSimilar('A');
+  assert.equal(match.commonSongs.length, 0);
+  assert.deepEqual(match.commonArtists, ['原作者']);
+  assert.equal(match.score, 0.25);
+});
+
+test('uses original artist preference as a bounded fallback for different songs', () => {
+  const index = new SingerSimilarity([
+    withOriginal('曲A', 'A', '同じ作者', 'song-a'),
+    withOriginal('曲B', 'B', '同じ作者', 'song-b'),
+    withOriginal('曲C', 'C', '別の作者', 'song-c'),
+  ]);
+  const matches = index.findSimilar('A');
+  assert.equal(matches.length, 1);
+  assert.equal(matches[0].singer, 'B');
+  assert.equal(matches[0].songScore, 0);
+  assert.equal(matches[0].artistScore, 1);
+  assert.equal(matches[0].score, 0.25);
+  assert.deepEqual(matches[0].commonArtists, ['同じ作者']);
 });
 
 test('uses original title before display title and labels title-only matching', () => {

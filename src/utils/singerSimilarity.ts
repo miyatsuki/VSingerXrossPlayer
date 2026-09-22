@@ -23,8 +23,11 @@ export interface Repertoire {
 export interface SimilarSinger {
   singer: string;
   score: number;
+  songScore: number;
+  artistScore: number;
   songCount: number;
   commonSongs: RepertoireSong[];
+  commonArtists: string[];
 }
 
 export interface SingerMapPoint {
@@ -123,6 +126,8 @@ export class SingerSimilarity {
   readonly repertoires = new Map<string, Repertoire>();
   private weights = new Map<string, number>();
   private norms = new Map<string, number>();
+  private artistVectors = new Map<string, Map<string, { name: string; value: number }>>();
+  private artistNorms = new Map<string, number>();
 
   constructor(videos: ApiVideo[], catalog: OriginalSong[] = []) {
     const resolver = new OriginalSongResolver(catalog);
@@ -154,6 +159,33 @@ export class SingerSimilarity {
         (sum, key) => sum + this.weights.get(key)! ** 2, 0,
       )));
     }
+
+    const artistCounts = new Map<string, Map<string, { name: string; count: number }>>();
+    const artistFrequencies = new Map<string, number>();
+    for (const { singer, songs } of this.repertoires.values()) {
+      const counts = new Map<string, { name: string; count: number }>();
+      for (const song of songs.values()) {
+        if (!song.artist?.trim()) continue;
+        const key = normalizeArtist(song.artist);
+        const current = counts.get(key);
+        counts.set(key, { name: current?.name || song.artist.trim(), count: (current?.count || 0) + 1 });
+      }
+      artistCounts.set(singer, counts);
+      for (const key of counts.keys()) {
+        artistFrequencies.set(key, (artistFrequencies.get(key) || 0) + 1);
+      }
+    }
+    for (const [singer, counts] of artistCounts) {
+      const vector = new Map<string, { name: string; value: number }>();
+      for (const [key, artist] of counts) {
+        const idf = Math.log((1 + this.repertoires.size) / (1 + artistFrequencies.get(key)!)) + 1;
+        vector.set(key, { name: artist.name, value: (1 + Math.log(artist.count)) * idf });
+      }
+      this.artistVectors.set(singer, vector);
+      this.artistNorms.set(singer, Math.sqrt(Array.from(vector.values()).reduce(
+        (sum, artist) => sum + artist.value ** 2, 0,
+      )));
+    }
   }
 
   findSimilar(singer: string, limit = 5): SimilarSinger[] {
@@ -163,22 +195,41 @@ export class SingerSimilarity {
     for (const target of this.repertoires.values()) {
       if (target.singer === singer) continue;
       const commonKeys = Array.from(source.songs.keys()).filter(key => target.songs.has(key));
-      if (!commonKeys.length) continue;
-      const dot = commonKeys.reduce((sum, key) => sum + this.weights.get(key)! ** 2, 0);
+      const songScore = this.songSimilarity(singer, target.singer);
+      const artistScore = this.artistSimilarity(singer, target.singer);
+      const score = combineSimilarities(songScore, artistScore);
+      if (!score) continue;
+      const sourceArtists = this.artistVectors.get(singer) || new Map();
+      const targetArtists = this.artistVectors.get(target.singer) || new Map();
+      const commonArtists = Array.from(sourceArtists.entries())
+        .filter(([key]) => targetArtists.has(key))
+        .sort(([, first], [, second]) => second.value - first.value || first.name.localeCompare(second.name, 'ja'))
+        .map(([, artist]) => artist.name);
       matches.push({
         singer: target.singer,
-        score: Math.min(1, dot / (this.norms.get(singer)! * this.norms.get(target.singer)!)),
+        score,
+        songScore,
+        artistScore,
         songCount: target.songs.size,
         commonSongs: commonKeys.map(key => target.songs.get(key)!),
+        commonArtists,
       });
     }
     return matches.sort((a, b) => b.score - a.score
       || b.commonSongs.length - a.commonSongs.length
+      || b.artistScore - a.artistScore
       || a.singer.localeCompare(b.singer, 'ja')).slice(0, Math.max(0, limit));
   }
 
   similarityScore(first: string, second: string): number {
     if (first === second) return this.repertoires.has(first) ? 1 : 0;
+    return combineSimilarities(
+      this.songSimilarity(first, second),
+      this.artistSimilarity(first, second),
+    );
+  }
+
+  private songSimilarity(first: string, second: string): number {
     const source = this.repertoires.get(first);
     const target = this.repertoires.get(second);
     const sourceNorm = this.norms.get(first);
@@ -187,6 +238,20 @@ export class SingerSimilarity {
     let dot = 0;
     for (const key of source.songs.keys()) {
       if (target.songs.has(key)) dot += this.weights.get(key)! ** 2;
+    }
+    return Math.min(1, dot / (sourceNorm * targetNorm));
+  }
+
+  private artistSimilarity(first: string, second: string): number {
+    const source = this.artistVectors.get(first);
+    const target = this.artistVectors.get(second);
+    const sourceNorm = this.artistNorms.get(first);
+    const targetNorm = this.artistNorms.get(second);
+    if (!source || !target || !sourceNorm || !targetNorm) return 0;
+    let dot = 0;
+    for (const [key, artist] of source) {
+      const targetArtist = target.get(key);
+      if (targetArtist) dot += artist.value * targetArtist.value;
     }
     return Math.min(1, dot / (sourceNorm * targetNorm));
   }
@@ -277,4 +342,14 @@ export class SingerSimilarity {
       songCount: this.repertoires.get(singer)!.songs.size,
     }));
   }
+}
+
+function normalizeArtist(artist: string): string {
+  return artist.normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+// Exact shared songs remain authoritative. Artist preference can add at most 25
+// points and only fills the portion not already explained by exact song matches.
+function combineSimilarities(songScore: number, artistScore: number): number {
+  return Math.min(1, songScore + (1 - songScore) * artistScore * 0.25);
 }

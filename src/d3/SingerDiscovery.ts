@@ -129,7 +129,7 @@ export class SingerDiscovery {
     this.results.append(map, note);
     if (!matches.length) {
       const empty = document.createElement('p');
-      empty.textContent = 'この歌手と共通の原曲が登録されている歌手はまだいません。曲名が未登録の動画は比較対象外です。';
+      empty.textContent = 'この歌手と共通の原曲または原曲アーティストが登録されている歌手はまだいません。曲名が未登録の動画は比較対象外です。';
       this.results.appendChild(empty);
       return;
     }
@@ -139,7 +139,13 @@ export class SingerDiscovery {
       const title = document.createElement('strong');
       title.textContent = `${match.singer} · 類似度 ${Math.round(match.score * 100)}/100`;
       const reason = document.createElement('p');
-      reason.textContent = `共通 ${match.commonSongs.length}曲 / 相手の登録 ${match.songCount}曲`;
+      reason.textContent = `共通 ${match.commonSongs.length}曲`;
+      if (match.commonArtists.length) {
+        const artists = match.commonArtists.slice(0, 3).join('、');
+        const rest = match.commonArtists.length > 3 ? `ほか${match.commonArtists.length - 3}組` : '';
+        reason.textContent += ` · 共通原曲アーティスト ${artists}${rest}`;
+      }
+      reason.textContent += ` / 相手の登録 ${match.songCount}曲`;
       if (Math.min(count, match.songCount) < 3) reason.textContent += ' · 登録曲が少ないため参考値';
       const songs = document.createElement('div');
       songs.className = 'discovery-songs';
@@ -157,7 +163,7 @@ export class SingerDiscovery {
     }
     const limitation = document.createElement('p');
     limitation.className = 'discovery-note';
-    limitation.textContent = '原曲ID、または曲名と原曲アーティストで比較しています。アーティスト不明の曲は曲名だけで暫定照合し、原曲が特定された曲とは分けて集計します。定番曲の重みを下げ、同じ曲の複数投稿は1曲として集計しています。';
+    limitation.textContent = '原曲ID、または曲名と原曲アーティストで比較しています。完全に同じ曲の一致を主な類似度とし、同じ原曲アーティストの別曲を選んでいる傾向で最大25点分を補完します。定番曲・定番アーティストの重みを下げ、同じ曲の複数投稿は1曲として集計しています。';
     this.results.append(list, limitation);
   }
 
