@@ -4,7 +4,13 @@
   right: 20px;
   z-index: 101;
 }
-.discovery-trigger, .singer-discovery button, .singer-discovery select {
+.transpose-trigger {
+  position: fixed;
+  top: 20px;
+  right: 238px;
+  z-index: 101;
+}
+.discovery-trigger, .transpose-trigger, .singer-discovery button, .singer-discovery select {
   padding: 10px 14px;
   border: 1px solid #666;
   border-radius: 8px;
@@ -27,6 +33,7 @@
 }
 .singer-discovery::backdrop { background: rgb(0 0 0 / 75%); }
 .singer-discovery header { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 20px; }
+.discovery-header-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
 .singer-discovery h2 { font-size: 20px; }
 .singer-discovery label { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .singer-discovery select { max-width: 100%; min-width: 0; }
@@ -64,8 +71,12 @@
 .discovery-node.is-low-data { opacity: 0.5; }
 .discovery-node.is-low-data text { display: none; }
 .discovery-node.is-low-data.is-neighbor text,
+.discovery-node.is-low-data.is-selected text,
 .discovery-node.is-low-data:hover text,
 .discovery-node.is-low-data:focus text { display: block; }
+.discovery-map.is-dense .discovery-node:not(.is-selected) text { display: none; }
+.discovery-map.is-dense .discovery-node:hover text,
+.discovery-map.is-dense .discovery-node:focus text { display: block; }
 .discovery-node:hover circle, .discovery-node:focus circle { stroke: #fff; stroke-width: 4; }
 .singer-discovery ol { padding-left: 24px; }
 .singer-discovery li { padding: 14px 0; border-bottom: 1px solid #444; overflow-wrap: anywhere; }
@@ -73,3 +84,6 @@
 .discovery-songs { display: flex; flex-wrap: wrap; gap: 8px 16px; }
 .discovery-songs a { color: #a9e7e1; }
 .discovery-note { color: #bbb; font-size: 13px; }
+@media (max-width: 720px) {
+  .transpose-trigger { top: 68px; right: 20px; }
+}

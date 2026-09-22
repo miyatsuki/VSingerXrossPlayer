@@ -153,6 +153,33 @@ test('maps one or two singers without unstable empty eigenvectors', () => {
   assert.ok(two.every(point => Number.isFinite(point.x) && Number.isFinite(point.y)));
 });
 
+test('transposes singer-song data to find songs covered by the same singers', () => {
+  const index = new SingerSimilarity([
+    video('Song A', ['A', 'B'], 'video-a'),
+    video('Song B', ['A'], 'video-b'),
+    video('Song C', ['C'], 'video-c'),
+  ]);
+  const key = index.songKeyForVideo('video-a');
+  const [match] = index.findSimilarSongs(key);
+  assert.equal(match.title, 'Song B');
+  assert.deepEqual(match.commonSingers, ['A']);
+  assert.ok(match.score > 0 && match.score < 1);
+  assert.equal(index.findSimilarSongs(index.songKeyForVideo('video-c')).length, 0);
+});
+
+test('maps every transposed song deterministically and includes collaborators', () => {
+  const index = new SingerSimilarity([
+    video('Song A', ['A', 'B'], 'video-a'),
+    video('Song B', ['A'], 'video-b'),
+    video('Song C', ['C'], 'video-c'),
+  ]);
+  const first = index.createSongMap();
+  assert.deepEqual(first, index.createSongMap());
+  assert.equal(first.length, 3);
+  assert.equal(first.find(point => point.title === 'Song A').singerCount, 2);
+  assert.ok(first.every(point => Number.isFinite(point.x) && Number.isFinite(point.y)));
+});
+
 test('rejects conflicting catalog aliases, video assignments and IDs', () => {
   const another = { id: 'song-b', title: '別曲', artist: '別作者' };
   assert.throws(() => new SingerSimilarity([], [catalog[0], { ...another, aliases: [{ title: '正式曲名', artist: '原作者' }] }]));

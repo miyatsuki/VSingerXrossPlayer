@@ -16,6 +16,9 @@ export class App {
   private wordCloud: WordCloud | null = null;
 
   private categories: Category[] = [];
+  private categorySets: Record<'songs' | 'singers', Category[]> = { songs: [], singers: [] };
+  private browseMode: 'songs' | 'singers' = 'songs';
+  private transposeButton: HTMLButtonElement | null = null;
   private singers: Singer[] = [];
   private similarity = new SingerSimilarity([]);
   private singerDiscovery: SingerDiscovery | null = null;
@@ -41,6 +44,7 @@ export class App {
       // Initialize video detail card
       const appContainer = document.getElementById('app');
       if (appContainer) {
+        this.createTransposeButton(appContainer);
         this.videoDetailCard = new VideoDetailCard(appContainer);
         this.singerDiscovery = new SingerDiscovery(appContainer, this.similarity,
           () => this.navigation?.disable(), () => this.navigation?.enable());
@@ -91,14 +95,15 @@ export class App {
     };
 
     // Convert API videos to songs
-    const songs: Song[] = apiVideos.map(v => {
+    const songsByVideo = new Map<string, Song>();
+    apiVideos.forEach(v => {
       const songTitle = v.song_title || v.video_title;
       const youtubeId = v.video_id;
       const primarySingerName = v.singers && v.singers.length > 0 ? v.singers[0] : 'Unknown';
       v.singers?.forEach(ensureSinger);
       const singer = ensureSinger(primarySingerName);
 
-      return {
+      songsByVideo.set(v.video_id, {
         id: youtubeId,
         title: songTitle,
         video_url: youtubeId,
@@ -109,8 +114,9 @@ export class App {
         chorus_start_time: v.chorus_start_time,
         chorus_end_time: v.chorus_end_time,
         thumbnail_url: v.thumbnail_url,
-      };
+      });
     });
+    const songs = Array.from(songsByVideo.values());
 
     this.singers = Array.from(singerMap.values());
 
@@ -135,7 +141,51 @@ export class App {
       };
     });
 
-    this.categories = songCategories;
+    const videosBySinger = new Map<string, Song[]>();
+    for (const video of apiVideos) {
+      const baseSong = songsByVideo.get(video.video_id)!;
+      for (const singerName of new Set(video.singers?.filter(name => name.trim()) || [])) {
+        const singer = ensureSinger(singerName);
+        const singerSongs = videosBySinger.get(singer.id) || [];
+        singerSongs.push({ ...baseSong, singer_id: singer.id });
+        videosBySinger.set(singer.id, singerSongs);
+      }
+    }
+    const singerCategories: Category[] = this.singers
+      .filter(singer => videosBySinger.has(singer.id))
+      .map(singer => ({
+        id: `cat_singer_${singer.id}`,
+        title: singer.name,
+        avatar_url: singer.avatar_url,
+        items: videosBySinger.get(singer.id)!,
+        type: 'singers',
+        icon: '🎤',
+      }));
+
+    this.categorySets = { songs: songCategories, singers: singerCategories };
+    this.categories = this.categorySets[this.browseMode];
+  }
+
+  private createTransposeButton(parent: HTMLElement) {
+    this.transposeButton = document.createElement('button');
+    this.transposeButton.type = 'button';
+    this.transposeButton.className = 'transpose-trigger';
+    this.transposeButton.onclick = () => {
+      this.browseMode = this.browseMode === 'songs' ? 'singers' : 'songs';
+      this.categories = this.categorySets[this.browseMode];
+      this.xmbInterface?.setCategories(this.categories);
+      this.navigation?.updateCategories(this.categories);
+      this.updateTransposeButton();
+    };
+    this.updateTransposeButton();
+    parent.appendChild(this.transposeButton);
+  }
+
+  private updateTransposeButton() {
+    if (!this.transposeButton) return;
+    const target = this.browseMode === 'songs' ? '歌手' : '楽曲';
+    this.transposeButton.textContent = `縦横を転置：${target}ごと`;
+    this.transposeButton.setAttribute('aria-label', `トップビューを${target}ごとの表示に切り替える`);
   }
 
   private handleItemSelection = (_state: any, currentItem: Song | null) => {
@@ -151,6 +201,7 @@ export class App {
     const singer = this.singers.find(s => s.id === song.singer_id);
 
     if (singer) this.singerDiscovery?.setSinger(singer.name);
+    this.singerDiscovery?.setSong(song.id);
 
     // Show detail card
     this.videoDetailCard?.show(song, singer);
@@ -217,6 +268,7 @@ export class App {
     this.xmbInterface?.destroy();
     this.videoDetailCard?.destroy();
     this.singerDiscovery?.destroy();
+    this.transposeButton?.remove();
     this.destroyVisualizations();
   }
 }

@@ -197,6 +197,7 @@ export class XMBInterface {
       .style('background-image', (d) => {
         if (d._isPlaceholder) return 'none';
         if (d.singer_avatar) return `url(${d.singer_avatar})`;
+        if (currentCategory?.type === 'singers' && d.thumbnail_url) return `url(${d.thumbnail_url})`;
         return 'none';
       })
       .style('background-size', 'cover')
@@ -210,7 +211,8 @@ export class XMBInterface {
       .style('white-space', 'nowrap')
       .style('overflow', 'hidden')
       .style('text-overflow', 'ellipsis')
-      .text((d) => d._isPlaceholder ? '' : (d.singer_name || d.title));
+      .text((d) => d._isPlaceholder ? ''
+        : currentCategory?.type === 'singers' ? d.title : (d.singer_name || d.title));
 
     // Apply active styling (position 1 is always active - like date picker)
     itemEnter.each(function(d, i) {
