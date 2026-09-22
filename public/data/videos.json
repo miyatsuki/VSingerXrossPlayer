@@ -1,5 +1,19 @@
 [
   {
+    "video_id": "znScklWjNc0",
+    "video_title": "ロックンロールは鳴り止まないっ - 神聖かまってちゃん// covered by メーメントヴァニタス",
+    "channel_id": "UCE4W22kKQQVdrA2KTiyZ_cA",
+    "song_title": "ロックンロールは鳴り止まないっ",
+    "original_song_id": "title-artist:v1:669cc737a2765d3e72535ccfedeb07ee2b05cfc620375b78d9d4fbd92d692b76",
+    "original_song_title": "ロックンロールは鳴り止まないっ",
+    "original_artist_name": "神聖かまってちゃん",
+    "published_at": "2026-09-22T09:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/znScklWjNc0/hqdefault.jpg",
+    "singers": [
+      "メーメントヴァニタス"
+    ]
+  },
+  {
     "video_id": "oHL-kU7tOwU",
     "video_title": "ミカヅキ/酸欠少女さユり covered by ゆらぎゆら",
     "channel_id": "UCjKPgy9YPt16z8AFMi-TLeA",
@@ -11,6 +25,49 @@
     "thumbnail_url": "https://i.ytimg.com/vi/oHL-kU7tOwU/hqdefault.jpg",
     "singers": [
       "ゆらぎゆら"
+    ]
+  },
+  {
+    "video_id": "YgbclWM8v2g",
+    "video_title": "あぶく / ヨルシカ Covered 茨むあん",
+    "channel_id": "UC9zLKU6WiRdcKtAh-6o_zmA",
+    "song_title": "あぶく",
+    "original_song_id": "title-artist:v1:38a13df0b4c0632e3859a680a6206477625e46ca51c2cc029ed0f05a8134e8bc",
+    "original_song_title": "あぶく",
+    "original_artist_name": "ヨルシカ",
+    "published_at": "2026-09-19T07:00:10Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/YgbclWM8v2g/hqdefault.jpg",
+    "singers": [
+      "茨むあん"
+    ]
+  },
+  {
+    "video_id": "xn7IfQf7yhE",
+    "video_title": "痛いの痛いの飛んでいけ/TOOBOE Covered by セラフ・ダズルガーデン＆ジョー・力一",
+    "channel_id": "UChUJbHiTVeGrSkTdBzVfNCQ",
+    "song_title": "痛いの痛いの飛んでいけ",
+    "original_song_id": "title-artist:v1:f61386d5b9204071d99dd45549132021a67ef36381046a8cb14d06eaa2963624",
+    "original_song_title": "痛いの痛いの飛んでいけ",
+    "original_artist_name": "TOOBOE",
+    "published_at": "2026-09-17T10:00:07Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/xn7IfQf7yhE/hqdefault.jpg",
+    "singers": [
+      "ジョー・力一",
+      "セラフ・ダズルガーデン"
+    ]
+  },
+  {
+    "video_id": "dwPiPBcBbgY",
+    "video_title": "雫/スキマスイッチ【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "雫",
+    "original_song_id": "title-artist:v1:7f142d34f4be626e6c72bb2282659ce6048c8e234a94c29793c9aabf861640de",
+    "original_song_title": "雫",
+    "original_artist_name": "スキマスイッチ",
+    "published_at": "2026-09-13T12:00:17Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/dwPiPBcBbgY/hqdefault.jpg",
+    "singers": [
+      "YuNi"
     ]
   },
   {
@@ -72,6 +129,20 @@
     ]
   },
   {
+    "video_id": "uuWmatUI9gs",
+    "video_title": "【歌ってみた】水流のロック/日食なつこ【羽奏こはく/スイプロ】",
+    "channel_id": "UCqd9gfQFKjbrkfyr0-enzNw",
+    "song_title": "水流のロック",
+    "original_song_id": "title-artist:v1:bddfbb01638f841e879fb47a5a487bf86bb35e6b4c91e0f975665757762d155b",
+    "original_song_title": "水流のロック",
+    "original_artist_name": "日食なつこ",
+    "published_at": "2026-09-08T12:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/uuWmatUI9gs/hqdefault.jpg",
+    "singers": [
+      "羽奏こはく"
+    ]
+  },
+  {
     "video_id": "YeQ-9dFrXI4",
     "video_title": "花譜「BLUE SIGNAL」【Official Audio】",
     "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
@@ -83,6 +154,21 @@
     "thumbnail_url": "https://i.ytimg.com/vi/YeQ-9dFrXI4/hqdefault.jpg",
     "singers": [
       "花譜"
+    ]
+  },
+  {
+    "video_id": "IYAghY0-QvA",
+    "video_title": "田園/玉置浩二 Covered by 舞元啓介＆ジョー・力一【舞元力一】",
+    "channel_id": "UChUJbHiTVeGrSkTdBzVfNCQ",
+    "song_title": "田園",
+    "original_song_id": "title-artist:v1:8d0f6179b40e57064abd87f24803f4171551e7055ace97f3d04ba57a3add2123",
+    "original_song_title": "田園",
+    "original_artist_name": "玉置浩二",
+    "published_at": "2026-08-31T12:00:07Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/IYAghY0-QvA/hqdefault.jpg",
+    "singers": [
+      "ジョー・力一",
+      "舞元啓介"
     ]
   },
   {
@@ -142,6 +228,34 @@
     ]
   },
   {
+    "video_id": "YMc019-6shs",
+    "video_title": "Distant Letter / 茨むあん -Official Music Video-",
+    "channel_id": "UC9zLKU6WiRdcKtAh-6o_zmA",
+    "song_title": "Distant Letter",
+    "original_song_id": "title-artist:v1:6152b382521bc8a5ede922256886403cea938143c8cb85ca19e37dc3593be278",
+    "original_song_title": "Distant Letter",
+    "original_artist_name": "茨むあん",
+    "published_at": "2026-08-19T12:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/YMc019-6shs/hqdefault.jpg",
+    "singers": [
+      "茨むあん"
+    ]
+  },
+  {
+    "video_id": "1iK_t91WQLQ",
+    "video_title": "ハッピーエンドで眠らせて / 茨むあん -Official Music Video-",
+    "channel_id": "UC9zLKU6WiRdcKtAh-6o_zmA",
+    "song_title": "ハッピーエンドで眠らせて",
+    "original_song_id": "title-artist:v1:7f4c4c7136600eda3ab129d74c220b29f309767e1e37fcb919f65e1a0c7efc73",
+    "original_song_title": "ハッピーエンドで眠らせて",
+    "original_artist_name": "茨むあん",
+    "published_at": "2026-08-14T08:15:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/1iK_t91WQLQ/hqdefault.jpg",
+    "singers": [
+      "茨むあん"
+    ]
+  },
+  {
     "video_id": "qWf1qcm23d4",
     "video_title": "駄菓子屋商売 / 緑仙 Cover",
     "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
@@ -153,6 +267,20 @@
     "thumbnail_url": "https://i.ytimg.com/vi/qWf1qcm23d4/hqdefault.jpg",
     "singers": [
       "緑仙"
+    ]
+  },
+  {
+    "video_id": "h-9YstN0nrs",
+    "video_title": "僕は初音ミクとキスをした - みきとP feat.初音ミク // covered by メーメントヴァニタス",
+    "channel_id": "UCE4W22kKQQVdrA2KTiyZ_cA",
+    "song_title": "僕は初音ミクとキスをした",
+    "original_song_id": "title-artist:v1:7933896f095c0d058ce7ecb56d2b630889aad125e8f2130631746a6b4182a9dc",
+    "original_song_title": "僕は初音ミクとキスをした",
+    "original_artist_name": "みきとP / 初音ミク",
+    "published_at": "2026-08-08T09:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/h-9YstN0nrs/hqdefault.jpg",
+    "singers": [
+      "メーメントヴァニタス"
     ]
   },
   {
@@ -199,6 +327,20 @@
     ]
   },
   {
+    "video_id": "IkEiizNfG0U",
+    "video_title": "【歌ってみた】君の神様になりたい。【長尾景/にじさんじ】",
+    "channel_id": "UCXW4MqCQn-jCaxlX-nn-BYg",
+    "song_title": "君の神様になりたい。",
+    "original_song_id": "title-artist:v1:0c3695b50b71eefbd9098af87b510b8dd40a4ae2130191f7b33fb81b40894c0f",
+    "original_song_title": "君の神様になりたい。",
+    "original_artist_name": "カンザキイオリ / 初音ミク",
+    "published_at": "2026-07-24T12:30:07Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/IkEiizNfG0U/hqdefault.jpg",
+    "singers": [
+      "長尾景"
+    ]
+  },
+  {
     "video_id": "7AAMVux4xGk",
     "video_title": "【歌ってみた】モドキステップ！ by 花譜",
     "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
@@ -242,6 +384,36 @@
     ]
   },
   {
+    "video_id": "_CVH-E2oqxA",
+    "video_title": "【Official MV】ひかげぼっこ - メーメントヴァニタス",
+    "channel_id": "UCE4W22kKQQVdrA2KTiyZ_cA",
+    "song_title": "ひかげぼっこ",
+    "original_song_id": "title-artist:v1:5d42139da783ffff951a00272cb4575218868d68b176234933f3270606cfd09f",
+    "original_song_title": "ひかげぼっこ",
+    "original_artist_name": "メーメントヴァニタス",
+    "published_at": "2026-07-05T09:30:07Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/_CVH-E2oqxA/hqdefault.jpg",
+    "singers": [
+      "メーメントヴァニタス"
+    ]
+  },
+  {
+    "video_id": "2B82bjrlFxo",
+    "video_title": "オレンジ - 逢坂大河(釘宮理恵)・櫛枝実乃梨(堀江由衣)・川嶋亜美(喜多村英梨) // covered by メーメントヴァニタス・朱名・ミナミイズミ",
+    "channel_id": "UCE4W22kKQQVdrA2KTiyZ_cA",
+    "song_title": "オレンジ",
+    "original_song_id": "title-artist:v1:db5b08a082a2ee2f364d1917c798a92f48567f82b3da5282885f03383f60a64b",
+    "original_song_title": "オレンジ",
+    "original_artist_name": "逢坂大河（CV：釘宮理恵） / 櫛枝実乃梨（CV：堀江由衣） / 川嶋亜美（CV：喜多村英梨）",
+    "published_at": "2026-07-04T13:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/2B82bjrlFxo/hqdefault.jpg",
+    "singers": [
+      "メーメントヴァニタス",
+      "朱名",
+      "ミナミイズミ"
+    ]
+  },
+  {
     "video_id": "07c93sMYrYE",
     "video_title": "涙の薫りがする - HIMEHINA(Cover) / KMNZ TINA × NERO",
     "channel_id": "UCnwnKd78qy2Txjs1WlfwkxA",
@@ -257,6 +429,20 @@
     ]
   },
   {
+    "video_id": "DVRj9nMttGc",
+    "video_title": "クロニックヒロイン / くろくも (Official Music Video)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "クロニックヒロイン",
+    "original_song_id": "title-artist:v1:eebd1d557d954988aed9398ce8202e8dccc3a349eceb035765c84c7dd571b3b6",
+    "original_song_title": "クロニックヒロイン",
+    "original_artist_name": "くろくも",
+    "published_at": "2026-07-01T11:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/DVRj9nMttGc/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
     "video_id": "SuS23yoRKJY",
     "video_title": "もう恋なんてしない / 緑仙 Cover",
     "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
@@ -268,6 +454,20 @@
     "thumbnail_url": "https://i.ytimg.com/vi/SuS23yoRKJY/hqdefault.jpg",
     "singers": [
       "緑仙"
+    ]
+  },
+  {
+    "video_id": "K_rKjDegoHc",
+    "video_title": "AIZO / King Gnu Covered 茨むあん",
+    "channel_id": "UC9zLKU6WiRdcKtAh-6o_zmA",
+    "song_title": "AIZO",
+    "original_song_id": "title-artist:v1:5cd481c68ef9a2249f31153268fca9480d380f1227c104e1267c532d8ec6ca0f",
+    "original_song_title": "AIZO",
+    "original_artist_name": "King Gnu",
+    "published_at": "2026-06-27T05:15:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/K_rKjDegoHc/hqdefault.jpg",
+    "singers": [
+      "茨むあん"
     ]
   },
   {
@@ -299,6 +499,21 @@
     ]
   },
   {
+    "video_id": "mMTM64Wv8y4",
+    "video_title": "幽霊みたい / 緑仙×弦月 藤士郎 Cover",
+    "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
+    "song_title": "幽霊みたい",
+    "original_song_id": "title-artist:v1:441eb495897f094f6a627b55205dd5713a2547520de7d1642e68b92d87b0e05d",
+    "original_song_title": "幽霊みたい",
+    "original_artist_name": "佐藤乃子 / 歌愛ユキ",
+    "published_at": "2026-06-16T11:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/mMTM64Wv8y4/hqdefault.jpg",
+    "singers": [
+      "緑仙",
+      "弦月 藤士郎"
+    ]
+  },
+  {
     "video_id": "8v1zfbXMvWY",
     "video_title": "点描の唄 / Mrs. GREEN APPLE covered by ゆらぎゆら ･ 音ノ瀬らこ",
     "channel_id": "UCjKPgy9YPt16z8AFMi-TLeA",
@@ -311,6 +526,20 @@
     "singers": [
       "ゆらぎゆら",
       "音ノ瀬らこ"
+    ]
+  },
+  {
+    "video_id": "MLAewKVGak4",
+    "video_title": "琥珀色の街、上海蟹の朝 - くるり // covered by メーメントヴァニタス",
+    "channel_id": "UCE4W22kKQQVdrA2KTiyZ_cA",
+    "song_title": "琥珀色の街、上海蟹の朝",
+    "original_song_id": "title-artist:v1:b1f0b9fc548444e4afb026f972a91bb97dc591128e854928435a108c4fc5b5dd",
+    "original_song_title": "琥珀色の街、上海蟹の朝",
+    "original_artist_name": "くるり",
+    "published_at": "2026-06-11T09:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/MLAewKVGak4/hqdefault.jpg",
+    "singers": [
+      "メーメントヴァニタス"
     ]
   },
   {
@@ -342,6 +571,20 @@
     ]
   },
   {
+    "video_id": "H30TFS3dbBc",
+    "video_title": "【歌ってみた】アクト by 花譜",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "アクト feat. Daoko",
+    "original_song_id": "title-artist:v1:cfcaeff7a4af2745fde1aafd40f5c296f8e8cd16bc5a15bf54df7db12b170560",
+    "original_song_title": "アクト feat. Daoko",
+    "original_artist_name": "Giga / TeddyLoid / Daoko",
+    "published_at": "2026-06-07T09:00:32Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/H30TFS3dbBc/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
     "video_id": "fEBjeV7U9Dw",
     "video_title": "え？あぁ、そう。 / covered by Alri (緑仙×アンジュ・カトリーナ)",
     "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
@@ -355,6 +598,90 @@
       "緑仙",
       "Alri",
       "アンジュ・カトリーナ"
+    ]
+  },
+  {
+    "video_id": "9QHMIMWdqwQ",
+    "video_title": "花譜 # 170 「乳白の宇宙」【「宿声 / 深愛」Live Ver.】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "乳白の宇宙",
+    "original_song_id": "title-artist:v1:157b1a6d9ac07079df3124f1e2db253866f821b2042c1b1bcd1762e3d066611a",
+    "original_song_title": "乳白の宇宙",
+    "original_artist_name": "花譜",
+    "published_at": "2026-05-26T12:00:11Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/9QHMIMWdqwQ/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "SfjSTlEHCSg",
+    "video_title": "【MV】OBF / ジョー・力一【にじさんじ】",
+    "channel_id": "UChUJbHiTVeGrSkTdBzVfNCQ",
+    "song_title": "OBF",
+    "original_song_id": "title-artist:v1:6f08b24ee0e02f0d1b8e377855aa2618d6b3dced2cd9d40da466957a50af1119",
+    "original_song_title": "OBF",
+    "original_artist_name": "ジョー・力一",
+    "published_at": "2026-05-25T15:00:07Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/SfjSTlEHCSg/hqdefault.jpg",
+    "singers": [
+      "ジョー・力一"
+    ]
+  },
+  {
+    "video_id": "EBuiJ598noo",
+    "video_title": "花譜 # 169 「周波数0の合言葉」【「宿声 / 深愛」Live Ver.】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "周波数0の合言葉",
+    "original_song_id": "title-artist:v1:b55986a27af0dcdbbe45ef95611cf08314d44e170e6c51a0e2e8bfae962cb21c",
+    "original_song_title": "周波数0の合言葉",
+    "original_artist_name": "花譜",
+    "published_at": "2026-05-25T12:00:16Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/EBuiJ598noo/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "2eYUHh8AsVM",
+    "video_title": "花譜 # 168 「明滅」【「宿声 / 深愛」Live Ver.】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "明滅",
+    "original_song_id": "title-artist:v1:7f9083975b62fa1112b4bdb5c1e6f4efad4ade15e148162fb6e6d9ddd38399cf",
+    "original_song_title": "明滅",
+    "original_artist_name": "花譜",
+    "published_at": "2026-05-24T12:00:03Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/2eYUHh8AsVM/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "u6jfTd-CuRQ",
+    "video_title": "catch-22 / 茨むあん -Official Music Video-",
+    "channel_id": "UC9zLKU6WiRdcKtAh-6o_zmA",
+    "song_title": "catch-22",
+    "original_song_id": "title-artist:v1:ff569d0641645d3be0495e940099fbc06aac495eba4e8ba289e9c7c730973851",
+    "original_song_title": "catch-22",
+    "original_artist_name": "茨むあん",
+    "published_at": "2026-05-23T09:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/u6jfTd-CuRQ/hqdefault.jpg",
+    "singers": [
+      "茨むあん"
+    ]
+  },
+  {
+    "video_id": "Bf5gB-W8nQQ",
+    "video_title": "花譜 # 167 「私の在処」【「宿声 / 深愛」Live Ver.】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "私の在処",
+    "original_song_id": "title-artist:v1:47865360f5dbbf2ef6099ad405962835e93fc0b127c4b4fe177c55102414b43e",
+    "original_song_title": "私の在処",
+    "original_artist_name": "花譜",
+    "published_at": "2026-05-22T12:00:01Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/Bf5gB-W8nQQ/hqdefault.jpg",
+    "singers": [
+      "花譜"
     ]
   },
   {
@@ -386,6 +713,105 @@
     ]
   },
   {
+    "video_id": "AvDCXw52bjo",
+    "video_title": "花譜 # 165 「私論理」【「宿声 / 深愛」Live Ver.】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "私論理",
+    "original_song_id": "title-artist:v1:445f39268c2575a0f7441de19bcf8f761566c6ef0eb3f404e0eb2aff04115e7d",
+    "original_song_title": "私論理",
+    "original_artist_name": "花譜",
+    "published_at": "2026-05-06T03:00:21Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/AvDCXw52bjo/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "7VYcZIcO-kI",
+    "video_title": "花譜 # 164 「畢生よ」【「宿声 / 深愛」Live Ver.】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "畢生よ",
+    "original_song_id": "title-artist:v1:b0e46ac65aad9ac4398d9b4c1b5cd9ba58703f554baee0e26e04c67f991b4764",
+    "original_song_title": "畢生よ",
+    "original_artist_name": "花譜",
+    "published_at": "2026-05-04T03:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/7VYcZIcO-kI/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "Wh6grvewCm4",
+    "video_title": "花譜 # 163 「心臓と絡繰」【「宿声 / 深愛」Live Ver.】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "心臓と絡繰",
+    "original_song_id": "title-artist:v1:157b79d47f4a8acde4c8528cb232a8cc843ceb5217fc4ebef2852f91a073b600",
+    "original_song_title": "心臓と絡繰",
+    "original_artist_name": "花譜",
+    "published_at": "2026-05-03T03:00:28Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/Wh6grvewCm4/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "3ZVm_kJsSX8",
+    "video_title": "V / HIMEHINA  Covered 茨むあん",
+    "channel_id": "UC9zLKU6WiRdcKtAh-6o_zmA",
+    "song_title": "V",
+    "original_song_id": "title-artist:v1:0984f62eacf99d8193d8837f923a3500766717f7e7a4984e11042865e59ad532",
+    "original_song_title": "V",
+    "original_artist_name": "HIMEHINA",
+    "published_at": "2026-05-02T12:30:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/3ZVm_kJsSX8/hqdefault.jpg",
+    "singers": [
+      "茨むあん"
+    ]
+  },
+  {
+    "video_id": "HHfClMPtVBQ",
+    "video_title": "花譜 # 162 「雛鳥」【「宿声 / 深愛」Live Ver.】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "雛鳥",
+    "original_song_id": "title-artist:v1:641fbb108b473483b8f8767c0e7de16db346992a83fd3ece4534febeef4a3215",
+    "original_song_title": "雛鳥",
+    "original_artist_name": "花譜",
+    "published_at": "2026-05-02T03:00:16Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/HHfClMPtVBQ/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "RFwtF-VgBVg",
+    "video_title": "眠り姫 Acoustic ver./ 茨むあん -Official Music Video-",
+    "channel_id": "UC9zLKU6WiRdcKtAh-6o_zmA",
+    "song_title": "眠り姫",
+    "original_song_id": "title-artist:v1:2d7baaab29908d3842f85fd00d44d18bda4256409e7382070eaf0a6abd56c3a2",
+    "original_song_title": "眠り姫",
+    "original_artist_name": "茨むあん",
+    "published_at": "2026-05-01T15:45:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/RFwtF-VgBVg/hqdefault.jpg",
+    "singers": [
+      "茨むあん"
+    ]
+  },
+  {
+    "video_id": "XYsbxV2M6a0",
+    "video_title": "【組曲2】花譜×神聖かまってちゃん # 161 「放課後ボーダーライン」 【オリジナルMV】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "放課後ボーダーライン",
+    "original_song_id": "title-artist:v1:028b3470d8843a485ced7eecfafe3def002fce692b358067401228c2297043a6",
+    "original_song_title": "放課後ボーダーライン",
+    "original_artist_name": "花譜 / 神聖かまってちゃん",
+    "published_at": "2026-04-29T09:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/XYsbxV2M6a0/hqdefault.jpg",
+    "singers": [
+      "花譜",
+      "神聖かまってちゃん"
+    ]
+  },
+  {
     "video_id": "1ezNy47bYU8",
     "video_title": "ワールドイズマイン CPK! Remix / 緑仙 Cover",
     "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
@@ -414,6 +840,20 @@
     ]
   },
   {
+    "video_id": "imZZ3jlWqUI",
+    "video_title": "【歌ってみた】ドゥーマー by 花譜",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "ドゥーマー",
+    "original_song_id": "title-artist:v1:2fbb88a0d7a1e7630e987c083087f80ecdfdd7c0e4aa35981c01284f95e41820",
+    "original_song_title": "ドゥーマー",
+    "original_artist_name": "東京真中 / 重音テト",
+    "published_at": "2026-04-19T03:00:24Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/imZZ3jlWqUI/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
     "video_id": "F59pi4ymkNE",
     "video_title": "あかるいみらい - Mom (Cover) / KMNZ TINA",
     "channel_id": "UCnwnKd78qy2Txjs1WlfwkxA",
@@ -425,6 +865,63 @@
     "thumbnail_url": "https://i.ytimg.com/vi/F59pi4ymkNE/hqdefault.jpg",
     "singers": [
       "KMNZ TINA"
+    ]
+  },
+  {
+    "video_id": "JWQ5BA51tNA",
+    "video_title": "【Lyric Video】コンパスは透明 / 緑仙",
+    "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
+    "song_title": "コンパスは透明",
+    "original_song_id": "title-artist:v1:be94f4b9ba04a8bc01d45cf31e5e07fa7909121163a71066b27ca00d788dc75e",
+    "original_song_title": "コンパスは透明",
+    "original_artist_name": "緑仙",
+    "published_at": "2026-04-15T09:00:26Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/JWQ5BA51tNA/hqdefault.jpg",
+    "singers": [
+      "緑仙"
+    ]
+  },
+  {
+    "video_id": "I19AsJwfjV0",
+    "video_title": "【緑仙】「コンパスは透明」Official Audio（TVアニメ『最強の職業は勇者でも賢者でもなく鑑定士（仮）らしいですよ？』番組オープニング・テーマ）",
+    "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
+    "song_title": "コンパスは透明",
+    "original_song_id": "title-artist:v1:be94f4b9ba04a8bc01d45cf31e5e07fa7909121163a71066b27ca00d788dc75e",
+    "original_song_title": "コンパスは透明",
+    "original_artist_name": "緑仙",
+    "published_at": "2026-04-03T15:00:34Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/I19AsJwfjV0/hqdefault.jpg",
+    "singers": [
+      "緑仙"
+    ]
+  },
+  {
+    "video_id": "oUrdRL9uLek",
+    "video_title": "花譜 # 160 「エラーソング」【「宿声 / 深愛」Live Ver.】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "エラーソング",
+    "original_song_id": "title-artist:v1:09e58dd46a504046c14a2e5318b6d2c0b242abbf1f91a01206155652227dd049",
+    "original_song_title": "エラーソング",
+    "original_artist_name": "花譜",
+    "published_at": "2026-04-01T11:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/oUrdRL9uLek/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "cXPNwLQ_-A0",
+    "video_title": "こじらせハラスメント「インターネットは最悪 2026」Music Video",
+    "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
+    "song_title": "インターネットは最悪",
+    "original_song_id": "title-artist:v1:1694a626ca0245b6541026702f7b45696769627515d50fe3da28e3f90c96c3b0",
+    "original_song_title": "インターネットは最悪",
+    "original_artist_name": "こじらせハラスメント",
+    "published_at": "2026-04-01T03:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/cXPNwLQ_-A0/hqdefault.jpg",
+    "singers": [
+      "緑仙",
+      "弦月藤士郎"
     ]
   },
   {
@@ -444,6 +941,48 @@
     ]
   },
   {
+    "video_id": "GL1ioJuAtdg",
+    "video_title": "Buddy / 坂本真綾【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "Buddy",
+    "original_song_id": "title-artist:v1:ca9412e863e28364e43c1ff78d26ab317c5a8e9e22594ca4eeff665aa738f958",
+    "original_song_title": "Buddy",
+    "original_artist_name": "坂本真綾",
+    "published_at": "2026-03-31T12:00:00Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/GL1ioJuAtdg/hqdefault.jpg",
+    "singers": [
+      "YuNi"
+    ]
+  },
+  {
+    "video_id": "Hf6eVwoteXU",
+    "video_title": "【歌ってみた】PINK BLOOD by 花譜",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "PINK BLOOD",
+    "original_song_id": "title-artist:v1:0f8e4fa8286a05df1ef962465896b8e197cf9ae5052e87c476e6f789ea5b4cd6",
+    "original_song_title": "PINK BLOOD",
+    "original_artist_name": "宇多田ヒカル",
+    "published_at": "2026-03-22T09:00:23Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/Hf6eVwoteXU/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "fykDiLXc1CA",
+    "video_title": "風になる / つじあやの【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "風になる",
+    "original_song_id": "title-artist:v1:c41e30be72214fdb53855c2acd8a33bbf1695b68dd338cc8706ed1abb6d0b2d5",
+    "original_song_title": "風になる",
+    "original_artist_name": "つじあやの",
+    "published_at": "2026-03-21T12:01:09Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/fykDiLXc1CA/hqdefault.jpg",
+    "singers": [
+      "YuNi"
+    ]
+  },
+  {
     "video_id": "HxbMxOTJvxw",
     "video_title": "コノヨ Loading... - REOL (Cover) / KMNZ TINA",
     "channel_id": "UCnwnKd78qy2Txjs1WlfwkxA",
@@ -458,6 +997,90 @@
     ]
   },
   {
+    "video_id": "EGJWPEqaGrs",
+    "video_title": "ピースサイン/ 米津玄師【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "ピースサイン",
+    "original_song_id": "title-artist:v1:a167bf4ec521845a9542e1cf924965e3822d20d78e43f1d1f39412a0fe701238",
+    "original_song_title": "ピースサイン",
+    "original_artist_name": "米津玄師",
+    "published_at": "2026-03-18T12:00:22Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/EGJWPEqaGrs/hqdefault.jpg",
+    "singers": [
+      "YuNi"
+    ]
+  },
+  {
+    "video_id": "o0CVVvG_t5g",
+    "video_title": "プロポーズ / 緑仙 Cover",
+    "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
+    "song_title": "プロポーズ",
+    "original_song_id": "title-artist:v1:26ce217164a3cafc0ae5401769cb885099c76f1f60a6e939fc35e44e5e050fb5",
+    "original_song_title": "プロポーズ",
+    "original_artist_name": "なとり",
+    "published_at": "2026-03-01T10:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/o0CVVvG_t5g/hqdefault.jpg",
+    "singers": [
+      "緑仙"
+    ]
+  },
+  {
+    "video_id": "cA8FZFZaAtU",
+    "video_title": "花譜 # 158「周波数0の合言葉」【オリジナルMV】",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "周波数0の合言葉",
+    "original_song_id": "title-artist:v1:b55986a27af0dcdbbe45ef95611cf08314d44e170e6c51a0e2e8bfae962cb21c",
+    "original_song_title": "周波数0の合言葉",
+    "original_artist_name": "花譜",
+    "published_at": "2026-02-25T13:30:07Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/cA8FZFZaAtU/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "Co_4omOJRYY",
+    "video_title": "【歌ってみた】IRIS OUT by 花譜",
+    "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
+    "song_title": "IRIS OUT",
+    "original_song_id": "title-artist:v1:2474789dadd281a433dfc9fdd1a63ba1303e2fde9846dd19142e4607422afb7b",
+    "original_song_title": "IRIS OUT",
+    "original_artist_name": "米津玄師",
+    "published_at": "2026-02-22T10:00:16Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/Co_4omOJRYY/hqdefault.jpg",
+    "singers": [
+      "花譜"
+    ]
+  },
+  {
+    "video_id": "bFXIjwoU1D0",
+    "video_title": "CHE.R.RY/ YUI【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "CHE.R.RY",
+    "original_song_id": "title-artist:v1:496ddf6279aa43d828a3a0b0178149c5ba0aa5638e7c9f5757972516ad18f03e",
+    "original_song_title": "CHE.R.RY",
+    "original_artist_name": "YUI",
+    "published_at": "2026-02-21T12:00:59Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/bFXIjwoU1D0/hqdefault.jpg",
+    "singers": [
+      "YuNi"
+    ]
+  },
+  {
+    "video_id": "-rgTpxJyMng",
+    "video_title": "【MV】バケネコダンス / 緑仙",
+    "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
+    "song_title": "バケネコダンス",
+    "original_song_id": "title-artist:v1:2727735fe07037b374145a1dd530ea225c183d22cd445f073714ac705a9c2127",
+    "original_song_title": "バケネコダンス",
+    "original_artist_name": "緑仙",
+    "published_at": "2026-02-12T15:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/-rgTpxJyMng/hqdefault.jpg",
+    "singers": [
+      "緑仙"
+    ]
+  },
+  {
     "video_id": "bNGkNKGOMRI",
     "video_title": "ハイド・アンド・シーク - NOMELON NOLEMON (Cover) / KMNZ TINA",
     "channel_id": "UCnwnKd78qy2Txjs1WlfwkxA",
@@ -469,6 +1092,20 @@
     "thumbnail_url": "https://i.ytimg.com/vi/bNGkNKGOMRI/hqdefault.jpg",
     "singers": [
       "KMNZ TINA"
+    ]
+  },
+  {
+    "video_id": "jkWTsI1XSIE",
+    "video_title": "ラブソング / 緑仙 Cover",
+    "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
+    "song_title": "ラブソング",
+    "original_song_id": "title-artist:v1:e6b4603436929f1300e491f5049d1edfa97d9baddfcdd6bb05c0d85ca091deb4",
+    "original_song_title": "ラブソング",
+    "original_artist_name": "マルシィ",
+    "published_at": "2026-02-08T10:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/jkWTsI1XSIE/hqdefault.jpg",
+    "singers": [
+      "緑仙"
     ]
   },
   {
@@ -497,6 +1134,34 @@
     "thumbnail_url": "https://i.ytimg.com/vi/thJ1JsunRbE/hqdefault.jpg",
     "singers": [
       "KMNZ TINA"
+    ]
+  },
+  {
+    "video_id": "K_RF34PQJ-g",
+    "video_title": "そばかす / JUDY AND MARY 【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "そばかす",
+    "original_song_id": "title-artist:v1:5d44ee4a41461549e0f1275d08221031f75f0dd834c97f237d17e73fe261aa59",
+    "original_song_title": "そばかす",
+    "original_artist_name": "JUDY AND MARY",
+    "published_at": "2026-01-18T12:00:38Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/K_RF34PQJ-g/hqdefault.jpg",
+    "singers": [
+      "YuNi"
+    ]
+  },
+  {
+    "video_id": "6Ni1SRzUvQg",
+    "video_title": "雪の華/ 中島美嘉【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "雪の華",
+    "original_song_id": "title-artist:v1:8cbd41f989670348ecd0f65eae0e03a00d7a1ea285ea5a46f8ecbef7e2c82f9b",
+    "original_song_title": "雪の華",
+    "original_artist_name": "中島美嘉",
+    "published_at": "2025-12-20T12:00:24Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/6Ni1SRzUvQg/hqdefault.jpg",
+    "singers": [
+      "YuNi"
     ]
   },
   {
@@ -556,6 +1221,34 @@
     ]
   },
   {
+    "video_id": "iw4xnxyqSOE",
+    "video_title": "白日／King Gnu【Covered by YuNi】from YuNi ONLINE LIVE  『Chronicle of Seasons』",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "白日",
+    "original_song_id": "title-artist:v1:283b1274835cbdae1feabf9b01e4b64273e8eafea0220bf8e1b668e8b62ee5f9",
+    "original_song_title": "白日",
+    "original_artist_name": "King Gnu",
+    "published_at": "2025-10-31T12:01:35Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/iw4xnxyqSOE/hqdefault.jpg",
+    "singers": [
+      "YuNi"
+    ]
+  },
+  {
+    "video_id": "U7MMFyB-70c",
+    "video_title": "IRIS OUT / 米津玄師 - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "IRIS OUT",
+    "original_song_id": "title-artist:v1:2474789dadd281a433dfc9fdd1a63ba1303e2fde9846dd19142e4607422afb7b",
+    "original_song_title": "IRIS OUT",
+    "original_artist_name": "米津玄師",
+    "published_at": "2025-10-25T11:00:32Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/U7MMFyB-70c/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
     "video_id": "eA5ucnsM4CQ",
     "video_title": "カルチャ -  ツミキ feat.初音ミク (Cover) / KMNZ TINA",
     "channel_id": "UCnwnKd78qy2Txjs1WlfwkxA",
@@ -567,6 +1260,20 @@
     "thumbnail_url": "https://i.ytimg.com/vi/eA5ucnsM4CQ/hqdefault.jpg",
     "singers": [
       "KMNZ TINA"
+    ]
+  },
+  {
+    "video_id": "EyMUTjjp37s",
+    "video_title": "HOT LIMIT／T.M.Revolution【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "HOT LIMIT",
+    "original_song_id": "title-artist:v1:6564a172b1b5f6639e6cb7989e085585ad9c43b4f4f6dcc25d95b8cc6857d4bd",
+    "original_song_title": "HOT LIMIT",
+    "original_artist_name": "T.M.Revolution",
+    "published_at": "2025-10-04T12:00:34Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/EyMUTjjp37s/hqdefault.jpg",
+    "singers": [
+      "YuNi"
     ]
   },
   {
@@ -596,6 +1303,20 @@
     "singers": [
       "緑仙",
       "渡会雲雀"
+    ]
+  },
+  {
+    "video_id": "5pe7hUARpjM",
+    "video_title": "プロポーズ / 内緒のピアス - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "プロポーズ",
+    "original_song_id": "title-artist:v1:5d5e6c778940964af98a22c53c306253f4c24cb0d523ee59f447be28476119f5",
+    "original_song_title": "プロポーズ",
+    "original_artist_name": "内緒のピアス / 可不",
+    "published_at": "2025-09-26T11:00:10Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/5pe7hUARpjM/hqdefault.jpg",
+    "singers": [
+      "くろくも"
     ]
   },
   {
@@ -641,6 +1362,20 @@
     ]
   },
   {
+    "video_id": "F4Xh5vTps28",
+    "video_title": "ずうっといっしょ！／羽奏こはく(cover)",
+    "channel_id": "UCqd9gfQFKjbrkfyr0-enzNw",
+    "song_title": "ずうっといっしょ！",
+    "original_song_id": "title-artist:v1:a7d6feb6ab2a3ade92c65094901a170815eb3514265b1581bda73cd3f4fe84e0",
+    "original_song_title": "ずうっといっしょ！",
+    "original_artist_name": "キタニタツヤ",
+    "published_at": "2025-09-08T11:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/F4Xh5vTps28/hqdefault.jpg",
+    "singers": [
+      "羽奏こはく"
+    ]
+  },
+  {
     "video_id": "y42FLl4MVCQ",
     "video_title": "チューイン・ディスコ - 花譜×ツミキ (Cover) / KMNZ TINA × CULUA",
     "channel_id": "UCnwnKd78qy2Txjs1WlfwkxA",
@@ -653,6 +1388,20 @@
     "singers": [
       "KMNZ TINA",
       "CULUA"
+    ]
+  },
+  {
+    "video_id": "UfWx2o1VyZ0",
+    "video_title": "剪定、ゼラニウムの行く末 / くろくも (Official Music Video)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "剪定、ゼラニウムの行く末",
+    "original_song_id": "title-artist:v1:82d369370217ebab8d875bed6a1c2cdb30a5f08a38a5426858eb565973319f53",
+    "original_song_title": "剪定、ゼラニウムの行く末",
+    "original_artist_name": "くろくも",
+    "published_at": "2025-08-31T11:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/UfWx2o1VyZ0/hqdefault.jpg",
+    "singers": [
+      "くろくも"
     ]
   },
   {
@@ -697,6 +1446,20 @@
     ]
   },
   {
+    "video_id": "_hN2FvUwv5g",
+    "video_title": "only my railgun／fripSide【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "only my railgun",
+    "original_song_id": "title-artist:v1:e26e2e54acf1951be146f1b4f24020d38e76142b6358795ed74a9b7dd6651f46",
+    "original_song_title": "only my railgun",
+    "original_artist_name": "fripSide",
+    "published_at": "2025-08-17T12:00:55Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/_hN2FvUwv5g/hqdefault.jpg",
+    "singers": [
+      "YuNi"
+    ]
+  },
+  {
     "video_id": "bU4i5h2qqoc",
     "video_title": "ただ君に晴れ / covered by ゆらぎゆら",
     "channel_id": "UCjKPgy9YPt16z8AFMi-TLeA",
@@ -722,6 +1485,76 @@
     "thumbnail_url": "https://i.ytimg.com/vi/OucDDzhTIpk/hqdefault.jpg",
     "singers": [
       "長尾景"
+    ]
+  },
+  {
+    "video_id": "9K9NqHoc6R4",
+    "video_title": "瞬間センチメンタル／SCANDAL【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "瞬間センチメンタル",
+    "original_song_id": "title-artist:v1:184f3b7e6c04296707daac82b1ee47c132688bb7cbc0f2284b41aee5e69541d0",
+    "original_song_title": "瞬間センチメンタル",
+    "original_artist_name": "SCANDAL",
+    "published_at": "2025-07-12T12:00:26Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/9K9NqHoc6R4/hqdefault.jpg",
+    "singers": [
+      "YuNi"
+    ]
+  },
+  {
+    "video_id": "kXHxSHSpLQA",
+    "video_title": "対象a (anNina / ひぐらしのなく頃に解ED) - くろくも cover",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "対象a",
+    "original_song_id": "title-artist:v1:8f3ffce063b7081d1f5a9fd7db54e6c568227ea668d4ef2bf960dc095b267269",
+    "original_song_title": "対象a",
+    "original_artist_name": "anNina",
+    "published_at": "2025-07-06T11:01:14Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/kXHxSHSpLQA/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "mAeWdXPwztg",
+    "video_title": "火星人／ヨルシカ【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "火星人",
+    "original_song_id": "title-artist:v1:e347ab7ed7584c9c2a245c3c3a05ab7d08bdb5f86c65af1f2c1e5c5b49a90216",
+    "original_song_title": "火星人",
+    "original_artist_name": "ヨルシカ",
+    "published_at": "2025-07-01T12:01:37Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/mAeWdXPwztg/hqdefault.jpg",
+    "singers": [
+      "YuNi"
+    ]
+  },
+  {
+    "video_id": "Cfs3z_9IW_I",
+    "video_title": "リリオペ  / くろくも (Official Music Video)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "リリオペ",
+    "original_song_id": "title-artist:v1:b14246670854bba358d6ed58d08dd2dcda178fd0478f9bbbc4b92ef2feb1163a",
+    "original_song_title": "リリオペ",
+    "original_artist_name": "くろくも",
+    "published_at": "2025-06-25T11:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/Cfs3z_9IW_I/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "FNRZITeGPqQ",
+    "video_title": "悪魔の子／ヒグチアイ【Covered by YuNi】",
+    "channel_id": "UCHTnX0CSX_KObo5I9WuZ64g",
+    "song_title": "悪魔の子",
+    "original_song_id": "title-artist:v1:c353acbd129a5644302bb93dd4999f790933288ac53a71d2fe54b0147ac3b47c",
+    "original_song_title": "悪魔の子",
+    "original_artist_name": "ヒグチアイ",
+    "published_at": "2025-06-22T14:00:19Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/FNRZITeGPqQ/hqdefault.jpg",
+    "singers": [
+      "YuNi"
     ]
   },
   {
@@ -768,6 +1601,20 @@
     ]
   },
   {
+    "video_id": "Xcotaqjyaz0",
+    "video_title": "モニタリング / DECO*27 - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "モニタリング",
+    "original_song_id": "title-artist:v1:1288852a28aa12ba6dc051e3a241aaebc2d81ffad2856187ce4d6b49c8402a1a",
+    "original_song_title": "モニタリング",
+    "original_artist_name": "DECO*27",
+    "published_at": "2025-03-12T11:00:49Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/Xcotaqjyaz0/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
     "video_id": "64EmWanCeeE",
     "video_title": "【歌って踊ってみた】鬼ノ宴 【長尾景/にじさんじ】",
     "channel_id": "UCXW4MqCQn-jCaxlX-nn-BYg",
@@ -811,6 +1658,20 @@
     ]
   },
   {
+    "video_id": "jDV93Ui9cr8",
+    "video_title": "【MV】Afureru / くろくも",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "Afureru",
+    "original_song_id": "title-artist:v1:79db2ce1dbf54c994fe8513e4328264220c66eeb8ebd4831a23d2a1ff68b2a65",
+    "original_song_title": "Afureru",
+    "original_artist_name": "くろくも",
+    "published_at": "2025-02-23T11:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/jDV93Ui9cr8/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
     "video_id": "-VF-M2fPs7c",
     "video_title": "はいよろこんで【長尾景/にじさんじ】【歌ってみた】",
     "channel_id": "UCXW4MqCQn-jCaxlX-nn-BYg",
@@ -839,6 +1700,20 @@
     ]
   },
   {
+    "video_id": "TiaaBLF4PB0",
+    "video_title": "【Zenless Zone Zero】アストラ・ヤオMV「ff (フォルティッシモ) 」",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "ff (フォルティッシモ)",
+    "original_song_id": "title-artist:v1:ed0e9087ff391001fd2d286ff377197299397d5abd9b88c6d345f5a89fe6d765",
+    "original_song_title": "ff (フォルティッシモ)",
+    "original_artist_name": "森谷優里 / なかむらゆめみる",
+    "published_at": "2025-01-23T11:00:29Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/TiaaBLF4PB0/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
     "video_id": "fBz5oBoe2cg",
     "video_title": "INTERNET OVERDOSE - Aiobahn +81 feat. KOTOKO (Cover) / KMNZ TINA",
     "channel_id": "UCnwnKd78qy2Txjs1WlfwkxA",
@@ -850,6 +1725,34 @@
     "thumbnail_url": "https://i.ytimg.com/vi/fBz5oBoe2cg/hqdefault.jpg",
     "singers": [
       "KMNZ TINA"
+    ]
+  },
+  {
+    "video_id": "s3CWg9JCFkA",
+    "video_title": "ワールドイズマイン(ryo/supercell) - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "ワールドイズマイン",
+    "original_song_id": "title-artist:v1:92c4274c9fef698df2625a6911dac8c6d553597e83cdad0a8dcf7eee7af220dd",
+    "original_song_title": "ワールドイズマイン",
+    "original_artist_name": "ryo (supercell) feat. 初音ミク",
+    "published_at": "2024-12-25T11:01:03Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/s3CWg9JCFkA/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "6rl1n1EO6F8",
+    "video_title": "エンパープル / はるまきごはん - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "エンパープル",
+    "original_song_id": "title-artist:v1:bf1b9bc2ad5a4f33aca322b23579256b4ba4ea8d8e577725c0f0d8e37cb92bf6",
+    "original_song_title": "エンパープル",
+    "original_artist_name": "はるまきごはん / 初音ミク",
+    "published_at": "2024-12-15T11:00:10Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/6rl1n1EO6F8/hqdefault.jpg",
+    "singers": [
+      "くろくも"
     ]
   },
   {
@@ -1009,6 +1912,20 @@
     ]
   },
   {
+    "video_id": "VUg7hPS6lzI",
+    "video_title": "鬼ノ宴 / 友成空 - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "鬼ノ宴",
+    "original_song_id": "title-artist:v1:88133431c2dbeb32a3394a4c944dfbd5d47e38d706c6ac2084a9ec82969dfd67",
+    "original_song_title": "鬼ノ宴",
+    "original_artist_name": "友成空",
+    "published_at": "2024-04-06T11:00:32Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/VUg7hPS6lzI/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
     "video_id": "R-tU8enQSPc",
     "video_title": "水流のロック / 緑仙 Cover",
     "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
@@ -1034,6 +1951,22 @@
     "thumbnail_url": "https://i.ytimg.com/vi/7LYGF4Np8YQ/hqdefault.jpg",
     "singers": [
       "長尾景"
+    ]
+  },
+  {
+    "video_id": "4N05SrDdqYU",
+    "video_title": "Beyond the way / Giga - くろくも×前島麻由×えるの",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "Beyond the way",
+    "original_song_id": "title-artist:v1:30bcdfe66dbb0f851524b746e8129433083083cd62a72d540e285b3d0f27b1d0",
+    "original_song_title": "Beyond the way",
+    "original_artist_name": "Giga",
+    "published_at": "2024-03-30T11:00:06Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/4N05SrDdqYU/hqdefault.jpg",
+    "singers": [
+      "くろくも",
+      "前島麻由",
+      "えるの"
     ]
   },
   {
@@ -1080,6 +2013,63 @@
     ]
   },
   {
+    "video_id": "pJaMw9W5fc4",
+    "video_title": "唱 (Show/Ado) - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "唱",
+    "original_song_id": "title-artist:v1:42eb8f533ea0909a62d780e4439f80bbf0953a0a7379f9f45814fb714803123a",
+    "original_song_title": "唱",
+    "original_artist_name": "Ado",
+    "published_at": "2023-10-15T11:00:07Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/pJaMw9W5fc4/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "kTckfy9O3Rk",
+    "video_title": "長く短い祭 (椎名林檎) / くろくも×えるの (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "長く短い祭",
+    "original_song_id": "title-artist:v1:0b39719e1ad636386b5fb48c62b28d4f8d8e98b9fef08abbb67f8fd92c060a03",
+    "original_song_title": "長く短い祭",
+    "original_artist_name": "椎名林檎",
+    "published_at": "2023-09-30T11:00:07Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/kTckfy9O3Rk/hqdefault.jpg",
+    "singers": [
+      "くろくも",
+      "えるの"
+    ]
+  },
+  {
+    "video_id": "v0OXEeNiRhY",
+    "video_title": "デーモンロード / Kanaria - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "デーモンロード",
+    "original_song_id": "title-artist:v1:b5e8396aadeed56d1ef990ee6db8cba3cd4f5c9108617b65fd8ab21db4b4d1d7",
+    "original_song_title": "デーモンロード",
+    "original_artist_name": "Kanaria",
+    "published_at": "2023-07-18T11:00:42Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/v0OXEeNiRhY/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "0JSVlt-g2dw",
+    "video_title": "ボイスメモ No.5 (ちゃんみな) / くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "ボイスメモ No. 5",
+    "original_song_id": "title-artist:v1:97f5a5a37acff22afb04702061b7a2592caf8df5e6e645a6ed17131522b5f05a",
+    "original_song_title": "ボイスメモ No. 5",
+    "original_artist_name": "ちゃんみな",
+    "published_at": "2023-05-10T11:00:00Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/0JSVlt-g2dw/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
     "video_id": "_NScDHJXHn0",
     "video_title": "トウキョウ・シャンディ・ランデヴ / 緑仙 Cover",
     "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
@@ -1109,6 +2099,91 @@
     ]
   },
   {
+    "video_id": "e0hdq2V_bQw",
+    "video_title": "QUEEN (Kanaria) - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "QUEEN",
+    "original_song_id": "title-artist:v1:528d2cb9fa8d28fe5ed2aacf835eecbe557c319a6349abae41563c32f4836b38",
+    "original_song_title": "QUEEN",
+    "original_artist_name": "Kanaria",
+    "published_at": "2022-10-31T11:00:33Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/e0hdq2V_bQw/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "u0W7VuhpU0o",
+    "video_title": "月光 (キタニタツヤ×はるまきごはん) - くろくも×ゆある (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "月光",
+    "original_song_id": "title-artist:v1:6ce962ced5ea42e868cea7e31241d63c92686bf436590d60539d07e86fb56d71",
+    "original_song_title": "月光",
+    "original_artist_name": "キタニタツヤ / はるまきごはん",
+    "published_at": "2022-08-11T11:00:23Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/u0W7VuhpU0o/hqdefault.jpg",
+    "singers": [
+      "くろくも",
+      "ゆある"
+    ]
+  },
+  {
+    "video_id": "amyVwsTZgKA",
+    "video_title": "ヴィラン (Villain / てにをは) - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "ヴィラン",
+    "original_song_id": "title-artist:v1:9d890757a6a4fd9792168453c484e65feca2792d4f8cd3ee33987d3793e64b7a",
+    "original_song_title": "ヴィラン",
+    "original_artist_name": "てにをは / flower",
+    "published_at": "2022-07-31T11:00:02Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/amyVwsTZgKA/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "kRcFRnJq7kk",
+    "video_title": "酔いどれ知らず (Kanaria) - くろくも (Cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "酔いどれ知らず",
+    "original_song_id": "title-artist:v1:a70b92c5776d201b07e9610584967002dbde785df877dbed5520c6c932d21bc7",
+    "original_song_title": "酔いどれ知らず",
+    "original_artist_name": "Kanaria",
+    "published_at": "2022-06-04T11:00:19Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/kRcFRnJq7kk/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "xzSt6Jy2yR4",
+    "video_title": "ハレンチ (ちゃんみな) - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "ハレンチ",
+    "original_song_id": "title-artist:v1:6fda0011c5db38619b017dcf68e6e40422ad1d76b0de5aa662d91216fce44db0",
+    "original_song_title": "ハレンチ",
+    "original_artist_name": "ちゃんみな",
+    "published_at": "2022-05-25T11:00:35Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/xzSt6Jy2yR4/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "BJowOv5KO08",
+    "video_title": "CH4NGE (Giga) - kurokumo (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "CH4NGE",
+    "original_song_id": "title-artist:v1:8b25e564aeb400ad52d00b89bb68e5bc4162bc83109854758aeca30d6b9c4dc9",
+    "original_song_title": "CH4NGE",
+    "original_artist_name": "Giga / 可不",
+    "published_at": "2022-03-20T11:00:05Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/BJowOv5KO08/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
     "video_id": "sa3aYNIz6S0",
     "video_title": "クイーンオブハート / 緑仙×アンジュ・カトリーナ Cover",
     "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
@@ -1121,6 +2196,34 @@
     "singers": [
       "緑仙",
       "アンジュ・カトリーナ"
+    ]
+  },
+  {
+    "video_id": "CUk8UauUAYw",
+    "video_title": "アニマル (DECO*27) - くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "アニマル",
+    "original_song_id": "title-artist:v1:79488615988adba1dd44b29235ec2234c77796337a6b367d2768ddf66601ce02",
+    "original_song_title": "アニマル",
+    "original_artist_name": "DECO*27",
+    "published_at": "2021-12-29T11:00:41Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/CUk8UauUAYw/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "Y-lIbbH2lYE",
+    "video_title": "あなたの夜が明けるまで (傘村トータ)  -  くろくも (cover)",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "あなたの夜が明けるまで",
+    "original_song_id": "title-artist:v1:17edbc1af8ea577fd7902c13b3654c420d6d1b6d73136d8b039b6fa298aff851",
+    "original_song_title": "あなたの夜が明けるまで",
+    "original_artist_name": "傘村トータ / IA / Fukase",
+    "published_at": "2021-12-24T11:00:18Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/Y-lIbbH2lYE/hqdefault.jpg",
+    "singers": [
+      "くろくも"
     ]
   },
   {
@@ -1139,6 +2242,20 @@
     ]
   },
   {
+    "video_id": "ByhRN9BcHxk",
+    "video_title": "MAKAFUKA (RADWIMPS) - feat.くろくも (MK Remix) Special Animation",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "MAKAFUKA",
+    "original_song_id": "title-artist:v1:381c52e88bf6ef6cc53a5edad98fc45d459ccf57b81853df652cbc77040d5a53",
+    "original_song_title": "MAKAFUKA",
+    "original_artist_name": "RADWIMPS",
+    "published_at": "2021-11-23T11:00:07Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/ByhRN9BcHxk/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
     "video_id": "qzUU5tfFAeA",
     "video_title": "【音楽的同位体可不】フォニイ / 花譜 feat. 可不(KAFU)",
     "channel_id": "UCQ1U65-CQdIoZ2_NA4Z4F7A",
@@ -1151,6 +2268,20 @@
     "singers": [
       "花譜",
       "可不(KAFU)"
+    ]
+  },
+  {
+    "video_id": "Kq9pzfN3AZo",
+    "video_title": "神っぽいな (God-ish) / ピノキオピー - (cover) くろくも☁",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "神っぽいな",
+    "original_song_id": "title-artist:v1:bd0971f30cead54f59af1e96712abdacec68addc3624c3884301fd93a1fa4ef5",
+    "original_song_title": "神っぽいな",
+    "original_artist_name": "ピノキオピー / 初音ミク",
+    "published_at": "2021-11-02T11:00:08Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/Kq9pzfN3AZo/hqdefault.jpg",
+    "singers": [
+      "くろくも"
     ]
   },
   {
@@ -1200,6 +2331,34 @@
     ]
   },
   {
+    "video_id": "ytMe5V6Dnc0",
+    "video_title": "ギラギラ / Ado - (cover) くろくも☁",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "ギラギラ",
+    "original_song_id": "title-artist:v1:1b270b3e875c635c06e36ab32d7cecacf5b4186b62568ccbf4a6682be01ff3e9",
+    "original_song_title": "ギラギラ",
+    "original_artist_name": "Ado",
+    "published_at": "2021-07-16T11:00:11Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/ytMe5V6Dnc0/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
+    "video_id": "AkDle3EK0dA",
+    "video_title": "キュートなカノジョ / syudou - (cover) くろくも☁",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "キュートなカノジョ",
+    "original_song_id": "title-artist:v1:f3c95771734acec31bb8ab9c307c554f7d597dcc49bff1d69755bd6c9fd3cb93",
+    "original_song_title": "キュートなカノジョ",
+    "original_artist_name": "syudou / 可不（KAFU）",
+    "published_at": "2021-06-19T11:00:04Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/AkDle3EK0dA/hqdefault.jpg",
+    "singers": [
+      "くろくも"
+    ]
+  },
+  {
     "video_id": "RT2YP2O-8co",
     "video_title": "アイディスマイル / 緑仙 Cover",
     "channel_id": "UCt5-0i4AVHXaWJrL8Wql3mw",
@@ -1211,6 +2370,20 @@
     "thumbnail_url": "https://i.ytimg.com/vi/RT2YP2O-8co/hqdefault.jpg",
     "singers": [
       "緑仙"
+    ]
+  },
+  {
+    "video_id": "WeLJVOXwjPc",
+    "video_title": "谺、碧海、那由多を見定むアグラフォノスの詩篇 / Neru,ざうに - (cover) くろくも☁",
+    "channel_id": "UCtOy6aKyz2ltSKSkQccXVGA",
+    "song_title": "谺、碧海、那由多を見定むアグラフォノスの詩篇",
+    "original_song_id": "title-artist:v1:7f8e8e35d8b3eb13897c0272ac2081fb1fa5ad7a9ff271c0066ac88ba40be89e",
+    "original_song_title": "谺、碧海、那由多を見定むアグラフォノスの詩篇",
+    "original_artist_name": "Neru / ざうに / GUMI",
+    "published_at": "2021-06-10T11:00:11Z",
+    "thumbnail_url": "https://i.ytimg.com/vi/WeLJVOXwjPc/hqdefault.jpg",
+    "singers": [
+      "くろくも"
     ]
   },
   {
