@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from collector.db import VideoRecord, VideoRepository
+from collector.channel_registry import load_channel_registry, register_channel
 from collector.enrich_batch import enrich_channel
 from collector.enricher import VideoEnricher
 from collector.local_db import LocalJsonStore, LocalSingerVideoIndexRepository, LocalVideoRepository
@@ -14,6 +15,34 @@ from collector.youtube_client import YouTubeClient
 
 
 class CollectionTest(unittest.TestCase):
+    def test_channel_registration_resolves_and_persists_canonical_id(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'channels.json'
+            youtube = Mock()
+            youtube.resolve_channel_id.return_value = 'UC-canonical'
+            youtube.fetch_channel_info.return_value = {'channel_name': 'Singer'}
+
+            result = register_channel(
+                'https://www.youtube.com/watch?v=video', youtube, path,
+            )
+
+            self.assertEqual(result, ('UC-canonical', 'Singer', True))
+            self.assertEqual(load_channel_registry(path), {'UC-canonical': 'Singer'})
+
+    def test_channel_registration_updates_name_without_duplication(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'channels.json'
+            path.write_text(json.dumps({'UC-one': 'Old'}), encoding='utf-8')
+            youtube = Mock()
+            youtube.resolve_channel_id.return_value = 'UC-one'
+            youtube.fetch_channel_info.return_value = {'channel_name': 'Ignored'}
+
+            result = register_channel('UC-one', youtube, path, singer_name='New')
+
+            self.assertEqual(result, ('UC-one', 'New', False))
+            self.assertEqual(load_channel_registry(path), {'UC-one': 'New'})
+            youtube.fetch_channel_info.assert_called_once_with('UC-one')
+
     def test_local_store_exports_public_data_without_grounding(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

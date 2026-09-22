@@ -87,6 +87,6 @@ npm run build
 
 バックエンドの開発依存導入後（`cd backend && uv sync --extra dev`）、リポジトリルートから `uv run --project backend --extra dev python -m unittest discover -s backend/tests -v` で原曲情報のAPI変換テストを実行できます。外部DBへの接続は不要です。
 
-収集の準備・Web grounding・原曲ID付与・再試行は [collector/README.md](collector/README.md) を参照してください。`GEMINI_MODEL` と `ORIGINAL_SONGS_PATH` はコレクター用の追加設定です。設定例は `collector/.env.example` にあります。
+収集は `vsxp-register-channel` でチャンネルを登録し、引数なしの `vsxp-collect` で登録済みチャンネルの未確認動画を処理する2段階です。準備・Web grounding・原曲ID付与・再試行は [collector/README.md](collector/README.md) を参照してください。`GEMINI_MODEL` と `ORIGINAL_SONGS_PATH` はコレクター用の追加設定です。設定例は `collector/.env.example` にあります。
 
 既定では、コレクターが生成する `public/data/videos.json` と `public/data/singers.json` を画面から直接読みます。個人開発や検証ではAWS認証や常設バックエンドは不要です。定期収集をクラウドで動かす場合は、保存先をDynamoDBへ切り替えられます。

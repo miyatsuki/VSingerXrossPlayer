@@ -19,6 +19,7 @@ import sys
 import time
 from typing import List
 
+from .channel_registry import load_channel_registry
 from .config import get_collector_settings
 from .db import SingerVideoIndexRepository, VideoRepository
 from .enricher import VideoEnricher
@@ -392,15 +393,16 @@ def cli():
     args = parser.parse_args()
 
     if not args.channel_urls and not args.video_urls:
-        # Use target channels from config if none specified
+        # Collect every channel registered in the shared channel catalog.
         settings = get_collector_settings()
-        if not settings.target_channel_ids:
-            print("Error: No channel URLs specified", file=sys.stderr)
+        registered_channels = load_channel_registry(settings.singer_channels_path)
+        if not registered_channels:
+            print("Error: No channels are registered", file=sys.stderr)
             print(
-                "Use --channel-url or set TARGET_CHANNEL_IDS in .env", file=sys.stderr
+                "Run vsxp-register-channel --channel-url URL first", file=sys.stderr
             )
             sys.exit(1)
-        args.channel_urls = settings.target_channel_ids
+        args.channel_urls = list(registered_channels)
 
     return main(
         args.channel_urls or [],

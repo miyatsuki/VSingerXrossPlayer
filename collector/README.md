@@ -41,7 +41,7 @@ ORIGINAL_SONGS_PATH=../public/original-songs.json
 SINGER_CHANNELS_PATH=../public/singer-channels.json
 ```
 
-`TARGET_CHANNEL_IDS` はJSON配列です。`ORIGINAL_SONGS_PATH` は確認済み原曲の対応表です。未登録の初期値は `[]` です。存在しないファイルや矛盾した対応表はエラーになります。
+`ORIGINAL_SONGS_PATH` は確認済み原曲の対応表です。未登録の初期値は `[]` です。存在しないファイルや矛盾した対応表はエラーになります。
 
 ローカルJSONでは、再処理用のgrounding根拠を `LOCAL_STORE_PATH` に保存し、Git管理しません。
 画面用に必要な項目だけを `PUBLIC_DATA_DIR/videos.json` と `singers.json` へ自動出力します。
@@ -60,7 +60,29 @@ AWSプロファイル・環境変数・IAMロールを使用してください�
 uv run python scripts/create_tables.py
 ```
 
-## 収集
+## チャンネル登録と収集
+
+収集対象は2段階で扱います。最初にチャンネルを一度だけ登録します。チャンネルURL、動画URL、
+ハンドル、チャンネルIDを指定でき、動画URLからは所属チャンネルを解決します。歌手名を省略すると
+YouTubeのチャンネル名を使います。
+
+```bash
+uv run vsxp-register-channel \
+  --channel-url 'https://www.youtube.com/watch?v=VIDEO_ID' \
+  --singer-name '歌手名'
+```
+
+登録内容は `SINGER_CHANNELS_PATH`（既定は `public/singer-channels.json`）に保存され、
+Geminiが原曲側の歌手をカバー歌手と誤認するのを防ぐ対応表としても使われます。
+
+次に、引数なしの `vsxp-collect` で登録済みの全チャンネルを巡回します。保存済み動画は候補数に
+含めず、未確認動画だけを取得・分類・登録します。
+
+```bash
+uv run vsxp-collect --max-videos 100 --max-song-videos 30 --metadata-only
+```
+
+特定のチャンネルだけを臨時に収集する場合は、従来どおり `--channel-url` を指定できます。
 
 ```bash
 uv run vsxp-collect --channel-url 'https://www.youtube.com/@handle' --max-videos 100 --max-song-videos 30
@@ -91,7 +113,7 @@ uv run vsxp-collect \
 コメント分析、AI特徴量、サビ解析を省略します。
 
 - `--channel-url` は繰り返し指定できます。チャンネルURL・動画URL・ハンドル・チャンネルIDに対応します。動画URLを指定した場合も収集対象はそのチャンネルです。
-- `--channel-id` は互換用の別名です。省略時は `TARGET_CHANNEL_IDS` を使います。
+- `--channel-id` は互換用の別名です。収集対象を省略すると登録済みの全チャンネルを使います。
 - `--max-videos` は保存済み動画を除いてチャンネルから取得する未処理動画IDの上限、`--max-song-videos` は原曲特定と保存に成功した歌動画数の上限です。どちらもチャンネルごとで、0は無制限です。保存済み動画は `--max-videos` の件数に含めず、必要数の未処理動画が見つかるまで過去の投稿へページングします。チャンネルの全投稿を調べ終えた場合や、未確定の動画がある場合は上限数まで集まらないことがあります。
 - `--song-search-results` は「歌ってみた」「Cover」「MV」などでチャンネル内検索する候補数です。YouTube Data APIのsearch.listはクォータ消費が大きいため、必要なチャンネルだけで使用してください。
 - 通常は保存済みの動画をスキップします。`--overwrite` でYouTube情報を再取得・再解析できます。メタデータ更新で既存の原曲情報を消しません。
