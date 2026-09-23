@@ -7,8 +7,27 @@ const source = readFileSync(new URL('../src/utils/singerSimilarity.ts', import.m
 const { outputText } = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
 });
-const { SingerSimilarity } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
+const { SingerSimilarity, groupOriginalArtist } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
 const video = (song_title, singers, video_id = song_title) => ({ song_title, singers, video_id, video_title: 'video title' });
+
+test('groups confirmed synthetic singers under the credited creator', () => {
+  assert.equal(groupOriginalArtist('カンザキイオリ / 鏡音リン / 鏡音レン'), 'カンザキイオリ');
+  assert.equal(groupOriginalArtist('カンザキイオリ / 初音ミク'), 'カンザキイオリ');
+  assert.equal(groupOriginalArtist('Neru & z\'5 feat. 鏡音リン & 鏡音レン'), 'Neru & z\'5');
+  assert.equal(groupOriginalArtist('のりぴー / 水野悠良 / 鏡音レン'), 'のりぴー / 水野悠良');
+  assert.equal(groupOriginalArtist('傘村トータ / IA / Fukase'), '傘村トータ / Fukase');
+  assert.equal(groupOriginalArtist('花譜 / 神聖かまってちゃん'), '花譜 / 神聖かまってちゃん');
+});
+
+test('combines artist preferences and map groups across synthetic voice credits', () => {
+  const index = new SingerSimilarity([
+    { ...video('First', ['A'], 'first'), original_artist_name: 'カンザキイオリ / 初音ミク' },
+    { ...video('Second', ['B'], 'second'), original_artist_name: 'カンザキイオリ / 鏡音リン / 鏡音レン' },
+  ]);
+  assert.equal(index.artistProfiles.size, 1);
+  assert.equal(index.artistProfiles.get('カンザキイオリ').songs.size, 2);
+  assert.deepEqual(index.findSimilar('A')[0].commonArtists, ['カンザキイオリ']);
+});
 
 test('deduplicates covers and normalizes width, whitespace and case; includes collaborators', () => {
   const index = new SingerSimilarity([

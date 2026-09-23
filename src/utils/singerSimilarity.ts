@@ -90,6 +90,26 @@ export interface ArtistMapPoint {
   singerCount: number;
 }
 
+// Only remove confirmed singing voice names when they appear as separate credits.
+const vocalSynthVoices = new Set([
+  '初音ミク', '鏡音リン', '鏡音レン', '鏡音リン・レン', '巡音ルカ', 'KAITO',
+  'GUMI', 'IA', 'flower', 'Ci flower', 'VY1V4',
+  '可不', '可不（KAFU）', '星界', '裏命', '重音テト', '花隈千冬',
+].map(name => name.normalize('NFKC')));
+
+export function groupOriginalArtist(artist?: string): string | undefined {
+  if (!artist?.trim()) return artist;
+  const normalize = (value: string) => value.normalize('NFKC').trim().replace(/\s+/g, ' ');
+  const isVoiceList = (value: string) => value.split(/\s*&\s*/)
+    .every(name => vocalSynthVoices.has(normalize(name)));
+  const parts = artist.split(/\s+\/\s+/).map(part => {
+    if (vocalSynthVoices.has(normalize(part))) return '';
+    const featured = part.match(/^(.*?)\s+feat\.\s+(.+)$/i);
+    return featured && isVoiceList(featured[2]) ? featured[1].trim() : part.trim();
+  }).filter(Boolean);
+  return parts.length ? parts.join(' / ') : artist.trim();
+}
+
 // Keep punctuation: removing it can merge distinct titles.
 export function normalizeSongTitle(title: string): string {
   return title.normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
@@ -167,7 +187,7 @@ export class OriginalSongResolver {
       key,
       song: {
         title: displayTitle,
-        artist: catalogSong?.artist || artist,
+        artist: groupOriginalArtist(catalogSong?.artist || artist),
         videoId: video.video_id,
         provisional: !resolvedId && !artist,
       },

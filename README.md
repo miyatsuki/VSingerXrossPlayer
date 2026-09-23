@@ -17,6 +17,8 @@
 
 歌い手の所属・ユニット・別名とユニット名から個人名への対応、原曲アーティストのタグは `public/singer-metadata.json` で管理します。このファイルは収集データを更新しても保持されます。ユニット名で登録された歌唱は、対応表に記載されたメンバーそれぞれの一覧に表示されます。原曲アーティストのグルーピングは動画データの `original_artist_name` を使います。
 
+原曲アーティスト名に確認済みの合成音声名が独立した名義として付いている場合は、画面表示・絞り込み・類似マップでその名義を除いて集約します。たとえば `カンザキイオリ / 鏡音リン / 鏡音レン` は `カンザキイオリ` として扱います。確認済みの名前は `src/utils/singerSimilarity.ts` に列挙し、曖昧な名義は残します。収集元の原曲クレジットと原曲IDは変更しません。
+
 所属とメンバーの確認元: [にじさんじ公式](https://www.nijisanji.jp/)、[RK Music](https://rkmusic.jp/artist/316/)、[HOLOSTARS公式](https://holostars.hololivepro.com/en/talent/)、[ホロライブ公式](https://hololive.hololivepro.com/talents/hoshimachi-suisei/)、[KAMITSUBAKI STUDIO](https://kamitsubaki.jp/artist/kaf/)。
 
 ## 動作環境

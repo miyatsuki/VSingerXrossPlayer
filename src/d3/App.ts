@@ -5,7 +5,7 @@ import { XMBInterface } from './XMBInterface';
 import { VideoDetailCard } from './VideoDetailCard';
 import { RadarChart } from './RadarChart';
 import { WordCloud } from './WordCloud';
-import { SingerSimilarity } from '../utils/singerSimilarity';
+import { SingerSimilarity, groupOriginalArtist } from '../utils/singerSimilarity';
 import { SingerDiscovery } from './SingerDiscovery';
 import './browseControls.css';
 
@@ -120,6 +120,7 @@ export class App {
     const songsByVideo = new Map<string, Song>();
     apiVideos.forEach(v => {
       const songTitle = v.song_title || v.video_title;
+      const originalArtist = groupOriginalArtist(v.original_artist_name);
       const youtubeId = v.video_id;
       const primarySingerName = v.singers && v.singers.length > 0 ? v.singers[0] : 'Unknown';
       v.singers?.forEach(ensureSinger);
@@ -138,8 +139,8 @@ export class App {
         chorus_end_time: v.chorus_end_time,
         thumbnail_url: v.thumbnail_url,
         original_song_title: v.original_song_title,
-        original_artist_name: v.original_artist_name,
-        artist_tags: metadata.artistTags[v.original_artist_name || ''] || metadata.tags[v.original_artist_name || ''] || [],
+        original_artist_name: originalArtist,
+        artist_tags: metadata.artistTags[originalArtist || ''] || metadata.tags[originalArtist || ''] || [],
       });
     });
     const songs = Array.from(songsByVideo.values());
