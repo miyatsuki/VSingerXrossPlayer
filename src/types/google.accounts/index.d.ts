@@ -149,6 +149,7 @@ declare namespace google.accounts {
 			}
 
 			interface TokenClientConfig {
+				error_callback?: (error: { type: 'popup_failed_to_open' | 'popup_closed' | 'unknown' }) => void;
 					/**
 					 * Required.
 					 * The client ID for your application. You can find this value in

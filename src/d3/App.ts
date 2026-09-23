@@ -7,6 +7,8 @@ import { RadarChart } from './RadarChart';
 import { WordCloud } from './WordCloud';
 import { SingerSimilarity, groupOriginalArtist } from '../utils/singerSimilarity';
 import { SingerDiscovery } from './SingerDiscovery';
+import { ColumnPlaylist, columnVideoIds } from './ColumnPlaylist';
+import { loadGoogleIdentity } from '../utils/youtubePlaylist';
 import './browseControls.css';
 
 export class App {
@@ -27,6 +29,8 @@ export class App {
   private artistSelect: HTMLSelectElement | null = null;
   private groupingSelect: HTMLSelectElement | null = null;
   private resultCount: HTMLSpanElement | null = null;
+  private playlistButton: HTMLButtonElement | null = null;
+  private columnPlaylist: ColumnPlaylist | null = null;
   private searchText = '';
   private selectedTag = '';
   private selectedArtist = '';
@@ -57,6 +61,12 @@ export class App {
       if (appContainer) {
         this.createTransposeButton(appContainer);
         this.createBrowseControls(appContainer);
+        const clientId = import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID;
+        this.columnPlaylist = new ColumnPlaylist(appContainer, () => {
+          this.navigation?.enable();
+          this.playlistButton?.focus();
+        }, clientId);
+        if (clientId) void loadGoogleIdentity().catch(() => undefined);
         this.videoDetailCard = new VideoDetailCard(appContainer);
         this.singerDiscovery = new SingerDiscovery(appContainer, this.similarity,
           () => this.navigation?.disable(), () => this.navigation?.enable());
@@ -276,7 +286,17 @@ export class App {
     this.resultCount = document.createElement('span');
     this.resultCount.className = 'browse-result-count';
     this.resultCount.setAttribute('aria-live', 'polite');
-    this.controls.append(this.searchInput, this.groupingSelect, this.tagSelect, this.artistSelect, this.resultCount);
+    this.playlistButton = document.createElement('button');
+    this.playlistButton.type = 'button';
+    this.playlistButton.className = 'column-playlist-trigger';
+    this.playlistButton.onclick = () => {
+      const category = this.navigation?.getCurrentCategory();
+      const videoIds = columnVideoIds(category || null);
+      if (!category || !videoIds.length) return;
+      this.navigation?.disable();
+      this.columnPlaylist?.show(category, videoIds);
+    };
+    this.controls.append(this.searchInput, this.groupingSelect, this.tagSelect, this.artistSelect, this.resultCount, this.playlistButton);
     parent.appendChild(this.controls);
     this.updateBrowseControls();
     this.applyFilters();
@@ -317,6 +337,16 @@ export class App {
     if (this.resultCount) this.resultCount.textContent = `${this.categories.length}件${this.categories.length ? '' : ' — 該当なし'}`;
     this.navigation?.updateCategories(this.categories);
     this.xmbInterface?.setCategories(this.categories);
+    this.updatePlaylistButton();
+  }
+
+  private updatePlaylistButton() {
+    if (!this.playlistButton) return;
+    const category = this.navigation?.getCurrentCategory() || this.categories[0] || null;
+    const count = columnVideoIds(category).length;
+    this.playlistButton.disabled = count === 0;
+    this.playlistButton.textContent = count ? `この列を連続再生（${count}本）` : 'この列を連続再生';
+    this.playlistButton.title = count ? `${category?.title} の動画を順番に再生` : '再生できる動画がありません';
   }
 
   private updateTransposeButton() {
@@ -328,6 +358,7 @@ export class App {
 
   private handleItemSelection = (_state: any, currentItem: Song | null) => {
     console.log('[App] Item selected:', currentItem?.id);
+    this.updatePlaylistButton();
 
     if (!currentItem || !('video_url' in currentItem)) {
       this.videoDetailCard?.hide();
@@ -406,6 +437,7 @@ export class App {
     this.xmbInterface?.destroy();
     this.videoDetailCard?.destroy();
     this.singerDiscovery?.destroy();
+    this.columnPlaylist?.destroy();
     this.transposeButton?.remove();
     this.controls?.remove();
     this.destroyVisualizations();

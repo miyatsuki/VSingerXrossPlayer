@@ -14,7 +14,8 @@
 .xmb-container .vertical-axis { top: 265px !important; }
 
 .browse-controls input,
-.browse-controls select {
+.browse-controls select,
+.browse-controls button {
   min-width: 0;
   max-width: 100%;
   padding: 9px 11px;
@@ -28,6 +29,9 @@
 .browse-controls input { flex: 1 1 230px; }
 .browse-controls select { flex: 0 1 170px; }
 .browse-controls select[hidden] { display: none; }
+.browse-controls button { cursor: pointer; }
+.browse-controls button:disabled { cursor: not-allowed; opacity: 0.5; }
+.browse-controls button:hover:not(:disabled) { background: #3b3b3b; }
 .browse-result-count {
   align-self: center;
   color: #bbb;
@@ -35,10 +39,71 @@
   font-size: 13px;
 }
 
+.column-playlist-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.82);
+}
+
+.column-playlist-overlay[hidden] { display: none; }
+
+.column-playlist-panel {
+  width: min(900px, 100%);
+  padding: 20px;
+  border: 1px solid #555;
+  border-radius: 16px;
+  background: #202020;
+}
+
+.column-playlist-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.column-playlist-header h2 { font-size: 20px; }
+.column-playlist-header button {
+  padding: 8px 12px;
+  border: 1px solid #777;
+  border-radius: 8px;
+  background: #303030;
+  color: white;
+  cursor: pointer;
+}
+
+.column-playlist-count { margin: 12px 0; color: #bbb; font-size: 13px; }
+.column-playlist-panel iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 8px;
+}
+
+.column-playlist-save {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid #8accc4;
+  border-radius: 8px;
+  background: #285e59;
+  color: white;
+  cursor: pointer;
+}
+
+.column-playlist-save:disabled { opacity: 0.6; cursor: wait; }
+.column-playlist-save-status { margin-top: 10px; color: #ddd; font-size: 13px; }
+.column-playlist-save-status a { color: #a9e7e1; }
+
 @media (max-width: 720px) {
   .browse-controls { top: 116px; justify-content: flex-start; }
   .browse-controls input { flex-basis: 100%; }
   .browse-controls select { flex: 1 1 145px; }
-  .xmb-container .horizontal-axis { top: 275px !important; }
-  .xmb-container .vertical-axis { top: 335px !important; }
+  .xmb-container .horizontal-axis { top: 315px !important; }
+  .xmb-container .vertical-axis { top: 375px !important; }
 }
