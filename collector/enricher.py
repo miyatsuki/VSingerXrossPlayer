@@ -15,9 +15,10 @@ from .db import SingerVideoIndexRepository
 from .gemini_client import GeminiClient
 from .youtube_client import YouTubeClient
 
-# Duration thresholds (in seconds)
-DURATION_MIN = 60  # Exclude Shorts (< 1 minute)
-DURATION_MAX = 60 * 20  # Exclude live streams (> 20 minutes)
+# Duration thresholds (in seconds). The public YouTube Data API has no
+# canonical Shorts flag, so short-form videos still need a duration heuristic.
+DURATION_MIN = 60
+DURATION_MAX = 60 * 20
 
 
 class VideoEnricher:
@@ -60,7 +61,16 @@ class VideoEnricher:
             print(f"Video not found: {video_id}")
             return ""
 
-        # 2. Filter by duration
+        # 2. Filter active and scheduled broadcasts using YouTube's explicit
+        # state. Do not reject completed broadcasts here: premiered music
+        # videos can have the same public broadcast metadata as live archives.
+        if getattr(video, "live_broadcast_content", "none") in {"live", "upcoming"}:
+            status = video.live_broadcast_content
+            print(f"Skipping {video_id}: YouTube broadcast status is {status}")
+            self.repo.update_video_type(channel_id, video_id, "UNKNOWN")
+            return "UNKNOWN"
+
+        # 3. Filter by duration
         if video.duration is None:
             print(f"Skipping {video_id}: no duration")
             return ""
@@ -74,7 +84,7 @@ class VideoEnricher:
             self.repo.update_video_type(channel_id, video_id, "UNKNOWN")
             return "UNKNOWN"
 
-        # 3. Classify video type
+        # 4. Classify video type
         print(f"Classifying {video_id}: {video.video_title[:50]}...")
         video_type_result = self.gemini.classify_video_type(
             video.video_title, video.description or ""
@@ -99,7 +109,7 @@ class VideoEnricher:
             self.repo.update_video_type(channel_id, video_id, video_type)
             return video_type
 
-        # 4. Extract song information
+        # 5. Extract song information
         print(f"Extracting song info for {video_id}...")
         song_info = self.gemini.extract_song_info(
             video.video_title, video.description or "", channel_name or "",

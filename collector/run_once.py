@@ -55,6 +55,12 @@ def collect_videos(
     failures = 0
     completed = 0
     for video in videos:
+        if getattr(video, "is_active_live_broadcast", False):
+            print(
+                f"Skipping active/scheduled broadcast: {video.video_id} "
+                f"({video.live_broadcast_content})"
+            )
+            continue
         try:
             if not overwrite and video_repo.get_video(video.channel_id, video.video_id):
                 print(f"Skipping stored video: {video.video_id}")
@@ -192,7 +198,14 @@ def collect_channel(
 
         # Store and enrich each video
         for video in videos:
-            if video.duration == 0:
+            if getattr(video, "is_active_live_broadcast", False):
+                print(
+                    f"  ↷ Skipped active/scheduled broadcast: {video.video_id} "
+                    f"({video.live_broadcast_content})"
+                )
+                # Do not store it as processed. A scheduled Premiere is
+                # indistinguishable from a scheduled live stream in the public
+                # API and should be reconsidered after it finishes.
                 continue
             try:
                 video_repo.upsert_video(video)

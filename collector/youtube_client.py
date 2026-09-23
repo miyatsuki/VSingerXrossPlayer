@@ -23,6 +23,8 @@ class YouTubeVideo:
         like_count: int = 0,
         comment_count: int = 0,
         channel_title: str = "",
+        live_broadcast_content: str = "none",
+        has_live_streaming_details: bool = False,
     ):
         self.video_id = video_id
         self.channel_id = channel_id
@@ -35,6 +37,13 @@ class YouTubeVideo:
         self.like_count = like_count
         self.comment_count = comment_count
         self.channel_title = channel_title
+        self.live_broadcast_content = live_broadcast_content
+        self.has_live_streaming_details = has_live_streaming_details
+
+    @property
+    def is_active_live_broadcast(self) -> bool:
+        """Whether this video is currently live or scheduled to go live."""
+        return self.live_broadcast_content in {"live", "upcoming"}
 
 
 class YouTubeClient:
@@ -341,7 +350,7 @@ class YouTubeClient:
             "videos",
             {
                 "id": ",".join(video_ids[:50]),
-                "part": "snippet,contentDetails,statistics",
+                "part": "snippet,contentDetails,statistics,liveStreamingDetails",
             },
         )
 
@@ -380,6 +389,10 @@ class YouTubeClient:
                     like_count=like_count,
                     comment_count=comment_count,
                     channel_title=channel_title,
+                    live_broadcast_content=item["snippet"].get(
+                        "liveBroadcastContent", "none"
+                    ),
+                    has_live_streaming_details="liveStreamingDetails" in item,
                 )
             )
 

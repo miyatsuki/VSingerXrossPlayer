@@ -111,8 +111,6 @@ class LocalVideoRepository:
         return set(self.store.data["videos"].get(channel_id, {}))
 
     def upsert_video(self, video):
-        if video.duration == 0:
-            return
         channel = self.store.data["videos"].setdefault(video.channel_id, {})
         existing = channel.get(video.video_id, {})
         channel[video.video_id] = existing | {
@@ -127,6 +125,12 @@ class LocalVideoRepository:
             "like_count": video.like_count,
             "comment_count": video.comment_count,
             "channel_title": video.channel_title,
+            "live_broadcast_content": getattr(
+                video, "live_broadcast_content", "none"
+            ),
+            "has_live_streaming_details": getattr(
+                video, "has_live_streaming_details", False
+            ),
         }
         self.store.save()
 
@@ -149,6 +153,8 @@ class LocalVideoRepository:
                 "like_count": 0, "comment_count": 0, "channel_title": "",
                 "original_song_id": "", "grounding_status": "", "video_type": "",
                 "thumbnail_url": "",
+                "live_broadcast_content": "none",
+                "has_live_streaming_details": False,
             }.items()
         }) if value else None
 

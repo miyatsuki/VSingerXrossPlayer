@@ -198,6 +198,78 @@ class CollectionTest(unittest.TestCase):
         self.assertEqual(client._get.call_count, 2)
         self.assertEqual(client._get.call_args_list[1].args[1]['pageToken'], 'next')
 
+    def test_video_details_include_public_live_broadcast_state(self):
+        client = YouTubeClient('key')
+        client._get = Mock(return_value={
+            'items': [{
+                'id': 'live-video',
+                'snippet': {
+                    'channelId': 'channel', 'channelTitle': 'Singer',
+                    'title': 'Live', 'description': '',
+                    'publishedAt': '2026-01-01',
+                    'liveBroadcastContent': 'upcoming',
+                },
+                'contentDetails': {'duration': 'PT0S'},
+                'liveStreamingDetails': {'scheduledStartTime': '2026-01-02'},
+            }],
+        })
+
+        video = client.fetch_videos(['live-video'])[0]
+
+        self.assertEqual(video.live_broadcast_content, 'upcoming')
+        self.assertTrue(video.has_live_streaming_details)
+        self.assertTrue(video.is_active_live_broadcast)
+        self.assertIn(
+            'liveStreamingDetails', client._get.call_args.args[1]['part'],
+        )
+
+    def test_active_live_broadcast_skips_gemini_classification(self):
+        repo, gemini = Mock(), Mock()
+        repo.get_video.return_value = SimpleNamespace(
+            duration=0, video_title='Scheduled stream', description='',
+            live_broadcast_content='upcoming',
+        )
+
+        result = VideoEnricher(gemini, repo).enrich_video('channel', 'video')
+
+        self.assertEqual(result, 'UNKNOWN')
+        repo.update_video_type.assert_called_once_with(
+            'channel', 'video', 'UNKNOWN',
+        )
+        gemini.classify_video_type.assert_not_called()
+
+    def test_channel_collection_defers_active_broadcast_without_storing_it(self):
+        youtube, repo, enricher = Mock(), Mock(), Mock()
+        youtube.fetch_channel_info.return_value = {
+            'channel_name': 'Singer', 'channel_icon_url': '', 'subscriber_count': 1,
+        }
+        youtube.fetch_video_ids_from_channel.return_value = {'scheduled'}
+        youtube.fetch_videos.return_value = [SimpleNamespace(
+            video_id='scheduled', title='Premiere or live', duration=0,
+            live_broadcast_content='upcoming', is_active_live_broadcast=True,
+        )]
+        repo.list_existing_video_ids.return_value = set()
+
+        collect_channel('channel', youtube, repo, enricher)
+
+        repo.upsert_video.assert_not_called()
+        enricher.enrich_video.assert_not_called()
+
+    def test_completed_broadcast_is_not_rejected_before_classification(self):
+        repo, gemini = Mock(), Mock()
+        repo.get_video.return_value = SimpleNamespace(
+            duration=200, video_title='Premiered MV', description='',
+            live_broadcast_content='none', has_live_streaming_details=True,
+        )
+        gemini.classify_video_type.return_value = {
+            'type': 'UNKNOWN', 'confidence': 1, 'reason': 'test',
+        }
+
+        result = VideoEnricher(gemini, repo).enrich_video('channel', 'video')
+
+        self.assertEqual(result, 'UNKNOWN')
+        gemini.classify_video_type.assert_called_once()
+
     def test_explicit_video_collection_never_expands_to_channel(self):
         youtube, repo, enricher = Mock(), Mock(), Mock()
         youtube.fetch_videos.return_value = [SimpleNamespace(

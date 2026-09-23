@@ -27,6 +27,8 @@ class VideoRecord:
         grounding_status: str = "",
         video_type: str = "",
         thumbnail_url: str = "",
+        live_broadcast_content: str = "none",
+        has_live_streaming_details: bool = False,
     ):
         self.video_id = video_id
         self.video_title = video_title
@@ -44,6 +46,8 @@ class VideoRecord:
         self.grounding_status = grounding_status
         self.video_type = video_type
         self.thumbnail_url = thumbnail_url
+        self.live_broadcast_content = live_broadcast_content
+        self.has_live_streaming_details = has_live_streaming_details
 
 
 class VideoRepository:
@@ -107,10 +111,6 @@ class VideoRepository:
         Args:
           video: YouTubeVideo object to store
         """
-        # Skip live streams (duration == 0)
-        if video.duration == 0:
-            return
-
         item: Dict[str, Any] = {
             "channel_id": {"S": video.channel_id},
             "video_id": {"S": video.video_id},
@@ -122,6 +122,12 @@ class VideoRepository:
             "like_count": {"N": str(video.like_count)},
             "comment_count": {"N": str(video.comment_count)},
             "channel_title": {"S": video.channel_title},
+            "live_broadcast_content": {
+                "S": getattr(video, "live_broadcast_content", "none")
+            },
+            "has_live_streaming_details": {
+                "BOOL": getattr(video, "has_live_streaming_details", False)
+            },
         }
 
         # Add thumbnail URL if available
@@ -205,6 +211,12 @@ class VideoRepository:
             original_song_id=item.get("original_song_id", {}).get("S", ""),
             grounding_status=item.get("grounding_status", {}).get("S", ""),
             video_type=item.get("video_type", {}).get("S", ""),
+            live_broadcast_content=item.get("live_broadcast_content", {}).get(
+                "S", "none"
+            ),
+            has_live_streaming_details=item.get(
+                "has_live_streaming_details", {}
+            ).get("BOOL", False),
         )
 
     def list_videos_by_channel(self, channel_id: str) -> List[VideoRecord]:
@@ -246,6 +258,12 @@ class VideoRepository:
                         original_song_id=item.get("original_song_id", {}).get("S", ""),
                         grounding_status=item.get("grounding_status", {}).get("S", ""),
                         video_type=item.get("video_type", {}).get("S", ""),
+                        live_broadcast_content=item.get(
+                            "live_broadcast_content", {}
+                        ).get("S", "none"),
+                        has_live_streaming_details=item.get(
+                            "has_live_streaming_details", {}
+                        ).get("BOOL", False),
                     )
                 )
 
