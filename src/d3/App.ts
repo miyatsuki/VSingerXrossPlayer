@@ -246,10 +246,12 @@ export class App {
       this.applyFilters();
     };
 
-    this.groupingSelect = this.makeSelect('楽曲の表示', [
-      ['', '楽曲ごと'], ['artists', '原曲アーティストごと'],
+    this.groupingSelect = this.makeSelect('XMBの表示単位', [
+      ['songs', '楽曲ごと'], ['artists', '原曲アーティストごと'], ['singers', '歌い手ごと'],
     ], value => {
-      this.songGrouping = value === 'artists' ? 'artists' : 'songs';
+      this.browseMode = value === 'singers' ? 'singers' : 'songs';
+      if (value !== 'singers') this.songGrouping = value === 'artists' ? 'artists' : 'songs';
+      this.updateTransposeButton();
       this.applyFilters();
     });
     this.tagSelect = this.makeSelect('所属・ユニット・レーベル', [
@@ -288,7 +290,7 @@ export class App {
   }
 
   private updateBrowseControls() {
-    if (this.groupingSelect) this.groupingSelect.hidden = this.browseMode !== 'songs';
+    if (this.groupingSelect) this.groupingSelect.value = this.browseMode === 'singers' ? 'singers' : this.songGrouping;
   }
 
   private applyFilters() {

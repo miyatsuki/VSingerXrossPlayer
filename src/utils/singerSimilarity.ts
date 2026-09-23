@@ -64,6 +64,32 @@ export interface SongMapPoint {
   singerCount: number;
 }
 
+export interface ArtistProfile {
+  key: string;
+  name: string;
+  songs: Set<string>;
+  singers: Set<string>;
+  videoId: string;
+}
+
+export interface SimilarArtist {
+  key: string;
+  name: string;
+  score: number;
+  songCount: number;
+  singerCount: number;
+  commonSingers: string[];
+  videoId: string;
+}
+
+export interface ArtistMapPoint {
+  key: string;
+  name: string;
+  x: number;
+  y: number;
+  singerCount: number;
+}
+
 // Keep punctuation: removing it can merge distinct titles.
 export function normalizeSongTitle(title: string): string {
   return title.normalize('NFKC').trim().replace(/\s+/g, ' ').toLowerCase();
@@ -152,12 +178,15 @@ export class OriginalSongResolver {
 export class SingerSimilarity {
   readonly repertoires = new Map<string, Repertoire>();
   readonly songProfiles = new Map<string, SongProfile>();
+  readonly artistProfiles = new Map<string, ArtistProfile>();
   private weights = new Map<string, number>();
   private norms = new Map<string, number>();
   private artistVectors = new Map<string, Map<string, { name: string; value: number }>>();
   private artistNorms = new Map<string, number>();
   private songSingerWeights = new Map<string, number>();
   private songNorms = new Map<string, number>();
+  private artistSingerWeights = new Map<string, number>();
+  private artistProfileNorms = new Map<string, number>();
   private videoToSongKey = new Map<string, string>();
 
   constructor(videos: ApiVideo[], catalog: OriginalSong[] = []) {
@@ -238,6 +267,32 @@ export class SingerSimilarity {
       this.songNorms.set(key, Math.sqrt(Array.from(song.singers).reduce(
         (sum, singer) => sum + (this.songSingerWeights.get(singer) || 0) ** 2, 0,
       )));
+
+      if (song.artist?.trim()) {
+        const artistKey = normalizeArtist(song.artist);
+        let artist = this.artistProfiles.get(artistKey);
+        if (!artist) {
+          artist = { key: artistKey, name: song.artist.trim(), songs: new Set(), singers: new Set(), videoId: song.videoId };
+          this.artistProfiles.set(artistKey, artist);
+        }
+        artist.songs.add(key);
+        song.singers.forEach(singer => artist!.singers.add(singer));
+      }
+    }
+
+    const singerArtistCounts = new Map<string, number>();
+    for (const artist of this.artistProfiles.values()) {
+      for (const singer of artist.singers) {
+        singerArtistCounts.set(singer, (singerArtistCounts.get(singer) || 0) + 1);
+      }
+    }
+    for (const [singer, count] of singerArtistCounts) {
+      this.artistSingerWeights.set(singer, Math.log((1 + this.artistProfiles.size) / (1 + count)) + 1);
+    }
+    for (const [key, artist] of this.artistProfiles) {
+      this.artistProfileNorms.set(key, Math.sqrt(Array.from(artist.singers).reduce(
+        (sum, singer) => sum + this.artistSingerWeights.get(singer)! ** 2, 0,
+      )));
     }
   }
 
@@ -313,6 +368,12 @@ export class SingerSimilarity {
     return this.videoToSongKey.get(videoId);
   }
 
+  artistKeyForVideo(videoId: string): string | undefined {
+    const songKey = this.videoToSongKey.get(videoId);
+    const artist = songKey ? this.songProfiles.get(songKey)?.artist : undefined;
+    return artist ? normalizeArtist(artist) : undefined;
+  }
+
   findSimilarSongs(key: string, limit = 5): SimilarSong[] {
     const source = this.songProfiles.get(key);
     if (!source) return [];
@@ -352,6 +413,45 @@ export class SingerSimilarity {
     return Math.min(1, dot / (sourceNorm * targetNorm));
   }
 
+  findSimilarArtists(key: string, limit = 5): SimilarArtist[] {
+    const source = this.artistProfiles.get(key);
+    if (!source) return [];
+    const matches: SimilarArtist[] = [];
+    for (const target of this.artistProfiles.values()) {
+      if (target.key === key) continue;
+      const commonSingers = Array.from(source.singers)
+        .filter(singer => target.singers.has(singer))
+        .sort((a, b) => a.localeCompare(b, 'ja'));
+      if (!commonSingers.length) continue;
+      matches.push({
+        key: target.key,
+        name: target.name,
+        score: this.artistProfileSimilarityScore(key, target.key),
+        songCount: target.songs.size,
+        singerCount: target.singers.size,
+        commonSingers,
+        videoId: target.videoId,
+      });
+    }
+    return matches.sort((a, b) => b.score - a.score
+      || b.commonSingers.length - a.commonSingers.length
+      || a.name.localeCompare(b.name, 'ja')).slice(0, Math.max(0, limit));
+  }
+
+  artistProfileSimilarityScore(first: string, second: string): number {
+    if (first === second) return this.artistProfiles.has(first) ? 1 : 0;
+    const source = this.artistProfiles.get(first);
+    const target = this.artistProfiles.get(second);
+    const sourceNorm = this.artistProfileNorms.get(first);
+    const targetNorm = this.artistProfileNorms.get(second);
+    if (!source || !target || !sourceNorm || !targetNorm) return 0;
+    let dot = 0;
+    for (const singer of source.singers) {
+      if (target.singers.has(singer)) dot += this.artistSingerWeights.get(singer)! ** 2;
+    }
+    return Math.min(1, dot / (sourceNorm * targetNorm));
+  }
+
   /** Deterministic force layout: similar repertoires attract, all nodes repel. */
   createMap(): SingerMapPoint[] {
     const layout = createSimilarityMap(
@@ -386,6 +486,66 @@ export class SingerSimilarity {
         singerCount: point.count,
       };
     });
+  }
+
+  createArtistMap(): ArtistMapPoint[] {
+    const singers = new Map(this.createMap().map(point => [point.singer, point]));
+    const artists = Array.from(this.artistProfiles.values())
+      .sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+    const groupOffsets = new Map<string, number>();
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    const clamp = (value: number) => Math.max(0.06, Math.min(0.94, value));
+    const points = artists.map(artist => {
+      const singerNames = Array.from(artist.singers).sort((a, b) => a.localeCompare(b, 'ja'));
+      const positions = singerNames.map(name => singers.get(name)!);
+      const anchorX = positions.reduce((sum, point) => sum + point.x, 0) / positions.length;
+      const anchorY = positions.reduce((sum, point) => sum + point.y, 0) / positions.length;
+      const group = singerNames.join('\u0000');
+      const offset = groupOffsets.get(group) || 0;
+      groupOffsets.set(group, offset + 1);
+      const radius = 0.025 * Math.sqrt(offset);
+      return {
+        artist,
+        anchorX,
+        anchorY,
+        x: clamp(anchorX + radius * Math.cos(offset * goldenAngle)),
+        y: clamp(anchorY + radius * Math.sin(offset * goldenAngle)),
+      };
+    });
+    for (let iteration = 0; iteration < 100; iteration += 1) {
+      for (let first = 0; first < points.length; first += 1) {
+        for (let second = first + 1; second < points.length; second += 1) {
+          const left = points[first];
+          const right = points[second];
+          let dx = right.x - left.x;
+          let dy = right.y - left.y;
+          let distance = Math.hypot(dx, dy);
+          if (distance < 1e-8) {
+            const angle = (first + second + 1) * goldenAngle;
+            dx = Math.cos(angle) * 1e-4;
+            dy = Math.sin(angle) * 1e-4;
+            distance = 1e-4;
+          }
+          if (distance >= 0.028) continue;
+          const push = (0.028 - distance) * 0.3;
+          left.x -= dx / distance * push;
+          left.y -= dy / distance * push;
+          right.x += dx / distance * push;
+          right.y += dy / distance * push;
+        }
+      }
+      for (const point of points) {
+        point.x = clamp(point.x + (point.anchorX - point.x) * 0.008);
+        point.y = clamp(point.y + (point.anchorY - point.y) * 0.008);
+      }
+    }
+    return points.map(point => ({
+      key: point.artist.key,
+      name: point.artist.name,
+      x: point.x,
+      y: point.y,
+      singerCount: point.artist.singers.size,
+    }));
   }
 }
 

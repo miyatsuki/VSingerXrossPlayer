@@ -180,6 +180,38 @@ test('maps every transposed song deterministically and includes collaborators', 
   assert.ok(first.every(point => Number.isFinite(point.x) && Number.isFinite(point.y)));
 });
 
+test('groups original artists by covering singers and keeps unknown artists out of the map', () => {
+  const index = new SingerSimilarity([
+    { ...video('First', ['A'], 'first'), original_artist_name: 'Artist One' },
+    { ...video('Second', ['B'], 'second'), original_artist_name: 'Artist One' },
+    { ...video('Third', ['A'], 'third'), original_artist_name: 'Artist Two' },
+    { ...video('Fourth', ['C'], 'fourth'), original_artist_name: 'Artist Three' },
+    video('Unknown', ['A'], 'unknown'),
+  ]);
+  const key = index.artistKeyForVideo('first');
+  assert.equal(key, 'artist one');
+  assert.equal(index.artistKeyForVideo('unknown'), undefined);
+  assert.equal(index.artistProfiles.get(key).songs.size, 2);
+  assert.deepEqual([...index.artistProfiles.get(key).singers].sort(), ['A', 'B']);
+  const [match] = index.findSimilarArtists(key);
+  assert.equal(match.name, 'Artist Two');
+  assert.deepEqual(match.commonSingers, ['A']);
+  assert.ok(match.score > 0 && match.score < 1);
+  assert.deepEqual(index.createArtistMap(), index.createArtistMap());
+  assert.equal(index.createArtistMap().length, 3);
+});
+
+test('spreads artists covered by the same singer across distinct map positions', () => {
+  const index = new SingerSimilarity(Array.from({ length: 30 }, (_, number) => ({
+    ...video(`Song ${number}`, ['A'], `video-${number}`),
+    original_artist_name: `Artist ${number}`,
+  })));
+  const points = index.createArtistMap();
+  assert.equal(points.length, 30);
+  assert.equal(new Set(points.map(point => `${point.x.toFixed(4)},${point.y.toFixed(4)}`)).size, 30);
+  assert.deepEqual(points, index.createArtistMap());
+});
+
 test('rejects conflicting catalog aliases, video assignments and IDs', () => {
   const another = { id: 'song-b', title: '別曲', artist: '別作者' };
   assert.throws(() => new SingerSimilarity([], [catalog[0], { ...another, aliases: [{ title: '正式曲名', artist: '原作者' }] }]));

@@ -1,7 +1,7 @@
 import { SingerSimilarity } from '../utils/singerSimilarity';
 import './singerDiscovery.css';
 
-type DiscoveryMode = 'singers' | 'songs';
+type DiscoveryMode = 'singers' | 'songs' | 'artists';
 
 interface MapPoint {
   id: string;
@@ -28,6 +28,7 @@ export class SingerDiscovery {
   private mode: DiscoveryMode = 'singers';
   private selectedSinger = '';
   private selectedSong = '';
+  private selectedArtist = '';
 
   constructor(parent: HTMLElement, private similarity: SingerSimilarity, onOpen: () => void, onClose: () => void) {
     this.trigger.className = 'discovery-trigger';
@@ -49,7 +50,7 @@ export class SingerDiscovery {
     close.onclick = () => this.dialog.close();
     this.modeButton.type = 'button';
     this.modeButton.onclick = () => {
-      this.mode = this.mode === 'singers' ? 'songs' : 'singers';
+      this.mode = this.mode === 'singers' ? 'songs' : this.mode === 'songs' ? 'artists' : 'singers';
       this.populateSelect();
       this.render();
     };
@@ -61,7 +62,8 @@ export class SingerDiscovery {
     const label = document.createElement('label');
     this.select.onchange = () => {
       if (this.mode === 'singers') this.selectedSinger = this.select.value;
-      else this.selectedSong = this.select.value;
+      else if (this.mode === 'songs') this.selectedSong = this.select.value;
+      else this.selectedArtist = this.select.value;
       this.render();
     };
     label.append(this.selectLabel, this.select);
@@ -84,17 +86,23 @@ export class SingerDiscovery {
     const key = this.similarity.songKeyForVideo(videoId);
     if (!key) return;
     this.selectedSong = key;
+    const artist = this.similarity.artistKeyForVideo(videoId);
+    if (artist) this.selectedArtist = artist;
     if (this.mode === 'songs') this.select.value = key;
+    if (this.mode === 'artists') this.select.value = this.selectedArtist;
   }
 
   private populateSelect() {
-    const selected = this.mode === 'singers' ? this.selectedSinger : this.selectedSong;
+    const selected = this.mode === 'singers' ? this.selectedSinger
+      : this.mode === 'songs' ? this.selectedSong : this.selectedArtist;
     this.select.replaceChildren();
     const options = this.mode === 'singers'
       ? Array.from(this.similarity.repertoires.keys()).map(value => ({ value, label: value }))
-      : Array.from(this.similarity.songProfiles.values()).map(song => ({
+      : this.mode === 'songs' ? Array.from(this.similarity.songProfiles.values()).map(song => ({
         value: song.key,
         label: `${song.title}${song.artist ? ` / ${song.artist}` : ''}`,
+      })) : Array.from(this.similarity.artistProfiles.values()).map(artist => ({
+        value: artist.key, label: artist.name,
       }));
     options.sort((a, b) => a.label.localeCompare(b.label, 'ja'));
     for (const item of options) {
@@ -105,22 +113,26 @@ export class SingerDiscovery {
     }
     if (selected && options.some(option => option.value === selected)) this.select.value = selected;
     if (this.mode === 'singers') this.selectedSinger = this.select.value;
-    else this.selectedSong = this.select.value;
+    else if (this.mode === 'songs') this.selectedSong = this.select.value;
+    else this.selectedArtist = this.select.value;
   }
 
   private render() {
     if (this.mode === 'singers') this.renderSingers();
-    else this.renderSongs();
+    else if (this.mode === 'songs') this.renderSongs();
+    else this.renderArtists();
   }
 
   private updateModeText() {
-    const singers = this.mode === 'singers';
-    this.heading.textContent = singers ? '選曲が近い歌手' : '選ぶ歌手が近い楽曲';
-    this.modeButton.textContent = singers ? '楽曲へ転置' : '歌手へ転置';
-    this.modeButton.setAttribute('aria-label', singers
-      ? '行列を転置して、同じ歌手に選ばれる楽曲を比較する'
-      : '行列を転置して、選曲が近い歌手を比較する');
-    this.selectLabel.textContent = singers ? '基準にする歌手 ' : '基準にする楽曲 ';
+    const settings = {
+      singers: ['選曲が近い歌手', '楽曲へ転置', '基準にする歌手 '],
+      songs: ['選ぶ歌手が近い楽曲', '原曲アーティストへ', '基準にする楽曲 '],
+      artists: ['歌い手が近い原曲アーティスト', '歌手へ転置', '基準にする原曲アーティスト '],
+    }[this.mode];
+    this.heading.textContent = settings[0];
+    this.modeButton.textContent = settings[1];
+    this.modeButton.setAttribute('aria-label', `${settings[1]}切り替える`);
+    this.selectLabel.textContent = settings[2];
   }
 
   private renderSingers() {
@@ -221,6 +233,48 @@ export class SingerDiscovery {
     this.results.append(list, this.note('歌手×楽曲行列を転置し、同じ歌手に歌われている楽曲を近くしています。多くの曲を歌う歌手の重みは下げています。'));
   }
 
+  private renderArtists() {
+    this.updateModeText();
+    this.results.replaceChildren();
+    const key = this.select.value;
+    const artist = this.similarity.artistProfiles.get(key);
+    if (!artist) return;
+    const matches = this.similarity.findSimilarArtists(key);
+    const points: MapPoint[] = this.similarity.createArtistMap().map(point => ({
+      id: point.key,
+      label: point.name,
+      count: point.singerCount,
+      x: point.x,
+      y: point.y,
+      countLabel: `${point.singerCount}人`,
+    }));
+    this.appendSummaryAndMap(
+      `${points.length}組の原曲アーティストを全体配置。${artist.name}：登録曲 ${artist.songs.size}曲、歌った登録歌手 ${artist.singers.size}人。`,
+      '原曲アーティストを歌った歌手の類似度で二次元に近似したマップ',
+      points,
+      matches.map(match => ({ id: match.key, score: match.score })),
+      key,
+      2,
+      true,
+    );
+    if (!matches.length) {
+      this.appendEmpty('この原曲アーティストの曲を歌った歌手による、別の原曲アーティストの登録曲はまだありません。');
+      return;
+    }
+    const list = document.createElement('ol');
+    for (const match of matches) {
+      const item = document.createElement('li');
+      const title = document.createElement('strong');
+      title.textContent = `${match.name} · 類似度 ${Math.round(match.score * 100)}/100`;
+      const reason = document.createElement('p');
+      reason.textContent = `共通歌手 ${match.commonSingers.join('、')} / 登録 ${match.songCount}曲・${match.singerCount}人`;
+      if (Math.min(artist.singers.size, match.singerCount) < 2) reason.textContent += ' · 登録歌手が少ないため参考値';
+      item.append(title, reason, this.youtubeLink(match.videoId, 'カバー動画の例を開く', match.name));
+      list.appendChild(item);
+    }
+    this.results.append(list, this.note('同じ歌手がカバーしている原曲アーティストを近くしています。多くの原曲アーティストを歌う歌手の重みは下げています。'));
+  }
+
   private appendSummaryAndMap(
     summaryText: string,
     mapLabel: string,
@@ -282,7 +336,8 @@ export class SingerDiscovery {
       const choose = () => {
         this.select.value = point.id;
         if (this.mode === 'singers') this.selectedSinger = point.id;
-        else this.selectedSong = point.id;
+        else if (this.mode === 'songs') this.selectedSong = point.id;
+        else this.selectedArtist = point.id;
         this.render();
       };
       group.addEventListener('click', choose);
