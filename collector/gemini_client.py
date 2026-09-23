@@ -74,6 +74,11 @@ class GeminiClient:
         )
         return chat.send_message(prompt)
 
+    def _send_message(self, message, config: types.GenerateContentConfig):
+        """Run a one-turn generation through Chat to avoid Models AFC warnings."""
+        chat = self.client.chats.create(model=self.model, config=config)
+        return chat.send_message(message)
+
     def classify_video_type(self, title: str, description: str) -> Dict[str, Any]:
         """
         Classify video type using Gemini API.
@@ -107,10 +112,9 @@ class GeminiClient:
 }}"""
 
         try:
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=types.GenerateContentConfig(
+            response = self._send_message(
+                prompt,
+                types.GenerateContentConfig(
                     response_mime_type="application/json",
                     temperature=1,  # Deterministic output
                 ),
@@ -176,9 +180,8 @@ class GeminiClient:
                 return empty
 
             # Search + JSON mode support varies by model. Keep this call tool-free.
-            structured = self.client.models.generate_content(
-                model=self.model,
-                contents=f"""以下の検索調査結果だけを整理してください。新しい事実・URLを補わないでください。
+            structured = self._send_message(
+                f"""以下の検索調査結果だけを整理してください。新しい事実・URLを補わないでください。
 入力の歌唱動画と原曲の対応が引用元で確認できる場合のみstatusをidentifiedにします。
 メドレー、同名異曲が未解決、根拠不足の場合はambiguousまたはnot_foundにしてください。
 source_indicesには対応関係の根拠となる参照元のindexを入れてください。
@@ -187,7 +190,7 @@ source_indicesには対応関係の根拠となる参照元のindexを入れて�
 入力: {context}
 調査結果: {research.text}
 参照元: {json.dumps(sources, ensure_ascii=False)}""",
-                config=types.GenerateContentConfig(
+                types.GenerateContentConfig(
                     response_mime_type="application/json", response_schema=SongExtraction,
                     temperature=1,
                 ),
@@ -248,14 +251,13 @@ https://www.youtube.com/channel/UC... のURLを本文へそのまま記載して
             if not queries or not sources or not research.text:
                 return empty
 
-            structured = self.client.models.generate_content(
-                model=self.model,
-                contents=f"""次の検索調査結果だけから、歌手「{singer_name}」本人の公式YouTube
+            structured = self._send_message(
+                f"""次の検索調査結果だけから、歌手「{singer_name}」本人の公式YouTube
 チャンネルを整理してください。channel_urlは調査結果本文に明記されたYouTube URLだけを使い、
 本人確認が曖昧ならambiguousまたはnot_foundにしてください。新しいURLを推測しないでください。
 調査結果: {research.text}
 参照元: {json.dumps(sources, ensure_ascii=False)}""",
-                config=types.GenerateContentConfig(
+                types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=ChannelDiscovery,
                     temperature=1,
@@ -360,15 +362,12 @@ https://www.youtube.com/channel/UC... のURLを本文へそのまま記載して
 
         try:
             # Analyze YouTube video directly using Video Understanding API
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=types.Content(
-                    parts=[
-                        types.Part(file_data=types.FileData(file_uri=youtube_url)),
-                        types.Part(text=prompt),
-                    ]
-                ),
-                config=types.GenerateContentConfig(
+            response = self._send_message(
+                [
+                    types.Part(file_data=types.FileData(file_uri=youtube_url)),
+                    types.Part(text=prompt),
+                ],
+                types.GenerateContentConfig(
                     response_mime_type="application/json",
                     temperature=1,
                 ),
@@ -449,10 +448,9 @@ https://www.youtube.com/channel/UC... のURLを本文へそのまま記載して
 - 固有名詞は絶対に含めない"""
 
         try:
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=prompt,
-                config=types.GenerateContentConfig(
+            response = self._send_message(
+                prompt,
+                types.GenerateContentConfig(
                     response_mime_type="application/json",
                     temperature=1,
                 ),
@@ -522,15 +520,12 @@ https://www.youtube.com/channel/UC... のURLを本文へそのまま記載して
 
         try:
             # Analyze YouTube video directly using Video Understanding API
-            response = self.client.models.generate_content(
-                model=self.model,
-                contents=types.Content(
-                    parts=[
-                        types.Part(file_data=types.FileData(file_uri=youtube_url)),
-                        types.Part(text=prompt),
-                    ]
-                ),
-                config=types.GenerateContentConfig(
+            response = self._send_message(
+                [
+                    types.Part(file_data=types.FileData(file_uri=youtube_url)),
+                    types.Part(text=prompt),
+                ],
+                types.GenerateContentConfig(
                     response_mime_type="application/json",
                     temperature=1,
                 ),

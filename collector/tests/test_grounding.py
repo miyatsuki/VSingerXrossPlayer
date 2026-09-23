@@ -33,8 +33,7 @@ class GroundingTest(unittest.TestCase):
             'original_artists': ['Artist'], 'source_indices': [0],
             'original_url': 'https://example.org/official',
         }))
-        client.client.chats.create.return_value.send_message.return_value = research
-        client.client.models.generate_content.return_value = structured
+        client.client.chats.create.return_value.send_message.side_effect = [research, structured]
         return client
 
     def test_search_then_structure_and_persist_evidence(self):
@@ -43,15 +42,15 @@ class GroundingTest(unittest.TestCase):
         self.assertEqual(result['song_title'], 'Official song')
         self.assertTrue(result['original_song_id'].startswith('title-artist:v1:'))
         self.assertEqual(result['grounding']['sources'][0]['url'], 'https://example.org/official')
-        chat_call = client.client.chats.create.call_args
-        structured_call = client.client.models.generate_content.call_args
-        self.assertIsNotNone(chat_call.kwargs['config'].tools[0].google_search)
+        search_call, structured_call = client.client.chats.create.call_args_list
+        self.assertIsNotNone(search_call.kwargs['config'].tools[0].google_search)
         self.assertEqual(
             structured_call.kwargs['config'].response_mime_type, 'application/json',
         )
         self.assertIsNone(structured_call.kwargs['config'].tools)
-        sent_prompt = client.client.chats.create.return_value.send_message.call_args.args[0]
+        sent_prompt = client.client.chats.create.return_value.send_message.call_args_list[0].args[0]
         self.assertIn('cover-id', sent_prompt)
+        client.client.models.generate_content.assert_not_called()
 
     def test_grounded_official_channel_is_discovered(self):
         channel_url = 'https://www.youtube.com/channel/UCaaaaaaaaaaaaaaaaaaaaaa'
@@ -66,17 +65,16 @@ class GroundingTest(unittest.TestCase):
             'status': 'identified', 'channel_url': channel_url,
             'source_indices': [0], 'reason': 'Official profile links to it',
         }))
-        client.client.chats.create.return_value.send_message.return_value = research
-        client.client.models.generate_content.return_value = structured
+        client.client.chats.create.return_value.send_message.side_effect = [research, structured]
 
         result = client.discover_official_channel('Guest Singer')
 
         self.assertEqual(result['status'], 'identified')
         self.assertEqual(result['channel_url'], channel_url)
-        chat_call = client.client.chats.create.call_args
-        structured_call = client.client.models.generate_content.call_args
-        self.assertIsNotNone(chat_call.kwargs['config'].tools[0].google_search)
+        search_call, structured_call = client.client.chats.create.call_args_list
+        self.assertIsNotNone(search_call.kwargs['config'].tools[0].google_search)
         self.assertIsNone(structured_call.kwargs['config'].tools)
+        client.client.models.generate_content.assert_not_called()
 
     def test_no_search_evidence_never_becomes_a_song(self):
         for meta in [None, types.GroundingMetadata(web_search_queries=['query'])]:
@@ -87,6 +85,7 @@ class GroundingTest(unittest.TestCase):
             self.assertEqual(
                 client.client.chats.create.return_value.send_message.call_count, 1,
             )
+            self.assertEqual(client.client.chats.create.call_count, 1)
             client.client.models.generate_content.assert_not_called()
 
     def test_ambiguous_and_fabricated_source_indices_are_rejected(self):
@@ -137,8 +136,27 @@ class GroundingTest(unittest.TestCase):
         client.client.chats.create.return_value.send_message.side_effect = RuntimeError('failure')
         self.assertEqual(client.extract_song_info('title', '')['grounding']['status'], 'error')
         client = self.client(metadata())
-        client.client.models.generate_content.return_value = SimpleNamespace(text='not JSON')
+        client.client.chats.create.return_value.send_message.side_effect = [
+            SimpleNamespace(text='research', candidates=[SimpleNamespace(grounding_metadata=metadata())]),
+            SimpleNamespace(text='not JSON'),
+        ]
         self.assertEqual(client.extract_song_info('title', '')['grounding']['status'], 'error')
+
+    def test_classification_uses_chat_without_models_afc(self):
+        client = GeminiClient.__new__(GeminiClient)
+        client.model = 'test-model'
+        client.client = Mock()
+        client.client.chats.create.return_value.send_message.return_value = SimpleNamespace(
+            text=json.dumps({'type': 'UNKNOWN', 'confidence': 0.98, 'reason': 'Product review'}),
+        )
+
+        result = client.classify_video_type('Microphone review', 'Product introduction')
+
+        self.assertEqual(result['type'], 'UNKNOWN')
+        config = client.client.chats.create.call_args.kwargs['config']
+        self.assertEqual(config.response_mime_type, 'application/json')
+        self.assertIsNone(config.tools)
+        client.client.models.generate_content.assert_not_called()
 
     def test_stable_ids_and_curated_aliases(self):
         resolver = OriginalSongs()
