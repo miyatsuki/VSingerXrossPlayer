@@ -255,6 +255,51 @@ class CollectionTest(unittest.TestCase):
         repo.upsert_video.assert_not_called()
         enricher.enrich_video.assert_not_called()
 
+    def test_next_collection_refetches_completed_premiere_with_updated_title(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo = LocalVideoRepository(
+                LocalJsonStore(root / 'private.json', root / 'public'),
+            )
+            youtube, enricher = Mock(), Mock()
+            youtube.fetch_channel_info.return_value = {
+                'channel_name': 'Singer', 'channel_icon_url': '',
+                'subscriber_count': 1,
+            }
+            youtube.fetch_video_ids_from_channel.return_value = {'premiere'}
+
+            common = {
+                'video_id': 'premiere', 'channel_id': 'channel',
+                'description': '', 'published_at': '2026-01-01',
+                'thumbnail_url': '', 'view_count': 0, 'like_count': 0,
+                'comment_count': 0, 'channel_title': 'Singer',
+                'has_live_streaming_details': True,
+            }
+            upcoming = SimpleNamespace(
+                **common, title='Premiere placeholder', duration=0,
+                live_broadcast_content='upcoming',
+                is_active_live_broadcast=True,
+            )
+            completed = SimpleNamespace(
+                **common, title='Final song title', duration=240,
+                live_broadcast_content='none',
+                is_active_live_broadcast=False,
+            )
+            youtube.fetch_videos.side_effect = [[upcoming], [completed]]
+            enricher.enrich_video.return_value = 'SONG'
+
+            with patch('collector.run_once.time.sleep'):
+                collect_channel('channel', youtube, repo, enricher)
+                self.assertEqual(repo.list_existing_video_ids('channel'), set())
+                collect_channel('channel', youtube, repo, enricher)
+
+            stored = repo.get_video('channel', 'premiere')
+            self.assertEqual(stored.video_title, 'Final song title')
+            self.assertEqual(youtube.fetch_videos.call_count, 2)
+            enricher.enrich_video.assert_called_once_with(
+                'channel', 'premiere', 'Singer',
+            )
+
     def test_completed_broadcast_is_not_rejected_before_classification(self):
         repo, gemini = Mock(), Mock()
         repo.get_video.return_value = SimpleNamespace(
