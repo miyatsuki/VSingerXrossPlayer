@@ -2,8 +2,15 @@ import * as d3 from 'd3';
 import cloud from 'd3-cloud';
 import { CommentWord } from '../types';
 
+interface CloudWord {
+  text: string;
+  size: number;
+  x?: number;
+  y?: number;
+}
+
 export class WordCloud {
-  private svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
+  private svg: d3.Selection<SVGGElement, unknown, null, undefined>;
   private width: number;
   private height: number;
 
@@ -30,11 +37,11 @@ export class WordCloud {
     // Prepare data for d3-cloud
     const cloudWords = words.map(w => ({
       text: w.word,
-      size: this.calculateFontSize(w.priority),
+      size: this.calculateFontSize(w.importance),
     }));
 
     // Create word cloud layout
-    const layout = cloud()
+    const layout = cloud<CloudWord>()
       .size([this.width, this.height])
       .words(cloudWords)
       .padding(5)
@@ -46,14 +53,14 @@ export class WordCloud {
     layout.start();
   }
 
-  private calculateFontSize(priority: number): number {
-    // Map priority (0-10) to font size (12-32)
+  private calculateFontSize(importance: number): number {
+    // Map importance (0-100) to font size (12-32)
     const minSize = 12;
     const maxSize = 32;
-    return minSize + (priority / 10) * (maxSize - minSize);
+    return minSize + (Math.max(0, Math.min(100, importance)) / 100) * (maxSize - minSize);
   }
 
-  private draw(words: any[]) {
+  private draw(words: CloudWord[]) {
     // Color scale based on size
     const colorScale = d3.scaleLinear<string>()
       .domain([12, 32])
@@ -67,7 +74,7 @@ export class WordCloud {
       .style('font-family', 'Segoe UI')
       .style('fill', d => colorScale(d.size))
       .attr('text-anchor', 'middle')
-      .attr('transform', d => `translate(${d.x}, ${d.y})`)
+      .attr('transform', d => `translate(${d.x || 0}, ${d.y || 0})`)
       .text(d => d.text);
   }
 

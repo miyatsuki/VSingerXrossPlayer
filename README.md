@@ -3,11 +3,21 @@
 「歌ってみた」動画を楽しむための、PSP XMB（クロスメディアバー）風Webアプリケーションです。
 歌手ごとの歌唱動画と原曲情報を収集し、選曲の共通度から近い歌手を可視化します。
 
+公開サイト: [https://v-singer-xross-player.vercel.app](https://v-singer-xross-player.vercel.app)
+
 ## 特徴
 
 - **XMB風ナビゲーション**: 矢印キーによる直感的な操作（上下左右）。
 - **AI特徴可視化**: 歌い手や楽曲の「Energy」「Mood」「Vocal」「Instrumental」をレーダーチャートで表示。
 - **背景動画再生**: 選択中の楽曲を背景でループ再生。
+
+## 検索と絞り込み
+
+画面上部で曲名・歌い手・原曲アーティストを検索できます。歌い手や原曲アーティストの所属・ユニット・レーベルタグと、原曲アーティスト名で絞り込めます。「楽曲ごと」と「原曲アーティストごと」は表示単位の切り替えです。絞り込みは歌手表示にも適用されます。
+
+歌い手の所属・ユニット・別名とユニット名から個人名への対応、原曲アーティストのタグは `public/singer-metadata.json` で管理します。このファイルは収集データを更新しても保持されます。ユニット名で登録された歌唱は、対応表に記載されたメンバーそれぞれの一覧に表示されます。原曲アーティストのグルーピングは動画データの `original_artist_name` を使います。
+
+所属とメンバーの確認元: [にじさんじ公式](https://www.nijisanji.jp/)、[RK Music](https://rkmusic.jp/artist/316/)、[HOLOSTARS公式](https://holostars.hololivepro.com/en/talent/)、[ホロライブ公式](https://hololive.hololivepro.com/talents/hoshimachi-suisei/)、[KAMITSUBAKI STUDIO](https://kamitsubaki.jp/artist/kaf/)。
 
 ## 動作環境
 
@@ -63,7 +73,7 @@ npm run build
 - スコアは曲調や声質の近さ、推薦の確率を表すものではありません。登録曲が3曲未満の場合は参考値として表示します。
 - 同名異曲は原曲IDまたは原曲アーティストで区別します。両方が不明な場合の同名異曲は区別できません。比較対象は `/video-pages` で取得した全ページです。ページをまたぐ同一動画のコラボ参加者も統合します。バックエンドも同時に更新してください。
 
-`npm test` で類似度計算のテストを実行します（Node.js標準テストランナー使用）。既存の `src/App.test.tsx` は旧React構成の未接続テストで、このコマンドの対象外です。
+`npm test` で類似度計算のテストを実行します（Node.js標準テストランナー使用）。
 
 ### 原曲対応表
 

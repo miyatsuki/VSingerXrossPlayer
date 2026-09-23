@@ -8,7 +8,7 @@ interface RadarDataPoint {
 }
 
 export class RadarChart {
-  private svg: d3.Selection<SVGSVGElement, unknown, null, undefined>;
+  private svg: d3.Selection<SVGGElement, unknown, null, undefined>;
   private width: number;
   private height: number;
   private radius: number;
@@ -46,11 +46,6 @@ export class RadarChart {
     }));
 
     const angleSlice = (Math.PI * 2) / data.length;
-
-    // Scales
-    const rScale = d3.scaleLinear()
-      .domain([0, 100])
-      .range([0, this.radius]);
 
     // Draw grid circles
     const levels = 5;

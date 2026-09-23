@@ -19,16 +19,17 @@ export class NavigationController {
   }
 
   updateCategories(categories: Category[]) {
+    const previousCategory = this.getCurrentCategory();
+    const previousItem = this.getCurrentItem();
     this.categories = categories;
-    // Clamp cursor to valid range
     if (categories.length > 0) {
-      this.state.cursorX = Math.min(this.state.cursorX, categories.length - 1);
-      this.state.cursorX = Math.max(0, this.state.cursorX);
+      const preservedIndex = categories.findIndex(category => category.id === previousCategory?.id);
+      this.state.cursorX = preservedIndex >= 0 ? preservedIndex : 0;
 
       const currentCat = categories[this.state.cursorX];
       if (currentCat && currentCat.items.length > 0) {
-        this.state.cursorY = Math.min(this.state.cursorY, currentCat.items.length - 1);
-        this.state.cursorY = Math.max(0, this.state.cursorY);
+        const itemIndex = currentCat.items.findIndex(item => item.id === previousItem?.id);
+        this.state.cursorY = itemIndex >= 0 ? itemIndex : 0;
       } else {
         this.state.cursorY = 0;
       }
@@ -88,6 +89,8 @@ export class NavigationController {
 
   private handleKeyDown = (e: KeyboardEvent) => {
     if (!this.isEnabled) return;
+    const target = e.target as HTMLElement | null;
+    if (target?.matches('input, select, textarea, [contenteditable="true"]')) return;
 
     switch (e.key) {
       case 'ArrowLeft':

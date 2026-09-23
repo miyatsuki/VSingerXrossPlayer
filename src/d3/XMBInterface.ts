@@ -117,7 +117,7 @@ export class XMBInterface {
       .attr('class', 'category-icon')
       .style('font-size', '20px')
       .style('margin-bottom', '5px')
-      .text((d) => d.icon || '');
+      .text((d) => typeof d.icon === 'string' ? d.icon : '');
 
     // Title
     categoryEnter.append('div')
@@ -126,6 +126,16 @@ export class XMBInterface {
       .style('color', 'rgba(255,255,255,0.6)')
       .style('transition', 'all 0.2s')
       .text((d) => d.title);
+
+    categoryEnter.append('div')
+      .attr('class', 'category-tags')
+      .style('font-size', '11px')
+      .style('color', '#a9e7e1')
+      .style('max-width', `${this.CATEGORY_WIDTH}px`)
+      .style('white-space', 'nowrap')
+      .style('overflow', 'hidden')
+      .style('text-overflow', 'ellipsis')
+      .text((d) => [d.type === 'songs' ? d.artist : '', ...(d.tags || [])].filter(Boolean).join(' · '));
 
     // Active indicator line
     categoryEnter.append('div')
@@ -141,6 +151,9 @@ export class XMBInterface {
     categories.merge(categoryEnter)
       .select('.category-title')
       .text((d) => d.title);
+    categories.merge(categoryEnter)
+      .select('.category-tags')
+      .text((d) => [d.type === 'songs' ? d.artist : '', ...(d.tags || [])].filter(Boolean).join(' · '));
 
     // Exit
     categories.exit().remove();
@@ -212,7 +225,9 @@ export class XMBInterface {
       .style('overflow', 'hidden')
       .style('text-overflow', 'ellipsis')
       .text((d) => d._isPlaceholder ? ''
-        : currentCategory?.type === 'singers' ? d.title : (d.singer_name || d.title));
+        : currentCategory?.type === 'singers' ? d.title
+          : currentCategory?.type === 'artists' ? `${d.title} · ${(d.singers || []).join(' / ')}`
+            : (d.singer_name || d.title));
 
     // Apply active styling (position 1 is always active - like date picker)
     itemEnter.each(function(d, i) {

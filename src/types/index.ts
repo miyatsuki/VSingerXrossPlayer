@@ -15,6 +15,7 @@ export interface Singer {
   id: string;
   name: string;
   avatar_url: string;
+  tags?: string[];
   description?: string;
   ai_characteristics?: AIStats;
 }
@@ -24,6 +25,8 @@ export interface Song {
   title: string;
   video_url: string; // YouTube Video ID
   singer_id: string;
+  singer_name?: string;
+  singers?: string[];
   thumbnail_url?: string;
   ai_tags?: string[];
   ai_stats?: AIStats;
@@ -35,6 +38,7 @@ export interface Song {
   chorus_end_time?: number;    // サビ終了時間（秒）
   original_song_title?: string; // 原曲タイトル
   original_artist_name?: string; // 原曲アーティスト
+  artist_tags?: string[];
   view_count?: number; // 再生数
   like_count?: number; // いいね数
   comment_count?: number; // コメント数
@@ -46,6 +50,8 @@ export interface Category {
   title: string;
   icon?: React.ReactNode;
   avatar_url?: string; // For singer categories
+  tags?: string[];
+  artist?: string;
   items: (Singer | Song)[];
-  type: 'singers' | 'songs' | 'settings' | 'search';
+  type: 'singers' | 'songs' | 'artists' | 'settings' | 'search';
 }

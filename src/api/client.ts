@@ -65,6 +65,19 @@ export interface ApiSingerSummary {
   avatar_url?: string;
 }
 
+export interface SingerMetadata {
+  aliases: Record<string, string>;
+  units: Record<string, string[]>;
+  tags: Record<string, string[]>;
+  artistTags: Record<string, string[]>;
+}
+
+export async function fetchSingerMetadata(): Promise<SingerMetadata> {
+  const response = await fetch(`${import.meta.env.BASE_URL}singer-metadata.json`);
+  if (!response.ok) throw new Error(`Failed to fetch singer metadata: ${response.status}`);
+  return response.json() as Promise<SingerMetadata>;
+}
+
 export async function fetchVideos(): Promise<ApiVideo[]> {
   if (import.meta.env.VITE_DATA_SOURCE === 'api') return fetchVideoPages(API_BASE_URL);
   const response = await fetch(`${import.meta.env.BASE_URL}data/videos.json`);

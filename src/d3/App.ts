@@ -1,5 +1,5 @@
 import { Category, Singer, Song } from '../types';
-import { fetchVideos, fetchSingers, fetchOriginalSongs } from '../api/client';
+import { fetchVideos, fetchSingers, fetchOriginalSongs, fetchSingerMetadata, SingerMetadata } from '../api/client';
 import { NavigationController } from './NavigationController';
 import { XMBInterface } from './XMBInterface';
 import { VideoDetailCard } from './VideoDetailCard';
@@ -7,6 +7,7 @@ import { RadarChart } from './RadarChart';
 import { WordCloud } from './WordCloud';
 import { SingerSimilarity } from '../utils/singerSimilarity';
 import { SingerDiscovery } from './SingerDiscovery';
+import './browseControls.css';
 
 export class App {
   private navigation: NavigationController | null = null;
@@ -16,9 +17,19 @@ export class App {
   private wordCloud: WordCloud | null = null;
 
   private categories: Category[] = [];
-  private categorySets: Record<'songs' | 'singers', Category[]> = { songs: [], singers: [] };
+  private categorySets: Record<'songs' | 'artists' | 'singers', Category[]> = { songs: [], artists: [], singers: [] };
   private browseMode: 'songs' | 'singers' = 'songs';
+  private songGrouping: 'songs' | 'artists' = 'songs';
   private transposeButton: HTMLButtonElement | null = null;
+  private controls: HTMLDivElement | null = null;
+  private searchInput: HTMLInputElement | null = null;
+  private tagSelect: HTMLSelectElement | null = null;
+  private artistSelect: HTMLSelectElement | null = null;
+  private groupingSelect: HTMLSelectElement | null = null;
+  private resultCount: HTMLSpanElement | null = null;
+  private searchText = '';
+  private selectedTag = '';
+  private selectedArtist = '';
   private singers: Singer[] = [];
   private similarity = new SingerSimilarity([]);
   private singerDiscovery: SingerDiscovery | null = null;
@@ -45,6 +56,7 @@ export class App {
       const appContainer = document.getElementById('app');
       if (appContainer) {
         this.createTransposeButton(appContainer);
+        this.createBrowseControls(appContainer);
         this.videoDetailCard = new VideoDetailCard(appContainer);
         this.singerDiscovery = new SingerDiscovery(appContainer, this.similarity,
           () => this.navigation?.disable(), () => this.navigation?.enable());
@@ -62,21 +74,30 @@ export class App {
   }
 
   private async loadData() {
-    const [apiVideos, apiSingers, originalSongs] = await Promise.all([
+    const [rawVideos, apiSingers, originalSongs, metadata] = await Promise.all([
       fetchVideos(),
       fetchSingers(),
       fetchOriginalSongs(),
+      fetchSingerMetadata(),
     ]);
+
+    const apiVideos = rawVideos.map(video => ({
+      ...video,
+      singers: this.expandSingers(video.singers || [], metadata),
+    }));
 
     this.similarity = new SingerSimilarity(apiVideos, originalSongs);
 
     // Build singer map
     const singerMap = new Map<string, Singer>();
-    apiSingers.forEach(s => {
-      singerMap.set(s.name, {
-        id: s.name,
-        name: s.name,
-        avatar_url: s.avatar_url || '',
+    apiSingers.filter(s => !metadata.units[s.name]).forEach(s => {
+      const name = metadata.aliases[s.name] || s.name;
+      const previous = singerMap.get(name);
+      singerMap.set(name, {
+        id: name,
+        name,
+        avatar_url: previous?.avatar_url || s.avatar_url || '',
+        tags: metadata.tags[name] || [],
       });
     });
 
@@ -89,6 +110,7 @@ export class App {
         id: name,
         name,
         avatar_url: '',
+        tags: metadata.tags[name] || [],
       };
       singerMap.set(name, newSinger);
       return newSinger;
@@ -108,12 +130,16 @@ export class App {
         title: songTitle,
         video_url: youtubeId,
         singer_id: singer.id,
+        singers: v.singers,
         published_at: v.published_at,
         ai_stats: v.ai_stats,
         comment_cloud: v.comment_cloud,
         chorus_start_time: v.chorus_start_time,
         chorus_end_time: v.chorus_end_time,
         thumbnail_url: v.thumbnail_url,
+        original_song_title: v.original_song_title,
+        original_artist_name: v.original_artist_name,
+        artist_tags: metadata.artistTags[v.original_artist_name || ''] || metadata.tags[v.original_artist_name || ''] || [],
       });
     });
     const songs = Array.from(songsByVideo.values());
@@ -137,6 +163,8 @@ export class App {
         title: title,
         items: items,
         type: 'songs',
+        artist: covers[0]?.original_artist_name || '',
+        tags: Array.from(new Set(covers.flatMap(cover => cover.artist_tags || []))),
         icon: '🎵',
       };
     });
@@ -157,13 +185,38 @@ export class App {
         id: `cat_singer_${singer.id}`,
         title: singer.name,
         avatar_url: singer.avatar_url,
+        tags: singer.tags,
         items: videosBySinger.get(singer.id)!,
         type: 'singers',
         icon: '🎤',
       }));
 
-    this.categorySets = { songs: songCategories, singers: singerCategories };
-    this.categories = this.categorySets[this.browseMode];
+    const videosByArtist = new Map<string, Song[]>();
+    for (const song of songs) {
+      const artist = song.original_artist_name?.trim() || '原曲アーティスト不明';
+      const artistSongs = videosByArtist.get(artist) || [];
+      artistSongs.push({ ...song, singer_name: singerMap.get(song.singer_id)?.name });
+      videosByArtist.set(artist, artistSongs);
+    }
+    const artistCategories: Category[] = Array.from(videosByArtist, ([artist, items]) => ({
+      id: `cat_artist_${artist}`,
+      title: artist,
+      artist,
+      tags: items[0]?.artist_tags || [],
+      items,
+      type: 'artists',
+      icon: '🎼',
+    }));
+
+    this.categorySets = { songs: songCategories, artists: artistCategories, singers: singerCategories };
+    this.categories = songCategories;
+  }
+
+  private expandSingers(names: string[], metadata: SingerMetadata): string[] {
+    return Array.from(new Set(names.flatMap(name => {
+      const canonical = metadata.aliases[name.trim()] || name.trim();
+      return metadata.units[canonical] || [canonical];
+    }).filter(Boolean)));
   }
 
   private createTransposeButton(parent: HTMLElement) {
@@ -172,13 +225,95 @@ export class App {
     this.transposeButton.className = 'transpose-trigger';
     this.transposeButton.onclick = () => {
       this.browseMode = this.browseMode === 'songs' ? 'singers' : 'songs';
-      this.categories = this.categorySets[this.browseMode];
-      this.xmbInterface?.setCategories(this.categories);
-      this.navigation?.updateCategories(this.categories);
+      this.updateBrowseControls();
+      this.applyFilters();
       this.updateTransposeButton();
     };
     this.updateTransposeButton();
     parent.appendChild(this.transposeButton);
+  }
+
+  private createBrowseControls(parent: HTMLElement) {
+    this.controls = document.createElement('div');
+    this.controls.className = 'browse-controls';
+
+    this.searchInput = document.createElement('input');
+    this.searchInput.type = 'search';
+    this.searchInput.placeholder = '曲名・歌い手・アーティストを検索';
+    this.searchInput.setAttribute('aria-label', '曲名、歌い手、原曲アーティストを検索');
+    this.searchInput.oninput = () => {
+      this.searchText = this.searchInput?.value.trim().normalize('NFKC').toLocaleLowerCase() || '';
+      this.applyFilters();
+    };
+
+    this.groupingSelect = this.makeSelect('楽曲の表示', [
+      ['', '楽曲ごと'], ['artists', '原曲アーティストごと'],
+    ], value => {
+      this.songGrouping = value === 'artists' ? 'artists' : 'songs';
+      this.applyFilters();
+    });
+    this.tagSelect = this.makeSelect('所属・ユニット・レーベル', [
+      ['', 'すべてのタグ'],
+      ...Array.from(new Set([
+        ...this.singers.flatMap(singer => singer.tags || []),
+        ...this.categorySets.artists.flatMap(category => category.tags || []),
+      ]))
+        .sort((a, b) => a.localeCompare(b, 'ja')).map(tag => [tag, tag] as [string, string]),
+    ], value => {
+      this.selectedTag = value;
+      this.applyFilters();
+    });
+    this.artistSelect = this.makeSelect('原曲アーティスト', [
+      ['', 'すべての原曲アーティスト'],
+      ...this.categorySets.artists.map(category => [category.title, category.title] as [string, string]),
+    ], value => {
+      this.selectedArtist = value;
+      this.applyFilters();
+    });
+    this.resultCount = document.createElement('span');
+    this.resultCount.className = 'browse-result-count';
+    this.resultCount.setAttribute('aria-live', 'polite');
+    this.controls.append(this.searchInput, this.groupingSelect, this.tagSelect, this.artistSelect, this.resultCount);
+    parent.appendChild(this.controls);
+    this.updateBrowseControls();
+    this.applyFilters();
+  }
+
+  private makeSelect(label: string, options: [string, string][], onChange: (value: string) => void): HTMLSelectElement {
+    const select = document.createElement('select');
+    select.setAttribute('aria-label', label);
+    for (const [value, text] of options) select.add(new Option(text, value));
+    select.onchange = () => onChange(select.value);
+    return select;
+  }
+
+  private updateBrowseControls() {
+    if (this.groupingSelect) this.groupingSelect.hidden = this.browseMode !== 'songs';
+  }
+
+  private applyFilters() {
+    const mode = this.browseMode === 'singers' ? 'singers' : this.songGrouping;
+    const source = this.categorySets[mode];
+    const matches = (value: string) => value.normalize('NFKC').toLocaleLowerCase().includes(this.searchText);
+    this.categories = source.flatMap(category => {
+      if (mode === 'singers' && this.selectedTag && !category.tags?.includes(this.selectedTag)) return [];
+      const items = category.items.filter(item => {
+        if (!('video_url' in item)) return false;
+        const song = item as Song;
+        if (this.selectedArtist && song.original_artist_name !== this.selectedArtist) return false;
+        if (this.selectedTag && !song.artist_tags?.includes(this.selectedTag)
+          && !song.singers?.some(name => this.singers.find(singer => singer.name === name)?.tags?.includes(this.selectedTag))) return false;
+        if (!this.searchText) return true;
+        const singer = this.singers.find(value => value.id === song.singer_id);
+        return [category.title, song.title, song.original_artist_name || '', singer?.name || '',
+          ...(song.singers || []),
+          ...(category.tags || [])].some(matches);
+      });
+      return items.length ? [{ ...category, items }] : [];
+    });
+    if (this.resultCount) this.resultCount.textContent = `${this.categories.length}件${this.categories.length ? '' : ' — 該当なし'}`;
+    this.navigation?.updateCategories(this.categories);
+    this.xmbInterface?.setCategories(this.categories);
   }
 
   private updateTransposeButton() {
@@ -269,6 +404,7 @@ export class App {
     this.videoDetailCard?.destroy();
     this.singerDiscovery?.destroy();
     this.transposeButton?.remove();
+    this.controls?.remove();
     this.destroyVisualizations();
   }
 }

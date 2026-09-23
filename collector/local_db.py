@@ -53,6 +53,18 @@ class LocalJsonStore:
             raise
 
     def _export_public(self):
+        metadata_path = self.public_dir.parent / "singer-metadata.json"
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8")) if metadata_path.exists() else {}
+        aliases = metadata.get("aliases", {})
+        units = metadata.get("units", {})
+
+        def expand_singers(names):
+            return list(dict.fromkeys(
+                member
+                for name in names
+                for member in units.get(aliases.get(name, name), [aliases.get(name, name)])
+            ))
+
         videos = []
         singer_counts = {}
         singer_latest = {}
@@ -61,7 +73,7 @@ class LocalJsonStore:
             if not records:
                 continue
             first = records[0]
-            singers = list(dict.fromkeys(record["singer_name"] for record in records))
+            singers = expand_singers(record["singer_name"] for record in records)
             videos.append({
                 key: first[key]
                 for key in (

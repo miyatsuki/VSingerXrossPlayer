@@ -160,13 +160,25 @@ export class VideoDetailCard {
         overflow: hidden;
         text-overflow: ellipsis;
       `;
-      line.innerHTML = `<strong style="color: white; font-weight: 600;">${label}:</strong> ${value}`;
+      const heading = document.createElement('strong');
+      heading.style.cssText = 'color: white; font-weight: 600;';
+      heading.textContent = `${label}: `;
+      line.append(heading, document.createTextNode(value));
       metadataBox.appendChild(line);
     };
 
     addMetadataLine('動画名', song.title);
     if (singer?.name) {
       addMetadataLine('チャンネル', singer.name);
+    }
+    if (song.original_artist_name) {
+      addMetadataLine('原曲アーティスト', song.original_artist_name);
+    }
+    if (song.artist_tags?.length) {
+      addMetadataLine('原曲アーティストのタグ', song.artist_tags.join(' · '));
+    }
+    if (singer?.tags?.length) {
+      addMetadataLine('所属・ユニット', singer.tags.join(' · '));
     }
     if (song.published_at) {
       addMetadataLine('投稿日', formatPublishedDate(song.published_at));
