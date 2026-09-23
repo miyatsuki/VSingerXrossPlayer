@@ -94,7 +94,9 @@ export interface ArtistMapPoint {
 const vocalSynthVoices = new Set([
   '初音ミク', '鏡音リン', '鏡音レン', '鏡音リン・レン', '巡音ルカ', 'KAITO',
   'GUMI', 'IA', 'flower', 'Ci flower', 'VY1V4',
-  '可不', '可不（KAFU）', '星界', '裏命', '重音テト', '花隈千冬',
+  '可不', '可不（KAFU）', '星界', '星界（SEKAI）',
+  '裏命', '裏命（RIME）', '狐子', '狐子（COKO）', '羽累', '羽累（HARU）',
+  '重音テト', '花隈千冬',
 ].map(name => name.normalize('NFKC')));
 
 export function groupOriginalArtist(artist?: string): string | undefined {

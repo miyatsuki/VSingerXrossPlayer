@@ -19,6 +19,8 @@
 
 原曲アーティスト名に確認済みの合成音声名が独立した名義として付いている場合は、画面表示・絞り込み・類似マップでその名義を除いて集約します。たとえば `カンザキイオリ / 鏡音リン / 鏡音レン` は `カンザキイオリ` として扱います。確認済みの名前は `src/utils/singerSimilarity.ts` に列挙し、曖昧な名義は残します。収集元の原曲クレジットと原曲IDは変更しません。
 
+[音楽的同位体の公式製品一覧](https://musical-isotope.kamitsubaki.jp/product/)に載る可不・星界・裏命・狐子・羽累も確認済みの合成音声名です。「世界」は「星界」とは別の表記として扱います。歌い手として登録された音楽的同位体には「KAMITSUBAKI STUDIO」と「音楽的同位体」のタグを付けます。
+
 所属とメンバーの確認元: [にじさんじ公式](https://www.nijisanji.jp/)、[RK Music](https://rkmusic.jp/artist/316/)、[HOLOSTARS公式](https://holostars.hololivepro.com/en/talent/)、[ホロライブ公式](https://hololive.hololivepro.com/talents/hoshimachi-suisei/)、[KAMITSUBAKI STUDIO](https://kamitsubaki.jp/artist/kaf/)。
 
 ## 動作環境
